@@ -159,17 +159,6 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
             <option value="light">☀️ Светлая (Light)</option>
         </select>
 
-        <select id="roleSelect" onchange="changeRole()">
-            <option value="normal">🤖 Стандартный (Serik AI)</option>
-            <option value="teacher">👨‍🏫 Строгий учитель</option>
-            <option value="bro">😎 Братан (Друг)</option>
-            <option value="psychologist">🛋️ Психолог (Поддержка)</option>
-        </select>
-
-        <button onclick="startQuiz()" style="background: linear-gradient(135deg, #ff9800, #f57c00);">🎮 Начать викторину</button>
-        
-        <button onclick="toggleFullScreen()" style="background: linear-gradient(135deg, #007bff, #0056b3);">🔲 Целый экран</button>
-
         <button id="voiceBtn" onclick="toggleVoice()">🔇 Голос: ВЫКЛ</button>
         <input type="password" id="adminPass" placeholder="Пароль администратора" oninput="checkAdmin()">
         
@@ -217,13 +206,8 @@ const defaultMemory = {
 let memory = Object.assign({}, defaultMemory);
 let db = null;
 
-const roles = {
-    "normal": "Ты всезнающий ИИ Serik-AI. Отвечай всегда грамотно, четко и развернуто. Будь полезным ассистентом.",
-    "teacher": "Ты строгий и требовательный учитель. Объясняй темы академическим языком и указывай на ошибки.",
-    "bro": "Ты братан, свой пацан с района. Общайся на молодежном сленге, используй слова 'брат', 'жизнь', 'движняк'.",
-    "psychologist": "Ты эмпатичный и добрый психолог. Поддерживай пользователя, давай теплые и мудрые советы."
-};
-let currentSystemPrompt = roles["normal"];
+// Тек Стандартты режим қалды
+let currentSystemPrompt = "Ты всезнающий ИИ Serik-AI. Отвечай всегда грамотно, четко и развернуто. Будь полезным ассистентом.";
 
 if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
@@ -260,19 +244,6 @@ function toggleVoice() {
         btn.innerText = "🔇 Голос: ВЫКЛ";
         btn.classList.remove("active");
         window.speechSynthesis.cancel();
-    }
-}
-
-// --- ЦЕЛЫЙ ЭКРАН (FULLSCREEN) ФУНКЦИЯСЫ ---
-function toggleFullScreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-            alert(`Ошибка при включении полноэкранного режима: ${err.message}`);
-        });
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
     }
 }
 
@@ -377,7 +348,7 @@ function add(text, type, instant = false){
 }
 
 if(chat.children.length === 0) {
-    add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос или запустить викторину! ✨", "ai", false);
+    add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос! ✨", "ai", false);
 }
 
 function levenshteinDistance(a, b) {
@@ -467,19 +438,9 @@ function changeTheme() {
     document.body.className = "theme-" + theme;
 }
 
-function changeRole() {
-    let role = document.getElementById("roleSelect").value;
-    currentSystemPrompt = roles[role];
-    add(`🔄 Режим изменен на: ${document.getElementById("roleSelect").options[document.getElementById("roleSelect").selectedIndex].text}`, "ai", true);
-}
-
 function generateText(prompt) {
     document.getElementById("input").value = prompt;
     send();
-}
-
-function startQuiz() {
-    generateText("Запусти интересную викторину в стиле интеллектуального шоу Google. Задай мне один сложный вопрос с 4 вариантами ответа (A, B, C, D) и жди моего ответа.");
 }
 
 async function searchWebFallback(queryText) {
@@ -523,4 +484,37 @@ async function askSmartAI(queryText) {
             throw new Error("Занят"); 
         }
 
-        if(text
+        if(text && text.length > 5 && !text.toLowerCase().includes("not found")) {
+            return text.trim();
+        }
+    } catch (e) {
+        let backup = await searchWebFallback(queryText);
+        if(backup) return backup;
+    }
+
+    return "❌ Извините, сеть сейчас перегружена. Пожалуйста, попробуйте отправить запрос еще раз через секунду.";
+}
+
+async function send(){
+    let input = document.getElementById("input");
+    let text = input.value.trim();
+    if(!text) return;
+    
+    add(text, "user");
+    input.value = "";
+
+    let res = brain(text);
+    if(res){
+        showLoading();
+        setTimeout(() => { 
+            hideLoading();
+            add(res, "ai");
+        }, 400);
+        return;
+    }
+
+    showLoading();
+    let finalAnswer = await askSmartAI(text);
+    hideLoading();
+    add(finalAnswer, "ai");
+}
