@@ -39,6 +39,10 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .user { background: linear-gradient(135deg, #00b86b, #008f53); margin-left: auto; color: white; border-bottom-right-radius: 4px; }
 .ai { background: linear-gradient(135deg, #2b2b3a, #20202d); margin-right: auto; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
 
+/* Код блоктарының әдемі көрінуі үшін */
+.msg code { background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #ff79c6; }
+.msg pre code { display: block; padding: 10px; overflow-x: auto; color: #fff; background: #141419; border-left: 3px solid #00b86b; }
+
 .row { display: flex; border-top: 1px solid #222; background: #111; padding: 15px; gap: 10px; z-index: 10; box-shadow: 0 -5px 15px rgba(0,0,0,0.3); }
 input, textarea { width: 100%; padding: 14px; border: 1px solid #333; border-radius: 8px; outline: none; background: #16161a; color: white; font-size: 16px; transition: 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
 input:focus, textarea:focus { border-color: #00b86b; box-shadow: 0 0 10px rgba(0,184,107,0.2); }
@@ -59,7 +63,7 @@ textarea { height: 120px; resize: none; }
 .generators button:hover { background: #00b86b; border-color: #00b86b; color: white; }
 
 /* Көшіру батырмасы */
-.copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.3); border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: 0; transition: 0.3s; }
+.copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.3); border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: 0; transition: 0.3s; z-index: 5; }
 .msg.ai:hover .copy-btn { opacity: 1; }
 .copy-btn:hover { background: #00b86b; transform: scale(1.1); }
 
@@ -100,7 +104,7 @@ body.theme-light select { background: #fff; color: #333; border: 1px solid #ccc;
 body.theme-light .row, body.theme-light .generators { background: #fff; border-color: #ddd; }
 body.theme-light input, body.theme-light textarea { background: #fafafa; color: #333; border-color: #ccc; }
 
-/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН АРНАЙЫ СТИЛЬ (КҮШЕЙТІЛГЕН НҰСҚА) */
+/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН АРНАЙЫ СТИЛЬ */
 @media (max-width: 768px) {
     body { flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
     .sidebar { 
@@ -123,14 +127,14 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
         flex-direction: column;
         position: relative;
     }
-    .chat { flex: 1; padding: 10px; padding-bottom: 70px; } /* Инпут астын жауып қалмас үшін бос орын */
+    .chat { flex: 1; padding: 10px; padding-bottom: 70px; }
     .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
     .generators { padding: 6px 10px; }
     .generators button { padding: 5px 10px; font-size: 11px; }
     
     .row { 
         padding: 10px; 
-        position: fixed; /* Экранның ең астына шегелеп бекіту */
+        position: fixed; 
         bottom: 0; 
         left: 0;
         width: 100%;
@@ -199,15 +203,14 @@ const firebaseConfig = {
 
 const defaultMemory = {
     "привет": "Привет! Я готов помочь. Задавай любой вопрос! 👋",
-    "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю длинные и короткие вопросы, ищу информацию в сети, пишу эссе, рефераты и генерирую викторины! 🧠",
+    "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю длинные и короткие вопросы, ищу информацию в сети, пишу эссе, рефераты и код! 🧠",
     "как тебя зовут": "Я Serik-AI Pro. 🤖"
 };
 
 let memory = Object.assign({}, defaultMemory);
 let db = null;
 
-// Тек Стандартты режим қалды
-let currentSystemPrompt = "Ты всезнающий ИИ Serik-AI. Отвечай всегда грамотно, четко и развернуто. Будь полезным ассистентом.";
+let currentSystemPrompt = "Ты всезнающий ИИ Serik-AI. Отвечай всегда грамотно, четко, структурировано и развернуто на языке пользователя. Используй markdown (жирный текст, списки) для красивого оформления ответов.";
 
 if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
@@ -220,6 +223,16 @@ if (firebaseConfig.apiKey) {
 
 const chat = document.getElementById("chat");
 let voiceEnabled = false;
+
+// --- МӘТІНДІ MARKDOWN-ҚА АЙНАЛДЫРУ (Жаңа ИИ миы үшін әдемілеу) ---
+function parseMarkdown(text) {
+    let html = text;
+    html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/^\*\s(.*)$/gm, '• $1');
+    return html;
+}
 
 // --- МЕНЮДІ АШУ/ЖАБУ ФУНКЦИЯСЫ ---
 function toggleSettings() {
@@ -322,11 +335,13 @@ function add(text, type, instant = false){
         if (!instant) {
             let chars = [...text];
             let i = 0;
+            let currentText = "";
             let chunkSize = chars.length > 400 ? 4 : 1;
             
             let timer = setInterval(() => {
                 if (i < chars.length) {
-                    textSpan.innerText += chars.slice(i, i + chunkSize).join('');
+                    currentText += chars.slice(i, i + chunkSize).join('');
+                    textSpan.innerHTML = parseMarkdown(currentText);
                     i += chunkSize;
                     chat.scrollTop = chat.scrollHeight;
                 } else {
@@ -335,7 +350,7 @@ function add(text, type, instant = false){
                 }
             }, 12);
         } else {
-            textSpan.innerText = text;
+            textSpan.innerHTML = parseMarkdown(text);
             if (text.length < 500) speakText(text);
         }
     } else {
@@ -403,6 +418,7 @@ function brain(text) {
     return null;
 }
 
+// Администратор тексеру
 function checkAdmin(){
     let pass = document.getElementById("adminPass").value;
     document.getElementById("adminPanel").style.display = (pass === "nurik777") ? "block" : "none";
@@ -469,52 +485,13 @@ async function searchWebFallback(queryText) {
     } catch(e) { return null; }
 }
 
+// --- ИИ ЖАҢА ОПТИМИЗАЦИЯЛАНҒАН МЫЙЫ (Free Mistral/Llama Neurals) ---
 async function askSmartAI(queryText) {
     if(queryText.toLowerCase().includes("что такое") || queryText.toLowerCase().includes("кто") || queryText.toLowerCase().includes("найди")) {
         let webAnswer = await searchWebFallback(queryText);
         if(webAnswer) return webAnswer;
     }
 
+    // 1-ші негізгі тегін мый (Mistral / OpenAI деңгейлі модель)
     try {
-        let url = `https://text.pollinations.ai/${encodeURIComponent(queryText)}?system=${encodeURIComponent(currentSystemPrompt)}`;
-        let res = await fetch(url);
-        let text = await res.text();
-        
-        if (text.includes('"error"') || text.includes('Queue full') || text.includes('status":429')) {
-            throw new Error("Занят"); 
-        }
-
-        if(text && text.length > 5 && !text.toLowerCase().includes("not found")) {
-            return text.trim();
-        }
-    } catch (e) {
-        let backup = await searchWebFallback(queryText);
-        if(backup) return backup;
-    }
-
-    return "❌ Извините, сеть сейчас перегружена. Пожалуйста, попробуйте отправить запрос еще раз через секунду.";
-}
-
-async function send(){
-    let input = document.getElementById("input");
-    let text = input.value.trim();
-    if(!text) return;
-    
-    add(text, "user");
-    input.value = "";
-
-    let res = brain(text);
-    if(res){
-        showLoading();
-        setTimeout(() => { 
-            hideLoading();
-            add(res, "ai");
-        }, 400);
-        return;
-    }
-
-    showLoading();
-    let finalAnswer = await askSmartAI(text);
-    hideLoading();
-    add(finalAnswer, "ai");
-}
+        let url = `https://text.pollinations.ai/${encodeURIComponent(query
