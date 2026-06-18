@@ -100,41 +100,46 @@ body.theme-light select { background: #fff; color: #333; border: 1px solid #ccc;
 body.theme-light .row, body.theme-light .generators { background: #fff; border-color: #ddd; }
 body.theme-light input, body.theme-light textarea { background: #fafafa; color: #333; border-color: #ccc; }
 
-/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН АРНАЙЫ СТИЛЬ (БЕЙІМДЕЛУ) */
+/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН АРНАЙЫ СТИЛЬ (КҮШЕЙТІЛГЕН НҰСҚА) */
 @media (max-width: 768px) {
-    body { flex-direction: column; height: 100vh; overflow: hidden; }
+    body { flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
     .sidebar { 
         width: 100%; 
         height: auto; 
-        max-height: 140px; 
-        padding: 10px 15px; 
-        gap: 6px;
+        max-height: 120px; 
+        padding: 8px 12px; 
+        gap: 4px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.4);
     }
-    .sidebar h3 { font-size: 18px; margin: 0 0 2px 0; }
-    #menuToggle { padding: 8px 12px; font-size: 14px; }
-    .settings-menu { padding: 10px; gap: 8px; }
+    .sidebar h3 { font-size: 16px; margin: 0 0 2px 0; }
+    #menuToggle { padding: 6px 10px; font-size: 13px; }
+    .settings-menu { padding: 8px; gap: 6px; }
     
     .main { 
         flex: 1; 
-        height: calc(100vh - 140px);
+        height: calc(100vh - 120px);
+        height: calc(100dvh - 120px);
         display: flex;
         flex-direction: column;
+        position: relative;
     }
-    .chat { flex: 1; padding: 12px; }
+    .chat { flex: 1; padding: 10px; padding-bottom: 70px; } /* Инпут астын жауып қалмас үшін бос орын */
     .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
     .generators { padding: 6px 10px; }
-    .generators button { padding: 6px 12px; font-size: 12px; }
+    .generators button { padding: 5px 10px; font-size: 11px; }
     
     .row { 
         padding: 10px; 
-        position: sticky; 
+        position: fixed; /* Экранның ең астына шегелеп бекіту */
         bottom: 0; 
+        left: 0;
+        width: 100%;
         background: #111; 
         border-top: 1px solid #222;
+        z-index: 999;
     }
     input { padding: 10px; font-size: 15px; }
-    button { padding: 10px 16px; font-size: 14px; }
+    button { padding: 10px 14px; font-size: 14px; }
 }
 </style>
 </head>
@@ -518,40 +523,4 @@ async function askSmartAI(queryText) {
             throw new Error("Занят"); 
         }
 
-        if(text && text.length > 5 && !text.toLowerCase().includes("not found")) {
-            return text.trim();
-        }
-    } catch (e) {
-        let backup = await searchWebFallback(queryText);
-        if(backup) return backup;
-    }
-
-    return "❌ Извините, сеть сейчас перегружена. Пожалуйста, попробуйте отправить запрос еще раз через секунду.";
-}
-
-async function send(){
-    let input = document.getElementById("input");
-    let text = input.value.trim();
-    if(!text) return;
-    
-    add(text, "user");
-    input.value = "";
-
-    let res = brain(text);
-    if(res){
-        showLoading();
-        setTimeout(() => { 
-            hideLoading();
-            add(res, "ai");
-        }, 400);
-        return;
-    }
-
-    showLoading();
-    let finalAnswer = await askSmartAI(text);
-    hideLoading();
-    add(finalAnswer, "ai");
-}
-</script>
-</body>
-</html>
+        if(text
