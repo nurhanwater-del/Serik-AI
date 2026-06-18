@@ -2,8 +2,10 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Serik AI Pro | Premium</title>
+
+<meta name="google-site-verification" content="google9a22931bc29d7cd7" />
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -28,7 +30,7 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .settings-menu.open { display: flex; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-.main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; }
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; height: 100vh; }
 .chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; scroll-behavior: smooth; }
 
 /* Хабарлама стильдері */
@@ -98,10 +100,46 @@ body.theme-light select { background: #fff; color: #333; border: 1px solid #ccc;
 body.theme-light .row, body.theme-light .generators { background: #fff; border-color: #ddd; }
 body.theme-light input, body.theme-light textarea { background: #fafafa; color: #333; border-color: #ccc; }
 
+/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН АРНАЙЫ СТИЛЬ (КҮШЕЙТІЛГЕН НҰСҚА) */
 @media (max-width: 768px) {
-    body { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; max-height: 50vh; padding: 15px; }
-    .main { flex: 1; height: 50vh; }
+    body { flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
+    .sidebar { 
+        width: 100%; 
+        height: auto; 
+        max-height: 120px; 
+        padding: 8px 12px; 
+        gap: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    .sidebar h3 { font-size: 16px; margin: 0 0 2px 0; }
+    #menuToggle { padding: 6px 10px; font-size: 13px; }
+    .settings-menu { padding: 8px; gap: 6px; }
+    
+    .main { 
+        flex: 1; 
+        height: calc(100vh - 120px);
+        height: calc(100dvh - 120px);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+    .chat { flex: 1; padding: 10px; padding-bottom: 70px; } /* Инпут астын жауып қалмас үшін бос орын */
+    .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
+    .generators { padding: 6px 10px; }
+    .generators button { padding: 5px 10px; font-size: 11px; }
+    
+    .row { 
+        padding: 10px; 
+        position: fixed; /* Экранның ең астына шегелеп бекіту */
+        bottom: 0; 
+        left: 0;
+        width: 100%;
+        background: #111; 
+        border-top: 1px solid #222;
+        z-index: 999;
+    }
+    input { padding: 10px; font-size: 15px; }
+    button { padding: 10px 14px; font-size: 14px; }
 }
 </style>
 </head>
@@ -120,17 +158,6 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
             <option value="cyberpunk">🌃 Киберпанк</option>
             <option value="light">☀️ Светлая (Light)</option>
         </select>
-
-        <select id="roleSelect" onchange="changeRole()">
-            <option value="normal">🤖 Стандартный (Serik AI)</option>
-            <option value="teacher">👨‍🏫 Строгий учитель</option>
-            <option value="bro">😎 Братан (Друг)</option>
-            <option value="psychologist">🛋️ Психолог (Поддержка)</option>
-        </select>
-
-        <button onclick="startQuiz()" style="background: linear-gradient(135deg, #ff9800, #f57c00);">🎮 Начать викторину</button>
-        
-        <button onclick="toggleFullScreen()" style="background: linear-gradient(135deg, #007bff, #0056b3);">🔲 Целый экран</button>
 
         <button id="voiceBtn" onclick="toggleVoice()">🔇 Голос: ВЫКЛ</button>
         <input type="password" id="adminPass" placeholder="Пароль администратора" oninput="checkAdmin()">
@@ -179,13 +206,8 @@ const defaultMemory = {
 let memory = Object.assign({}, defaultMemory);
 let db = null;
 
-const roles = {
-    "normal": "Ты всезнающий ИИ Serik-AI. Отвечай всегда грамотно, четко и развернуто. Будь полезным ассистентом.",
-    "teacher": "Ты строгий и требовательный учитель. Объясняй темы академическим языком и указывай на ошибки.",
-    "bro": "Ты братан, свой пацан с района. Общайся на молодежном сленге, используй слова 'брат', 'жизнь', 'движняк'.",
-    "psychologist": "Ты эмпатичный и добрый психолог. Поддерживай пользователя, давай теплые и мудрые советы."
-};
-let currentSystemPrompt = roles["normal"];
+// Тек Стандартты режим қалды
+let currentSystemPrompt = "Ты всезнающий ИИ Serik-AI. Отвечай всегда грамотно, четко и развернуто. Будь полезным ассистентом.";
 
 if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
@@ -225,31 +247,16 @@ function toggleVoice() {
     }
 }
 
-// --- ЦЕЛЫЙ ЭКРАН (FULLSCREEN) ФУНКЦИЯСЫ ---
-function toggleFullScreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-            alert(`Ошибка при включении полноэкранного режима: ${err.message}`);
-        });
-    } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
-    }
-}
-
 // --- ҚҰЛАҚҚА ЖАҒЫМДЫ ТАБИҒИ AI ДАУЫСЫ ФУНКЦИЯСЫ ---
 function speakText(text) {
     if (!voiceEnabled) return;
     window.speechSynthesis.cancel(); 
 
-    // Эмодзилер мен артық техникалық белгілерді тазалау
     let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '');
     cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ');
     
     let speech = new SpeechSynthesisUtterance(cleanText);
     
-    // Тілді тану (Мәтінде қазақша әріптер болса қазақша, әйтпесе орысша сөйлейді)
     if (/[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text)) {
         speech.lang = 'kk-KZ';
     } else {
@@ -258,7 +265,6 @@ function speakText(text) {
     
     let voices = window.speechSynthesis.getVoices();
     
-    // Ең сапалы Google табиғи дауыстарын іздеу (ChatGPT/Gemini стиліндегі жағымды дауыс)
     let premiumVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]) && 
         (/google|natural|premium|neural|microsoft|yuri|pavel/i.test(v.name))
     );
@@ -266,18 +272,16 @@ function speakText(text) {
     if (premiumVoice) {
         speech.voice = premiumVoice;
     } else {
-        // Егер премиум дауыс табылмаса, жүйедегі ең бірінші қолайлы дауысты алу
         let defaultLangVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]));
         if (defaultLangVoice) speech.voice = defaultLangVoice;
     }
     
-    speech.pitch = 1.0; // Табиғи тембр
-    speech.rate = 1.05; // Сәл ғана жылдамдатылған жағымды сөйлеу қарқыны
+    speech.pitch = 1.0; 
+    speech.rate = 1.05; 
     
     window.speechSynthesis.speak(speech);
 }
 
-// Дауыстар тізімін браузер жүктеген кезде дайындау
 window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 
 let loadingIndicator = null;
@@ -344,10 +348,9 @@ function add(text, type, instant = false){
 }
 
 if(chat.children.length === 0) {
-    add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос или запустить викторину! ✨", "ai", false);
+    add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос! ✨", "ai", false);
 }
 
-// --- ҚАТЕ ТҮЗЕТУ АЛГОРИТМІ (Левенштейн) ---
 function levenshteinDistance(a, b) {
     if (a.length === 0) return b.length;
     if (b.length === 0) return a.length;
@@ -370,7 +373,6 @@ function levenshteinDistance(a, b) {
     return matrix[b.length][a.length];
 }
 
-// --- ҚАТЕНІ ЖӘНЕ ПРОБЕЛДІ ТҮСІНЕТІН BRAIN ФУНКЦИЯСЫ ---
 function brain(text) {
     let q = text.toLowerCase().trim();
     let qNoSpace = q.replace(/\s+/g, ""); 
@@ -436,19 +438,9 @@ function changeTheme() {
     document.body.className = "theme-" + theme;
 }
 
-function changeRole() {
-    let role = document.getElementById("roleSelect").value;
-    currentSystemPrompt = roles[role];
-    add(`🔄 Режим изменен на: ${document.getElementById("roleSelect").options[document.getElementById("roleSelect").selectedIndex].text}`, "ai", true);
-}
-
 function generateText(prompt) {
     document.getElementById("input").value = prompt;
     send();
-}
-
-function startQuiz() {
-    generateText("Запусти интересную викторину в стиле интеллектуального шоу Google. Задай мне один сложный вопрос с 4 вариантами ответа (A, B, C, D) и жди моего ответа.");
 }
 
 async function searchWebFallback(queryText) {
