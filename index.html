@@ -12,7 +12,7 @@
 
 <style>
 * { box-sizing: border-box; }
-body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0f0f14; color: white; display: flex; height: 100vh; overflow: hidden; transition: background 0.4s, color 0.4s; }
+body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0f0f14; color: white; display: flex; height: 100vh; height: 100dvh; overflow: hidden; transition: background 0.4s, color 0.4s; }
 
 /* Скроллбар стилі */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -30,7 +30,7 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .settings-menu.open { display: flex; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-.main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; height: 100vh; }
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; height: 100%; }
 .chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; scroll-behavior: smooth; }
 
 /* Хабарлама стильдері */
@@ -104,46 +104,42 @@ body.theme-light select { background: #fff; color: #333; border: 1px solid #ccc;
 body.theme-light .row, body.theme-light .generators { background: #fff; border-color: #ddd; }
 body.theme-light input, body.theme-light textarea { background: #fafafa; color: #333; border-color: #ccc; }
 
-/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН АРНАЙЫ СТИЛЬ */
+/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН КЕМЕЛДЕНДІРІЛГЕН СТИЛЬ (КЛАВИАТУРА ҚАТЕСІ ТҮЗЕТІЛДІ) */
 @media (max-width: 768px) {
     body { flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
     .sidebar { 
         width: 100%; 
         height: auto; 
-        max-height: 120px; 
-        padding: 8px 12px; 
-        gap: 4px;
+        max-height: 40vh; 
+        padding: 10px; 
+        gap: 6px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        flex: 0 0 auto; /* Сыртқы өлшем өзгерсе де қысылып қалмайды */
     }
-    .sidebar h3 { font-size: 16px; margin: 0 0 2px 0; }
-    #menuToggle { padding: 6px 10px; font-size: 13px; }
-    .settings-menu { padding: 8px; gap: 6px; }
+    .sidebar h3 { font-size: 16px; margin: 0 0 4px 0; }
+    #menuToggle { padding: 8px 12px; font-size: 13px; }
+    .settings-menu { padding: 10px; gap: 6px; }
     
     .main { 
         flex: 1; 
-        height: calc(100vh - 120px);
-        height: calc(100dvh - 120px);
+        min-height: 0; /* Клавиатура шыққанда чаттың дұрыс сығылуы үшін маңызды */
         display: flex;
         flex-direction: column;
         position: relative;
     }
-    .chat { flex: 1; padding: 10px; padding-bottom: 70px; }
+    .chat { flex: 1; padding: 12px; }
     .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
-    .generators { padding: 6px 10px; }
-    .generators button { padding: 5px 10px; font-size: 11px; }
+    .generators { padding: 8px 10px; }
+    .generators button { padding: 6px 12px; font-size: 12px; }
     
     .row { 
         padding: 10px; 
-        position: fixed; 
-        bottom: 0; 
-        left: 0;
-        width: 100%;
         background: #111; 
         border-top: 1px solid #222;
-        z-index: 999;
+        flex: 0 0 auto;
     }
-    input { padding: 10px; font-size: 15px; }
-    button { padding: 10px 14px; font-size: 14px; }
+    input { padding: 12px; font-size: 15px; }
+    button { padding: 12px 16px; font-size: 14px; }
 }
 </style>
 </head>
@@ -224,9 +220,12 @@ if (firebaseConfig.apiKey) {
 const chat = document.getElementById("chat");
 let voiceEnabled = false;
 
-// --- МӘТІНДІ MARKDOWN-ҚА АЙНАЛДЫРУ (Жаңа ИИ миы үшін әдемілеу) ---
+// --- МӘТІНДІ MARKDOWN-ҚА ҚАУІПСІЗ АЙНАЛДЫРУ (ЖӨНДЕЛДІ 🛠️) ---
 function parseMarkdown(text) {
-    let html = text;
+    // HTML тегтер сайт интерфейсін бұзып кетпеуі үшін қорғаныс (XSS-тен қорғау)
+    let escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    
+    let html = escaped;
     html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
     html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
     html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
@@ -372,7 +371,8 @@ function levenshteinDistance(a, b) {
     let matrix = [];
     for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
     for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
-    for (let i = 1; i <= b.length; i++) {
+    for (let i = 1; i <= b.length; i
+++ {
         for (let j = 1; j <= a.length; j++) {
             if (b.charAt(i - 1) === a.charAt(j - 1)) {
                 matrix[i][j] = matrix[i - 1][j - 1];
@@ -418,7 +418,6 @@ function brain(text) {
     return null;
 }
 
-// Администратор тексеру
 function checkAdmin(){
     let pass = document.getElementById("adminPass").value;
     document.getElementById("adminPanel").style.display = (pass === "nurik777") ? "block" : "none";
@@ -485,13 +484,61 @@ async function searchWebFallback(queryText) {
     } catch(e) { return null; }
 }
 
-// --- ИИ ЖАҢА ОПТИМИЗАЦИЯЛАНҒАН МЫЙЫ (Free Mistral/Llama Neurals) ---
 async function askSmartAI(queryText) {
     if(queryText.toLowerCase().includes("что такое") || queryText.toLowerCase().includes("кто") || queryText.toLowerCase().includes("найди")) {
         let webAnswer = await searchWebFallback(queryText);
         if(webAnswer) return webAnswer;
     }
 
-    // 1-ші негізгі тегін мый (Mistral / OpenAI деңгейлі модель)
     try {
-        let url = `https://text.pollinations.ai/${encodeURIComponent(query
+        let url = `https://text.pollinations.ai/${encodeURIComponent(queryText)}?model=openai&system=${encodeURIComponent(currentSystemPrompt)}`;
+        let res = await fetch(url);
+        let text = await res.text();
+        
+        if (text && text.length > 2 && !text.includes('"error"') && !text.includes('Queue full') && !text.includes('status":429')) {
+            return text.trim();
+        }
+        throw new Error("Ошибка");
+    } catch (e) {
+        try {
+            let backupUrl = `https://text.pollinations.ai/${encodeURIComponent(queryText)}?model=mistral&system=${encodeURIComponent(currentSystemPrompt)}`;
+            let resBackup = await fetch(backupUrl);
+            let textBackup = await resBackup.text();
+            if (textBackup && textBackup.length > 2 && !textBackup.includes('"error"')) {
+                return textBackup.trim();
+            }
+        } catch(err) {
+            let wikipediaBackup = await searchWebFallback(queryText);
+            if(wikipediaBackup) return wikipediaBackup;
+        }
+    }
+
+    return "❌ Сеть сейчас перегружена. Пожалуйста, попробуйте отправить запрос еще раз через пару секунд.";
+}
+
+async function send(){
+    let input = document.getElementById("input");
+    let text = input.value.trim();
+    if(!text) return;
+    
+    add(text, "user");
+    input.value = "";
+
+    let res = brain(text);
+    if(res){
+        showLoading();
+        setTimeout(() => { 
+            hideLoading();
+            add(res, "ai");
+        }, 400);
+        return;
+    }
+
+    showLoading();
+    let finalAnswer = await askSmartAI(text);
+    hideLoading();
+    add(finalAnswer, "ai");
+}
+</script>
+</body>
+</html>
