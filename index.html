@@ -2,8 +2,10 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Serik AI Pro | Premium</title>
+
+<meta name="google-site-verification" content="google9a22931bc29d7cd7" />
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -28,7 +30,7 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .settings-menu.open { display: flex; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-.main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; }
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; height: 100vh; }
 .chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; scroll-behavior: smooth; }
 
 /* Хабарлама стильдері */
@@ -98,10 +100,41 @@ body.theme-light select { background: #fff; color: #333; border: 1px solid #ccc;
 body.theme-light .row, body.theme-light .generators { background: #fff; border-color: #ddd; }
 body.theme-light input, body.theme-light textarea { background: #fafafa; color: #333; border-color: #ccc; }
 
+/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН АРНАЙЫ СТИЛЬ (БЕЙІМДЕЛУ) */
 @media (max-width: 768px) {
-    body { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; max-height: 50vh; padding: 15px; }
-    .main { flex: 1; height: 50vh; }
+    body { flex-direction: column; height: 100vh; overflow: hidden; }
+    .sidebar { 
+        width: 100%; 
+        height: auto; 
+        max-height: 140px; 
+        padding: 10px 15px; 
+        gap: 6px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    .sidebar h3 { font-size: 18px; margin: 0 0 2px 0; }
+    #menuToggle { padding: 8px 12px; font-size: 14px; }
+    .settings-menu { padding: 10px; gap: 8px; }
+    
+    .main { 
+        flex: 1; 
+        height: calc(100vh - 140px);
+        display: flex;
+        flex-direction: column;
+    }
+    .chat { flex: 1; padding: 12px; }
+    .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
+    .generators { padding: 6px 10px; }
+    .generators button { padding: 6px 12px; font-size: 12px; }
+    
+    .row { 
+        padding: 10px; 
+        position: sticky; 
+        bottom: 0; 
+        background: #111; 
+        border-top: 1px solid #222;
+    }
+    input { padding: 10px; font-size: 15px; }
+    button { padding: 10px 16px; font-size: 14px; }
 }
 </style>
 </head>
@@ -243,13 +276,11 @@ function speakText(text) {
     if (!voiceEnabled) return;
     window.speechSynthesis.cancel(); 
 
-    // Эмодзилер мен артық техникалық белгілерді тазалау
     let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '');
     cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ');
     
     let speech = new SpeechSynthesisUtterance(cleanText);
     
-    // Тілді тану (Мәтінде қазақша әріптер болса қазақша, әйтпесе орысша сөйлейді)
     if (/[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text)) {
         speech.lang = 'kk-KZ';
     } else {
@@ -258,7 +289,6 @@ function speakText(text) {
     
     let voices = window.speechSynthesis.getVoices();
     
-    // Ең сапалы Google табиғи дауыстарын іздеу (ChatGPT/Gemini стиліндегі жағымды дауыс)
     let premiumVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]) && 
         (/google|natural|premium|neural|microsoft|yuri|pavel/i.test(v.name))
     );
@@ -266,18 +296,16 @@ function speakText(text) {
     if (premiumVoice) {
         speech.voice = premiumVoice;
     } else {
-        // Егер премиум дауыс табылмаса, жүйедегі ең бірінші қолайлы дауысты алу
         let defaultLangVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]));
         if (defaultLangVoice) speech.voice = defaultLangVoice;
     }
     
-    speech.pitch = 1.0; // Табиғи тембр
-    speech.rate = 1.05; // Сәл ғана жылдамдатылған жағымды сөйлеу қарқыны
+    speech.pitch = 1.0; 
+    speech.rate = 1.05; 
     
     window.speechSynthesis.speak(speech);
 }
 
-// Дауыстар тізімін браузер жүктеген кезде дайындау
 window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 
 let loadingIndicator = null;
@@ -347,7 +375,6 @@ if(chat.children.length === 0) {
     add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос или запустить викторину! ✨", "ai", false);
 }
 
-// --- ҚАТЕ ТҮЗЕТУ АЛГОРИТМІ (Левенштейн) ---
 function levenshteinDistance(a, b) {
     if (a.length === 0) return b.length;
     if (b.length === 0) return a.length;
@@ -370,7 +397,6 @@ function levenshteinDistance(a, b) {
     return matrix[b.length][a.length];
 }
 
-// --- ҚАТЕНІ ЖӘНЕ ПРОБЕЛДІ ТҮСІНЕТІН BRAIN ФУНКЦИЯСЫ ---
 function brain(text) {
     let q = text.toLowerCase().trim();
     let qNoSpace = q.replace(/\s+/g, ""); 
