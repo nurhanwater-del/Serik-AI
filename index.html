@@ -518,6 +518,21 @@ async function send(){
     add(text, "user");
     input.value = "";
 
+    // --- МАТЕМАТИКАЛЫҚ ЕСЕПТЕРДІ ТЕКСЕРУ ---
+    if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
+        showLoading();
+        try {
+            let mathResult = eval(text);
+            setTimeout(() => { 
+                hideLoading();
+                add(`🧮 Ответ: ${mathResult}`, "ai");
+            }, 300);
+            return;
+        } catch(e) {
+            // қате кетсе ИИ өзі жалғастырады
+        }
+    }
+
     let res = brain(text);
     if(res){
         showLoading();
@@ -533,6 +548,7 @@ async function send(){
     hideLoading();
     add(finalAnswer, "ai");
 }
+
 </script>
 </body>
 </html>
