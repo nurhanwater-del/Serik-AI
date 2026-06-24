@@ -485,7 +485,7 @@ async function searchWebFallback(queryText) {
 }
 
 async function askSmartAI(queryText) {
-    // 1. Сөйлесу тарихын жаңарту
+    // 1. Тарихты жаңарту
     chatHistory.push({ role: "user", content: queryText });
     if (chatHistory.length > 10) chatHistory.shift();
 
@@ -493,54 +493,55 @@ async function askSmartAI(queryText) {
 
     // Тілді анықтау
     let detectedLang = "казахский";
-    if (/[а-яА-Я]/.test(queryText) && !/[әғқңөұүіІӘҒҚҢӨҰҮ]/.test(queryText)) {
+    if (/[әғқңөұүіІӘҒҚҢӨҰҮ]/.test(queryText)) {
+        detectedLang = "казахский";
+    } else if (/[а-яА-Я]/.test(queryText)) {
         detectedLang = "русский";
-    } else if (/[a-zA-Z]/.test(queryText) && !/[а-яА-Яәғқңөұүі]/.test(queryText)) {
+    } else if (/[a-zA-Z]/.test(queryText)) {
         detectedLang = "английский";
     }
 
-    // 2. Қысқа диалогты анықтау
+    // 2. Сәлемдесу және қысқа фразаларды сүзгіден өткізу
     const shortPhrases = [
-        "салем", "сәлем", "привет", "калайсын", "қалайсың", "как дела", "не хабар", "не істеп", 
-        "что делаешь", "hi", "hello", "ок", "хорошо", "рахмет", "спасибо", "кимсин", "кімсің", "кто ты"
+        "салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", 
+        "как дела", "не хабар", "не істеп", "what's up", "kimsin", "кімсің"
     ];
     
-    let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) || queryText.length < 10;
+    let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) && queryText.length < 20;
 
+    // Егер сәлемдесу болса, модельдерді қиналдырмай, бірден жауап береді
     if (isShortDialogue) {
+        let greetingPrompt = `You are Serik AI. User said: "${queryText}". Respond in ${detectedLang} as a friendly, concise assistant. Do NOT give long information. Just be polite.`;
         try {
-            let context = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Serik'}: ${h.content}`).join("\n");
-            let quickPrompt = `System Instruction: ${currentSystemPrompt}\nLanguage: ${detectedLang}\nContext:\n${context}\n\nRespond naturally in ${detectedLang}. Keep it short.`;
-            
-            let res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(quickPrompt)}?model=openai`);
+            let res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(greetingPrompt)}?model=openai`);
             let text = await res.text();
             if (text && !text.toLowerCase().includes("not found")) {
                 chatHistory.push({ role: "assistant", content: text.trim() });
                 return text.trim();
             }
-        } catch (e) { 
-            console.log("Error in quick dialogue"); 
-        }
+        } catch (e) { return "Сәлем! Қалың қалай?"; }
     }
 
-    // 🧠 АДАМ СИЯҚТЫ ОЙЛАНУ БЛОГЫ (Chain of Thought)
-    console.log("Жүйе: Ішкі ойлану процесі іске қосылды...");
-    let reasoningPrompt = `You are Serik AI. Before answering, think step-by-step like a human expert. Analyze the user's core intent, required facts, and logical structure.
-User Query: ${queryText}
-Write a very brief 2-sentence internal reasoning/thoughts strictly in English language.`;
+    // 3. Терең ойлану (Chain of Thought) - Күрделі сұрақтар үшін
+    console.log("🧠 Ойлану процесі басталды...");
+    let reasoningPrompt = `Analyze this user query: "${queryText}". 
+    Think step-by-step to understand the core intent. 
+    Write a brief 1-sentence internal logic plan to answer this effectively. 
+    Language of thought: English.`;
 
-    let reasoningText = "";
+    let reasoningText = "Provide a comprehensive and accurate answer.";
     try {
         let reasonRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(reasoningPrompt)}?model=openai`);
         reasoningText = await reasonRes.text();
-        console.log("🧠 Серіктің ішкі ойы:", reasoningText);
-    } catch (e) {
-        reasoningText = "Analyze carefully and provide a logical response.";
-    }
+    } catch (e) { reasoningText = "Analyze and answer accurately."; }
 
-    // 3. Күрделі сұрақтарды өңдеу (Ойлану нәтижесін модельдерге қосып жібереміз)
+    // 4. Үш модельден жауап алу (OpenAI, Llama, Mistral)
     let context = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Serik'}: ${h.content}`).join("\n");
-    let fullPrompt = `System Instruction: ${currentSystemPrompt}\nLanguage: ${detectedLang}\nInternal Thoughts: ${reasoningText}\nContext:\n${context}\n\nTask: Detailed expert answer in ${detectedLang}.`;
+    let fullPrompt = `System: You are Serik AI.
+    Context: ${context}
+    Internal Logic Guide: ${reasoningText}
+    Task: Provide an expert, human-like response in ${detectedLang}. 
+    Focus on accuracy and logical structure.`;
 
     let answers = await Promise.allSettled([
         fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`).then(r => r.text()),
@@ -548,28 +549,22 @@ Write a very brief 2-sentence internal reasoning/thoughts strictly in English la
         fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=mistral`).then(r => r.text())
     ]);
 
-    let validAnswers = [];
-    answers.forEach((ans, index) => {
-        if (ans.status === "fulfilled" && ans.value && !ans.value.toLowerCase().includes("not found")) {
-            validAnswers.push(`[Source ${index + 1}]:\n${ans.value.trim()}`);
-        }
-    });
+    let validAnswers = answers
+        .filter(a => a.status === "fulfilled" && a.value && !a.value.toLowerCase().includes("not found"))
+        .map(a => a.value.trim());
 
-    if (validAnswers.length === 0) {
-        return "❌ Ошибка соединения с ИИ. Попробуйте еще раз.";
-    }
+    if (validAnswers.length === 0) return "❌ Кешір, Серік қазір ойлана алмай тұр. Тағы байқап көрші.";
 
-    // 4. Синтезатор
-    let combinedText = validAnswers.join("\n\n");
-    let synthesizerPrompt = `You are the final synthesis engine of Serik AI. Merge the responses into one flawless, wise, human-like answer.
-Rules:
-1. Write strictly in ${detectedLang} language. Do not mix languages.
-2. Use the logical guidance from these internal thoughts: ${reasoningText}
-3. Beautiful markdown formatting.
-
-User Query: ${queryText}
-Content:
-${combinedText}`;
+    // 5. Синтезатор (Қорытындылау)
+    let synthesizerPrompt = `You are the master synthesis engine. Merge these 3 perspectives into one perfect, highly intelligent response in ${detectedLang}.
+    Follow this logical guide: ${reasoningText}
+    
+    Inputs:
+    1: ${validAnswers[0]}
+    2: ${validAnswers[1] || "N/A"}
+    3: ${validAnswers[2] || "N/A"}
+    
+    Output strictly in ${detectedLang} with beautiful formatting.`;
 
     try {
         let finalRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(synthesizerPrompt)}?model=openai`);
@@ -579,14 +574,11 @@ ${combinedText}`;
             chatHistory.push({ role: "assistant", content: finalContent.trim() });
             return finalContent.trim();
         }
-    } catch (e) {
-        console.log("Error in synthesis");
-    }
+    } catch (e) { console.log("Synthesis error"); }
 
-    let fallbackAnswer = validAnswers[0].split("]:\n")[1] || validAnswers[0];
-    chatHistory.push({ role: "assistant", content: fallbackAnswer.trim() });
-    return fallbackAnswer.trim();
-  }
+    return validAnswers[0];
+}
+
 
 async function send(){
     let input = document.getElementById("input");
