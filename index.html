@@ -166,6 +166,14 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
             <option value="light">☀️ Светлая (Light)</option>
         </select>
 
+        <!-- ЖАҢА ҚОСЫЛҒАН ТІЛ ТАҢДАУ МӘЗІРІ -->
+        <select id="langSelect">
+            <option value="auto">🌍 Тіл: Авто (Автоматты)</option>
+            <option value="казахский">🇰🇿 Қазақша</option>
+            <option value="русский">🇷🇺 Русский</option>
+            <option value="английский">🇬🇧 English</option>
+        </select>
+
         <button id="voiceBtn" onclick="toggleVoice()">🔇 Голос: ВЫКЛ</button>
         <input type="password" id="adminPass" placeholder="Пароль администратора" oninput="checkAdmin()">
         
@@ -190,7 +198,7 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
 
     <div class="row">
         <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Очистить чат">🗑️</button>
-        <input id="input" placeholder="Введите ваш вопрос..." onkeydown="if(event.key==='Enter') send()">
+        <input id="input" placeholder="Введите ваш вопрос..." autocomplete="off" onkeydown="if(event.key==='Enter') send()">
         <button onclick="send()">Отправить</button>
     </div>
 </div>
@@ -210,10 +218,17 @@ const firebaseConfig = {
   storageBucket: "serik-ai.appspot.com"
 };
 
+// ЖАҢАРТЫЛДЫ: Авторға қатысты сұрақтар жадыға (memory) енгізілді.
+// Енді бұл сұрақтарға ИИ интернетті күтпей 1 секундта жауап береді.
 const defaultMemory = {
     "привет": "Привет! Я готов помочь. Задавай любой вопрос! 👋",
     "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю длинные и короткие вопросы, ищу информацию в сети, пишу эссе, рефераты! 🧠",
-    "как тебя зовут": "Я Serik-AI . 🤖"
+    "как тебя зовут": "Я Serik-AI . 🤖",
+    "сені кім ойлап тапты": "Мені Қазақстанның талантты әзірлеушілері жасап шығарды! 🇰🇿",
+    "сені кім жасады": "Мені Қазақстанның талантты әзірлеушілері жасап шығарды! 🇰🇿",
+    "кім ойлап тапты сені": "Мені Қазақстанның талантты әзірлеушілері жасап шығарды! 🇰🇿",
+    "кто тебя создал": "Меня создали талантливые разработчики из Казахстана! 🇰🇿",
+    "кто твой создатель": "Меня создали талантливые разработчики из Казахстана! 🇰🇿"
 };
 
 let memory = Object.assign({}, defaultMemory);
@@ -386,6 +401,7 @@ function brain(text) {
     let q = text.toLowerCase().trim();
     let qNoSpace = q.replace(/\s+/g, ""); 
     
+    // Егер нақты сәйкестік болса
     if(memory[q]) return memory[q];
 
     let bestMatch = null;
@@ -445,7 +461,6 @@ function generateText(prompt) {
     send();
 }
 
-// Резервтік іздеу функциясы (Егер API істен шықса қате бермеуі үшін)
 async function searchWebFallback(queryText) {
     console.log("Жүйе: Резервтік іздеу іске қосылды...");
     return null;
@@ -457,16 +472,25 @@ async function askSmartAI(queryText) {
 
     let textLower = queryText.toLowerCase().trim();
 
-    let detectedLang = "казахский";
-    if (/[а-яА-Я]/.test(queryText) && !/[әғқңөұүіІӘҒҚҢӨҰҮ]/.test(queryText)) {
-        detectedLang = "русский";
-    } else if (/[a-zA-Z]/.test(queryText) && !/[а-яА-Яәғқңөұүі]/.test(queryText)) {
-        detectedLang = "английский";
+    // ЖАҢАРТЫЛДЫ: Тіл таңдау логикасы
+    let langChoice = document.getElementById("langSelect").value;
+    let detectedLang = "казахский"; 
+
+    if (langChoice !== "auto") {
+        detectedLang = langChoice; // Адам таңдаған тілді қолдану
+    } else {
+        // Егер "Авто" тұрса, бұрынғыдай өзі анықтайды
+        if (/[а-яА-Я]/.test(queryText) && !/[әғқңөұүіІӘҒҚҢӨҰҮ]/.test(queryText)) {
+            detectedLang = "русский";
+        } else if (/[a-zA-Z]/.test(queryText) && !/[а-яА-Яәғқңөұүі]/.test(queryText)) {
+            detectedLang = "английский";
+        }
     }
 
     const shortPhrases = [
         "салем", "сәлем", "привет", "калайсын", "қалайсың", "как дела", "не хабар", "не істеп", 
-        "что делаешь", "hi", "hello", "ок", "хорошо", "рахмет", "спасибо", "кимсин", "кімсің", "кто ты"
+        "что делаешь", "hi", "hello", "ок", "хорошо", "рахмет", "спасибо", "кимсин", "кімсің", "кто ты",
+        "сені кім ойлап тапты", "кім жасады", "создатель"
     ];
     
     let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) || queryText.length < 10;
@@ -488,7 +512,7 @@ async function askSmartAI(queryText) {
 
     console.log("Жүйе: Күрделі сұрақ анықталды...");
     let context = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Serik'}: ${h.content}`).join("\n");
-    let fullPrompt = `System Instruction: ${currentSystemPrompt}\nLanguage: ${detectedLang}\nContext:\n${context}\n\nTask: Provide a detailed answer in ${detectedLang}.`;
+    let fullPrompt = `System Instruction: ${currentSystemPrompt}\nLanguage: ${detectedLang}\nContext:\n${context}\n\nTask: Provide a detailed answer strictly in ${detectedLang} language.`;
 
     let answers = await Promise.allSettled([
         fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`).then(r => r.text()),
@@ -506,7 +530,7 @@ async function askSmartAI(queryText) {
     if (validAnswers.length === 0) {
         let backup = await searchWebFallback(queryText);
         if (backup) return backup;
-        return "❌ Қате орын алды. Қайтадан байқап көріңіз.";
+        return "❌ Желіде қате орын алды немесе сұрақ тым күрделі болды. Сәл күтіп, қайтадан жазып көріңіз.";
     }
 
     console.log("Жүйе: Синтез процесі...");
@@ -515,6 +539,7 @@ async function askSmartAI(queryText) {
 STRICT RULES:
 1. Write strictly in ${detectedLang} language. Do not mix languages.
 2. Formulate beautiful, professional, and well-structured markdown paragraphs.
+3. If asked about your creator, say you were created by talented developers from Kazakhstan.
 
 User Query: ${queryText}
 Input Content to Synthesize:
@@ -535,7 +560,6 @@ ${combinedText}`;
     return fallbackAnswer.trim();
 }
 
-// --- ЕҢ БАСТЫ ЖІБЕРУ (SEND) ФУНКЦИЯСЫ ---
 async function send() {
     let inputEl = document.getElementById("input");
     let text = inputEl.value.trim();
@@ -544,7 +568,6 @@ async function send() {
     add(text, "user");
     inputEl.value = "";
 
-    // --- МАТЕМАТИКАЛЫҚ ЕСЕПТЕРДІ ТЕКСЕРУ ---
     if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
         showLoading();
         try {
@@ -554,9 +577,7 @@ async function send() {
                 add(`🧮 Ответ: ${mathResult}`, "ai");
             }, 300);
             return;
-        } catch(e) {
-            // қате кетсе ИИ өзі жалғастырады
-        }
+        } catch(e) { }
     }
 
     let res = brain(text);
