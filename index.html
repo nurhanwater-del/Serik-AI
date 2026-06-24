@@ -490,79 +490,101 @@ async function searchWebFallback(queryText) {
 }
 
 async function askSmartAI(queryText) {
-    // Сөйлесу тарихын жаңарту
+    // 1. Сөйлесу тарихын жаңарту
     chatHistory.push({ role: "user", content: queryText });
     if (chatHistory.length > 10) chatHistory.shift();
 
-    let context = chatHistory.map(h => `${h.role === 'user' ? 'Пайдаланушы' : 'Серік'}: ${h.content}`).join("\n");
-    let fullPrompt = `Жүйелік нұсқаулық: ${currentSystemPrompt}\n\nСөйлесу тарихы:\n${context}\n\nПайдаланушының соңғы сұрағына өзі жазған тілде нақты жауап бер.`;
+    let textLower = queryText.toLowerCase().trim();
 
-    // ----------------------------------------------------
-    // 1) БІРІНШІ ОРЫНДА: Сен айтқан ChatGPT (OpenAI тегін желісі)
-    // ----------------------------------------------------
-    try {
-        console.log("Жүктелуде: 1) ChatGPT (OpenAI)...");
-        let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`;
-        let res = await fetch(url);
-        let text = await res.text();
-        
-        if(text && text.length > 2 && !text.toLowerCase().includes("not found")) {
-            chatHistory.push({ role: "assistant", content: text.trim() });
-            return text.trim();
-        }
-    } catch (e) {
-        console.log("1) ChatGPT қате берді, келесіге өтемін...");
-    }
+    // 2. ӘҢГІМЕНІ АЖЫРАТУ (Егер бұл жай ғана амандасу немесе қысқа сөйлесу болса)
+    const shortPhrases = [
+        "салем", "сәлем", "привет", "калайсын", "қалайсың", "как дела", "не хабар", "не істеп", 
+        "что делаешь", "hi", "hello", "ок", "хорошо", "рахмет", "спасибо", "кимсин", "кімсің", "кто ты"
+    ];
+    
+    let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) || queryText.length < 10;
 
-    // ----------------------------------------------------
-    // 2) ЕКІНШІ ОРЫНДА: DuckDuckGo AI (Тегін Llama үлгісі)
-    // ----------------------------------------------------
-    try {
-        console.log("Жүктелуде: 2) DuckDuckGo AI...");
-        let ddgUrl = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=llama`;
-        let res = await fetch(ddgUrl);
-        let text = await res.text();
-        
-        if (text && text.length > 2 && !text.toLowerCase().includes("not found")) {
-            chatHistory.push({ role: "assistant", content: text.trim() });
-            return text.trim();
-        }
-    } catch (e) {
-        console.log("2) DuckDuckGo қате берді, келесіге өтемін...");
-    }
-
-    // ----------------------------------------------------
-    // 3) ҮШІНШІ ОРЫНДА: Google Gemini API (Резервтегі алып)
-    // ----------------------------------------------------
-    if (GEMINI_API_KEY && GEMINI_API_KEY !== "МЫНА ЖЕРГЕ_КІЛТТІ_ҚОЙ") {
+    if (isShortDialogue) {
+        console.log("Жүйе: Бұл кәдімгі диалог. Бір ғана жылдам ИИ қолданылады...");
         try {
-            console.log("Жүктелуде: 3) Google Gemini...");
-            let geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-            let res = await fetch(geminiUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: fullPrompt }] }]
-                })
-            });
-            let data = await res.json();
-            let text = data.candidates[0].content.parts[0].text;
+            let context = chatHistory.map(h => `${h.role === 'user' ? 'Пайдаланушы' : 'Серік'}: ${h.content}`).join("\n");
+            let quickPrompt = `Жүйелік нұсқаулық: ${currentSystemPrompt}\n\nСөйлесу тарихы:\n${context}\n\nПайдаланушымен достық қарым-қатынаста, ол жазған тілде (қазақша, орысша не ағылшынша) қысқа және табиғи диалог түрінде жауап бер. Артық ұзын ақпарат шығарма.`;
             
-            if (text && text.trim().length > 0) {
+            let res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(quickPrompt)}?model=openai`);
+            let text = await res.text();
+            if (text && !text.toLowerCase().includes("not found")) {
                 chatHistory.push({ role: "assistant", content: text.trim() });
                 return text.trim();
             }
-        } catch (e) {
-            console.log("3) Google Gemini қате берді.");
-        }
+        } catch (e) { console.log("Диалогтық ИИ қате берді, негізгі жүйеге өтемін."); }
     }
 
-    // Егер ИИ-лердің бәрі істемей қалса, Википедиядан іздейді
-    let backup = await searchWebFallback(queryText);
-    if(backup) return backup;
+    // 3. КҮРДЕЛІ СҰРАҚТАРДЫ СИНТЕЗДЕУ (Егер үлкен ақпарат керек болса)
+    console.log("Жүйе: Күрделі сұрақ анықталды. Бірнеше ИИ параллельді іске қосылды...");
+    
+    let context = chatHistory.map(h => `${h.role === 'user' ? 'Пайдаланушы' : 'Серік'}: ${h.content}`).join("\n");
+    let fullPrompt = `Жүйелік нұсқаулық: ${currentSystemPrompt}\n\nСөйлесу тарихы:\n${context}\n\nОсы сұраққа толық жауап жаз.`;
 
-    return "❌ Серверлер уақытша бос емес. Қайтадан жазып көріңізші!";
+    // Барлық ИИ-лерге бір уақытта параллельді сұраныс жібереміз (Жылдам жұмыс істеуі үшін)
+    let answers = await Promise.allSettled([
+        // 1) ChatGPT нұсқасы
+        fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`).then(r => r.text()),
+        // 2) DuckDuckGo (Llama) нұсқасы
+        fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=llama`).then(r => r.text()),
+        // 3) Google Gemini нұсқасы (Егер кілтің болса, ресми қосасың, қазірше үшінші тегін модель ретінде)
+        fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=mistral`).then(r => r.text())
+    ]);
+
+    // Тек сәтті келген жауаптарды жинаймыз
+    let validAnswers = [];
+    answers.forEach((ans, index) => {
+        if (ans.status === "fulfilled" && ans.value && !ans.value.toLowerCase().includes("not found")) {
+            validAnswers.push(`[ИИ-Нұсқа ${index + 1}]:\n${ans.value.trim()}`);
+        }
+    });
+
+    // Егер ешқандай ИИ жауап бермесе, Википедиядан іздейді
+    if (validAnswers.length === 0) {
+        let backup = await searchWebFallback(queryText);
+        if (backup) return backup;
+        return "❌ Серверлерден ақпарат алу мүмкін болмады. Қайтадан жазып көріңізші!";
+    }
+
+    // 4. СИНТЕЗАТОР (Барлық жауаптың қосындысынан мінсіз сөйлем құрау)
+    console.log("Жүйе: Жауаптар жиналды. Қосындылау және синтез процесі басталды...");
+    
+    let combinedText = validAnswers.join("\n\n");
+    let synthesizerPrompt = `Сен — Серік ИИ-дің бас миысың. Саған бір сұраққа байланысты әртүрлі ИИ модельдерінен жауаптар келді.
+Саның міндетің: Осы жауаптардың қосындысын мұқият талдап, ішіндегі ең дұрыс деректерді ал, қайталанатын жерлерін жой, қателерін түзет.
+
+МАҢЫЗДЫ ШАРТТАР:
+1. Пайдаланушы сұрақты қай тілде қойса (қазақша, орысша, ағылшынша), міндетті түрде ТЕК СОЛ ТІЛДЕ біртұтас, сауатты әрі көркем сөйлемдермен жауап құрастыр. Тілдерді араластырма.
+2. Жауап мағыналы, логикалық тұрғыдан мінсіз және оқуға ыңғайлы (абзацтармен) болсын.
+
+Пайдаланушының сұрағы: ${queryText}
+
+Әртүрлі ИИ-лерден келген шикі мәтіндер жиынтығы:
+${combinedText}`;
+
+    try {
+        // Ең ақылды модельді Синтезатор қылып сайлаймыз
+        let finalRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(synthesizerPrompt)}?model=openai`);
+        let finalContent = await finalRes.text();
+        
+        if (finalContent && !finalContent.toLowerCase().includes("not found")) {
+            chatHistory.push({ role: "assistant", content: finalContent.trim() });
+            return finalContent.trim();
+        }
+    } catch (e) {
+        console.log("Синтез кезінде қате кетті, бірінші нұсқаны шығара салады.");
+    }
+
+    // Егер синтезатор істемей қалса, бірінші қолжетімді ИИ-дің дайын жауабын бере салады
+    let fallbackAnswer = validAnswers[0].split("]:\n")[1];
+    chatHistory.push({ role: "assistant", content: fallbackAnswer });
+    return fallbackAnswer;
 }
+
 
 
 
