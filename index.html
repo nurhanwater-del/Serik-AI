@@ -21,6 +21,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0f0f14; color: white; display: flex; height: 100vh; overflow: hidden; transition: background 0.4s, color 0.4s; }
 
+/* Скроллбар стилі */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
@@ -29,6 +30,7 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .sidebar { width: 280px; background: #1a1a24; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; transition: background 0.4s; z-index: 10; box-shadow: 2px 0 15px rgba(0,0,0,0.5); }
 .sidebar h3 { text-align: center; margin-top: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; color: #00b86b; text-shadow: 0 0 10px rgba(0,184,107,0.3); }
 
+/* --- МЕНЮ СТИЛЬДЕРІ --- */
 #menuToggle { background: #2b2b3a; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; }
 #menuToggle:hover { background: #3a3a4d; border-color: #00b86b; }
 .settings-menu { display: none; flex-direction: column; gap: 10px; background: #111118; padding: 15px; border-radius: 10px; border: 1px solid #333; margin-top: -5px; }
@@ -38,6 +40,7 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; height: 100vh; }
 .chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; scroll-behavior: smooth; }
 
+/* Хабарлама стильдері */
 .msg { padding: 14px 18px; margin: 8px 0; border-radius: 14px; max-width: 85%; white-space: pre-wrap; word-wrap: break-word; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); line-height: 1.5; font-size: 15px; transition: transform 0.2s ease-out; }
 .msg:hover { transform: translateY(-1px); }
 .user { background: linear-gradient(135deg, #00b86b, #008f53); margin-left: auto; color: white; border-bottom-right-radius: 4px; }
@@ -57,63 +60,91 @@ select:hover { background: #3a3a4d; }
 #adminPanel { display: none; margin-top: 10px; background: #222230; padding: 15px; border-radius: 10px; border: 1px solid #333; }
 textarea { height: 120px; resize: none; }
 
+/* Тез арада генерациялау батырмалары */
 .generators { display: flex; gap: 10px; padding: 12px 15px; background: #1a1a24; border-top: 1px solid #2b2b3a; overflow-x: auto; white-space: nowrap; }
 .generators button { background: #2b2b3a; padding: 8px 14px; font-size: 13px; border: 1px solid #444; border-radius: 20px; font-weight: normal; }
 .generators button:hover { background: #00b86b; border-color: #00b86b; color: white; }
 
+/* Көшіру батырмасы */
 .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.3); border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: 0; transition: 0.3s; }
 .msg.ai:hover .copy-btn { opacity: 1; }
 .copy-btn:hover { background: #00b86b; transform: scale(1.1); }
 
+/* Жүктелу анимациясы */
 .loading-dots { display: inline-block; animation: blink 1.4s infinite both; font-weight: bold; font-size: 18px; line-height: 1; }
 .loading-dots span { animation: blink 1.4s infinite both; }
 .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
 .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
 
-/* THEMES */
+/* --- ТАҚЫРЫПТАР (THEMES) --- */
 body.theme-hacker { background: #050505; color: #0f0; }
 body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; box-shadow: none; }
 body.theme-hacker .settings-menu { background: #001100; border-color: #0f0; }
-body.theme-hacker .msg.ai { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; }
+body.theme-hacker .msg.ai { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; box-shadow: 0 0 10px rgba(0,255,0,0.1); }
 body.theme-hacker .msg.user { background: #003300; border: 1px solid #0f0; color: #0f0; }
 body.theme-hacker button, body.theme-hacker select, body.theme-hacker #menuToggle { background: #002200; border: 1px solid #0f0; color: #0f0; }
 body.theme-hacker .row, body.theme-hacker .generators { background: #050505; border-color: #0f0; }
 body.theme-hacker input, body.theme-hacker textarea { background: #000; color: #0f0; border-color: #0f0; }
 
 body.theme-cyberpunk { background: #0f001a; color: #0ff; }
-body.theme-cyberpunk .sidebar { background: #1a0033; border-right: 1px solid #f0f; }
+body.theme-cyberpunk .sidebar { background: #1a0033; border-right: 1px solid #f0f; box-shadow: 5px 0 20px rgba(255,0,255,0.2); }
 body.theme-cyberpunk .settings-menu { background: #220033; border-color: #f0f; }
-body.theme-cyberpunk .msg.ai { background: #2a004d; border: 1px solid #0ff; color: #fff; }
-body.theme-cyberpunk .msg.user { background: #4d004d; border: 1px solid #f0f; color: #fff; }
-body.theme-cyberpunk button, body.theme-cyberpunk select, body.theme-cyberpunk #menuToggle { background: linear-gradient(45deg, #8a2be2, #f0f); border: none; color: #fff; }
+body.theme-cyberpunk .msg.ai { background: #2a004d; border: 1px solid #0ff; color: #fff; box-shadow: 0 0 15px rgba(0,255,255,0.2); }
+body.theme-cyberpunk .msg.user { background: #4d004d; border: 1px solid #f0f; color: #fff; box-shadow: 0 0 15px rgba(255,0,255,0.2); }
+body.theme-cyberpunk button, body.theme-cyberpunk select, body.theme-cyberpunk #menuToggle { background: linear-gradient(45deg, #8a2be2, #f0f); border: none; color: #fff; text-shadow: 1px 1px 2px #000; }
 body.theme-cyberpunk .row, body.theme-cyberpunk .generators { background: #1a0033; border-color: #f0f; }
 body.theme-cyberpunk input, body.theme-cyberpunk textarea { background: #0f001a; color: #0ff; border-color: #0ff; }
 
 body.theme-light { background: #f4f4f9; color: #333; }
-body.theme-light .sidebar { background: #ffffff; border-right: 1px solid #ddd; }
+body.theme-light .sidebar { background: #ffffff; border-right: 1px solid #ddd; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
 body.theme-light .settings-menu { background: #f9f9f9; border-color: #ccc; }
-body.theme-light .msg.ai { background: #ffffff; color: #333; border: 1px solid #e0e0e0; }
-body.theme-light .msg.user { background: linear-gradient(135deg, #00b86b, #009e5b); color: #fff; }
+body.theme-light .msg.ai { background: #ffffff; color: #333; border: 1px solid #e0e0e0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+body.theme-light .msg.user { background: linear-gradient(135deg, #00b86b, #009e5b); color: #fff; box-shadow: 0 2px 10px rgba(0,184,107,0.3); }
 body.theme-light button { background: #00b86b; color: white; border: none; }
 body.theme-light #menuToggle { background: #eee; color: #333; border: 1px solid #ccc; }
 body.theme-light select { background: #fff; color: #333; border: 1px solid #ccc; }
 body.theme-light .row, body.theme-light .generators { background: #fff; border-color: #ddd; }
 body.theme-light input, body.theme-light textarea { background: #fafafa; color: #333; border-color: #ccc; }
 
-/* 📱 MOBILE */
+/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН АРНАЙЫ СТИЛЬ (КҮШЕЙТІЛГЕН НҰСҚА) */
 @media (max-width: 768px) {
     body { flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
-    .sidebar { width: 100%; height: auto; max-height: 120px; padding: 8px 12px; gap: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+    .sidebar { 
+        width: 100%; 
+        height: auto; 
+        max-height: 120px; 
+        padding: 8px 12px; 
+        gap: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
     .sidebar h3 { font-size: 16px; margin: 0 0 2px 0; }
     #menuToggle { padding: 6px 10px; font-size: 13px; }
     .settings-menu { padding: 8px; gap: 6px; }
-    .main { flex: 1; height: calc(100vh - 120px); height: calc(100dvh - 120px); display: flex; flex-direction: column; position: relative; }
-    .chat { flex: 1; padding: 10px; padding-bottom: 70px; }
+    
+    .main { 
+        flex: 1; 
+        height: calc(100vh - 120px);
+        height: calc(100dvh - 120px);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+    .chat { flex: 1; padding: 10px; padding-bottom: 70px; } /* Инпут астын жауып қалмас үшін бос орын */
     .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
     .generators { padding: 6px 10px; }
     .generators button { padding: 5px 10px; font-size: 11px; }
-    .row { padding: 10px; position: fixed; bottom: 0; left: 0; width: 100%; background: #111; border-top: 1px solid #222; z-index: 999; }
+    
+    .row { 
+        padding: 10px; 
+        position: fixed; /* Экранның ең астына шегелеп бекіту */
+        bottom: 0; 
+        left: 0;
+        width: 100%;
+        background: #111; 
+        border-top: 1px solid #222;
+        z-index: 999;
+    }
     input { padding: 10px; font-size: 15px; }
     button { padding: 10px 14px; font-size: 14px; }
 }
@@ -125,32 +156,23 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
 <div class="sidebar">
     <h3>🤖 Serik AI </h3>
     
-    <button id="menuToggle" onclick="toggleSettings()"><span id="txtSettings">⚙️ Настройки</span> <span id="menuArrow">🔽</span></button>
+    <button id="menuToggle" onclick="toggleSettings()">⚙️ Настройки <span>🔽</span></button>
     
     <div id="settingsMenu" class="settings-menu">
-        <!-- ТІЛ ТАҢДАУ МӘЗІРІ -->
-        <select id="langSelect" onchange="changeLanguage()">
-            <option value="ru">🇷🇺 Русский</option>
-            <option value="kk">🇰🇿 Қазақша</option>
-            <option value="en">🇬🇧 English</option>
-            <option value="de">🇩🇪 Deutsch</option>
-            <option value="ar">🇸🇦 العربية</option>
-        </select>
-
         <select id="themeSelect" onchange="changeTheme()">
-            <option value="default" id="thmDefault">🌙 Тёмная (По умолчанию)</option>
-            <option value="hacker" id="thmHacker">💻 Хакер (Матрица)</option>
-            <option value="cyberpunk" id="thmCyberpunk">🌃 Киберпанк</option>
-            <option value="light" id="thmLight">☀️ Светлая (Light)</option>
+            <option value="default">🌙 Тёмная (По умолчанию)</option>
+            <option value="hacker">💻 Хакер (Матрица)</option>
+            <option value="cyberpunk">🌃 Киберпанк</option>
+            <option value="light">☀️ Светлая (Light)</option>
         </select>
 
         <button id="voiceBtn" onclick="toggleVoice()">🔇 Голос: ВЫКЛ</button>
         <input type="password" id="adminPass" placeholder="Пароль администратора" oninput="checkAdmin()">
         
         <div id="adminPanel">
-            <p id="txtAdminMode" style="color: #00b86b; margin: 0 0 5px 0; font-weight: bold; text-align: center;">🔒 ADMIN MODE</p>
+            <p style="color: #00b86b; margin: 0 0 5px 0; font-weight: bold; text-align: center;">🔒 ADMIN MODE</p>
             <textarea id="bulk" placeholder="вопрос это ответ"></textarea>
-            <button id="txtSaveDb" onclick="bulkLearn()" style="width: 100%; margin-top: 5px;">Сохранить базу</button>
+            <button onclick="bulkLearn()" style="width: 100%; margin-top: 5px;">Сохранить базу</button>
         </div>
     </div>
 </div>
@@ -159,117 +181,28 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
     <div class="chat" id="chat"></div>
     
     <div class="generators">
-        <button id="gen1" onclick="useGenerator('gen1')">📜 Эссе по истории</button>
-        <button id="gen2" onclick="useGenerator('gen2')">⚛️ Формулы по физике</button>
-        <button id="gen3" onclick="useGenerator('gen3')">🤖 ИИ Реферат</button>
-        <button id="gen4" onclick="useGenerator('gen4')">🔥 Мотивация</button>
-        <button id="gen5" onclick="useGenerator('gen5')">💻 Проверка кода</button>
+        <button onclick="generateText('Напиши мне эссе по истории за 10 класс')">📜 Эссе по истории</button>
+        <button onclick="generateText('Собери основные формулы по физике')">⚛️ Формулы по физике</button>
+        <button onclick="generateText('Напиши подробный реферат про Искусственный Интеллект')">🤖 ИИ Реферат</button>
+        <button onclick="generateText('Дай мне мощную мотивацию')">🔥 Мотивация</button>
+        <button onclick="generateText('Найди ошибки в написанном коде')">💻 Проверка кода</button>
     </div>
 
-    <div class="row">
-        <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Очистить чат" id="btnClear">🗑️</button>
-        <input id="input" placeholder="Введите ваш вопрос..." autocomplete="off" onkeydown="if(event.key==='Enter') send()">
-        <button id="btnSend" onclick="send()">Отправить</button>
+        <div class="row">
+        <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Очистить чат">🗑️</button>
+        <input id="input" placeholder="Введите ваш вопрос..." onkeydown="if(event.key==='Enter') send()">
+        <button onclick="send()">Отправить</button>
     </div>
+
 </div>
 
 <script>
-// --- АУДАРМА СӨЗДІГІ (UI ТІЛДЕРІ) ---
-const i18n = {
-    ru: {
-        settings: "⚙️ Настройки", thmDefault: "🌙 Тёмная (По умолчанию)", thmHacker: "💻 Хакер (Матрица)", thmCyberpunk: "🌃 Киберпанк", thmLight: "☀️ Светлая (Light)",
-        voiceOff: "🔇 Голос: ВЫКЛ", voiceOn: "🔊 Голос: ВКЛ", adminPass: "Пароль администратора", adminMode: "🔒 ADMIN MODE", adminBulk: "вопрос это ответ",
-        saveDb: "Сохранить базу", clearTitle: "Очистить чат", inputPlaceholder: "Введите ваш вопрос...", btnSend: "Отправить", loadingText: "Серик думает",
-        gen1: "📜 Эссе по истории", gen2: "⚛️ Формулы по физике", gen3: "🤖 ИИ Реферат", gen4: "🔥 Мотивация", gen5: "💻 Проверка кода",
-        welcome: "Привет! Я Serik AI Pro. Чат очищен и готов к работе! ✨", 
-        error: "❌ Ошибка сети или вопрос слишком сложный. Попробуйте еще раз."
-    },
-    kk: {
-        settings: "⚙️ Баптаулар", thmDefault: "🌙 Қараңғы (Негізгі)", thmHacker: "💻 Хакер (Матрица)", thmCyberpunk: "🌃 Киберпанк", thmLight: "☀️ Жарық (Light)",
-        voiceOff: "🔇 Дауыс: ӨШІРУЛІ", voiceOn: "🔊 Дауыс: ҚОСУЛЫ", adminPass: "Әкімші құпия сөзі", adminMode: "🔒 ӘКІМШІ РЕЖИМІ", adminBulk: "сұрақ бұл жауап",
-        saveDb: "Базаны сақтау", clearTitle: "Чатты тазарту", inputPlaceholder: "Сұрағыңызды жазыңыз...", btnSend: "Жіберу", loadingText: "Серік ойлануда",
-        gen1: "📜 Тарихтан эссе", gen2: "⚛️ Физика формулалары", gen3: "🤖 ИИ Рефераты", gen4: "🔥 Мотивация", gen5: "💻 Кодты тексеру",
-        welcome: "Сәлем! Мен Serik AI Pro. Чат тазартылды және жұмысқа дайын! ✨", 
-        error: "❌ Жүйеде қате орын алды. Қайтадан байқап көріңіз."
-    },
-    en: {
-        settings: "⚙️ Settings", thmDefault: "🌙 Dark (Default)", thmHacker: "💻 Hacker (Matrix)", thmCyberpunk: "🌃 Cyberpunk", thmLight: "☀️ Light",
-        voiceOff: "🔇 Voice: OFF", voiceOn: "🔊 Voice: ON", adminPass: "Admin password", adminMode: "🔒 ADMIN MODE", adminBulk: "question is answer",
-        saveDb: "Save to DB", clearTitle: "Clear Chat", inputPlaceholder: "Type your question...", btnSend: "Send", loadingText: "Serik is thinking",
-        gen1: "📜 History Essay", gen2: "⚛️ Physics Formulas", gen3: "🤖 AI Report", gen4: "🔥 Motivation", gen5: "💻 Code Check",
-        welcome: "Hello! I am Serik AI Pro. Chat is cleared and ready! ✨", 
-        error: "❌ Network error. Please try again."
-    },
-    de: {
-        settings: "⚙️ Einstellungen", thmDefault: "🌙 Dunkel (Standard)", thmHacker: "💻 Hacker (Matrix)", thmCyberpunk: "🌃 Cyberpunk", thmLight: "☀️ Hell",
-        voiceOff: "🔇 Stimme: AUS", voiceOn: "🔊 Stimme: EIN", adminPass: "Admin-Passwort", adminMode: "🔒 ADMIN-MODUS", adminBulk: "Frage ist Antwort",
-        saveDb: "Speichern", clearTitle: "Chat leeren", inputPlaceholder: "Stelle deine Frage...", btnSend: "Senden", loadingText: "Serik denkt nach",
-        gen1: "📜 Geschichte Essay", gen2: "⚛️ Physikformeln", gen3: "🤖 KI-Bericht", gen4: "🔥 Motivation", gen5: "💻 Code prüfen",
-        welcome: "Hallo! Ich bin Serik AI Pro. Bereit zu helfen! ✨", 
-        error: "❌ Ein Fehler ist aufgetreten. Bitte versuche es erneut."
-    },
-    ar: {
-        settings: "⚙️ الإعدادات", thmDefault: "🌙 داكن (الافتراضي)", thmHacker: "💻 هاكر (ماتريكس)", thmCyberpunk: "🌃 سايبربانك", thmLight: "☀️ فاتح",
-        voiceOff: "🔇 الصوت: إيقاف", voiceOn: "🔊 الصوت: تشغيل", adminPass: "كلمة مرور المسؤول", adminMode: "🔒 وضع المسؤول", adminBulk: "السؤال هو الجواب",
-        saveDb: "حفظ في القاعدة", clearTitle: "مسح الدردشة", inputPlaceholder: "اكتب سؤالك هنا...", btnSend: "إرسال", loadingText: "سيريك يفكر",
-        gen1: "📜 مقال تاريخي", gen2: "⚛️ قوانين الفيزياء", gen3: "🤖 تقرير الذكاء الاصطناعي", gen4: "🔥 تحفيز", gen5: "💻 فحص الكود",
-        welcome: "مرحباً! أنا Serik AI Pro. الدردشة جاهزة! ✨", 
-        error: "❌ حدث خطأ في الشبكة. حاول مرة أخرى."
-    }
-};
-
-let currentLang = "ru";
-
-function changeLanguage() {
-    currentLang = document.getElementById("langSelect").value;
-    const t = i18n[currentLang];
-    
-    document.getElementById("txtSettings").innerText = t.settings;
-    document.getElementById("thmDefault").innerText = t.thmDefault;
-    document.getElementById("thmHacker").innerText = t.thmHacker;
-    document.getElementById("thmCyberpunk").innerText = t.thmCyberpunk;
-    document.getElementById("thmLight").innerText = t.thmLight;
-    
-    let voiceBtn = document.getElementById("voiceBtn");
-    voiceBtn.innerText = voiceEnabled ? t.voiceOn : t.voiceOff;
-    
-    document.getElementById("adminPass").placeholder = t.adminPass;
-    document.getElementById("txtAdminMode").innerText = t.adminMode;
-    document.getElementById("bulk").placeholder = t.adminBulk;
-    document.getElementById("txtSaveDb").innerText = t.saveDb;
-    
-    document.getElementById("gen1").innerText = t.gen1;
-    document.getElementById("gen2").innerText = t.gen2;
-    document.getElementById("gen3").innerText = t.gen3;
-    document.getElementById("gen4").innerText = t.gen4;
-    document.getElementById("gen5").innerText = t.gen5;
-    
-    document.getElementById("btnClear").title = t.clearTitle;
-    document.getElementById("input").placeholder = t.inputPlaceholder;
-    document.getElementById("btnSend").innerText = t.btnSend;
-    
-    if (currentLang === "ar") {
-        document.body.style.direction = "rtl";
-        document.querySelector(".generators").style.flexDirection = "row-reverse";
-    } else {
-        document.body.style.direction = "ltr";
-        document.querySelector(".generators").style.flexDirection = "row";
-    }
-}
-
-function useGenerator(genId) {
-    let text = i18n[currentLang][genId];
-    text = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
-    document.getElementById("input").value = text;
-    send();
-}
-
 function clearChat() {
     chat.innerHTML = "";
-    add(i18n[currentLang].welcome, "ai", false);
+    add("Привет! Я Serik AI Pro. Чат очищен и готов к работе! ✨", "ai", false);
 }
 
-// --- FIREBASE ---
+// --- FIREBASE БАПТАУЛАРЫ ---
 const firebaseConfig = {
   apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
   authDomain: "serik-ai.firebaseapp.com",
@@ -280,15 +213,16 @@ const firebaseConfig = {
 
 const defaultMemory = {
     "привет": "Привет! Я готов помочь. Задавай любой вопрос! 👋",
-    "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю вопросы, ищу информацию, пишу эссе! 🧠",
-    "сені кім ойлап тапты": "Мені Қазақстанның талантты әзірлеушілері жасап шығарды! 🇰🇿",
-    "кто тебя создал": "Меня создали талантливые разработчики из Казахстана! 🇰🇿"
+    "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю длинные и короткие вопросы, ищу информацию в сети, пишу эссе, рефераты! 🧠",
+    "как тебя зовут": "Я Serik-AI . 🤖"
 };
 
 let memory = Object.assign({}, defaultMemory);
 let db = null;
-let currentSystemPrompt = "Ты ИИ Serik-AI, созданный талантливыми разработчиками из Казахстана. Не упоминай OpenAI, ChatGPT.";
-let chatHistory = []; 
+
+// Тек Стандартты режим қалды
+ let currentSystemPrompt = "Ты всезнающий ИИ Serik-AI, созданный талантливыми разработчиками из Казахстана. Твой создатель и ты находитесь в Казахстане. Никогда не упоминай OpenAI, ChatGPT или Россию. На все вопросы о создателе отвечай, что ты родом из Казахстана.";
+
 
 if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
@@ -302,9 +236,10 @@ if (firebaseConfig.apiKey) {
 const chat = document.getElementById("chat");
 let voiceEnabled = false;
 
+// --- МЕНЮДІ АШУ/ЖАБУ ФУНКЦИЯСЫ ---
 function toggleSettings() {
     let menu = document.getElementById("settingsMenu");
-    let btnSpan = document.getElementById("menuArrow");
+    let btnSpan = document.querySelector("#menuToggle span");
     if(menu.classList.contains("open")) {
         menu.classList.remove("open");
         btnSpan.innerText = "🔽";
@@ -318,36 +253,58 @@ function toggleVoice() {
     voiceEnabled = !voiceEnabled;
     let btn = document.getElementById("voiceBtn");
     if (voiceEnabled) {
-        btn.innerText = i18n[currentLang].voiceOn;
+        btn.innerText = "🔊 Голос: ВКЛ (Премиум)";
         btn.classList.add("active");
     } else {
-        btn.innerText = i18n[currentLang].voiceOff;
+        btn.innerText = "🔇 Голос: ВЫКЛ";
         btn.classList.remove("active");
         window.speechSynthesis.cancel();
     }
 }
 
+// --- ҚҰЛАҚҚА ЖАҒЫМДЫ ТАБИҒИ AI ДАУЫСЫ ФУНКЦИЯСЫ ---
 function speakText(text) {
     if (!voiceEnabled) return;
     window.speechSynthesis.cancel(); 
-    let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '').replace(/[#*`~_\-()]/g, ' ');
+
+    let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '');
+    cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ');
+    
     let speech = new SpeechSynthesisUtterance(cleanText);
     
-    if (currentLang === 'kk') speech.lang = 'kk-KZ';
-    else if (currentLang === 'en') speech.lang = 'en-US';
-    else if (currentLang === 'de') speech.lang = 'de-DE';
-    else if (currentLang === 'ar') speech.lang = 'ar-SA';
-    else speech.lang = 'ru-RU';
+    if (/[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text)) {
+        speech.lang = 'kk-KZ';
+    } else {
+        speech.lang = 'ru-RU';
+    }
+    
+    let voices = window.speechSynthesis.getVoices();
+    
+    let premiumVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]) && 
+        (/google|natural|premium|neural|microsoft|yuri|pavel/i.test(v.name))
+    );
+    
+    if (premiumVoice) {
+        speech.voice = premiumVoice;
+    } else {
+        let defaultLangVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]));
+        if (defaultLangVoice) speech.voice = defaultLangVoice;
+    }
+    
+    speech.pitch = 1.0; 
+    speech.rate = 1.05; 
     
     window.speechSynthesis.speak(speech);
 }
+
+window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 
 let loadingIndicator = null;
 function showLoading() {
     if(loadingIndicator) return;
     loadingIndicator = document.createElement("div");
     loadingIndicator.className = "msg ai";
-    loadingIndicator.innerHTML = `${i18n[currentLang].loadingText} <span class="loading-dots"><span>.</span><span>.</span><span>.</span></span> 🧠`;
+    loadingIndicator.innerHTML = `Серик думает <span class="loading-dots"><span>.</span><span>.</span><span>.</span></span> 🧠`;
     chat.appendChild(loadingIndicator);
     chat.scrollTop = chat.scrollHeight;
 }
@@ -361,6 +318,7 @@ function hideLoading() {
 function add(text, type, instant = false){
     let div = document.createElement("div");
     div.className = "msg " + type;
+    
     let textSpan = document.createElement("span");
     div.appendChild(textSpan);
 
@@ -379,10 +337,12 @@ function add(text, type, instant = false){
         if (!instant) {
             let chars = [...text];
             let i = 0;
+            let chunkSize = chars.length > 400 ? 4 : 1;
+            
             let timer = setInterval(() => {
                 if (i < chars.length) {
-                    textSpan.innerText += chars.slice(i, i + 4).join('');
-                    i += 4;
+                    textSpan.innerText += chars.slice(i, i + chunkSize).join('');
+                    i += chunkSize;
                     chat.scrollTop = chat.scrollHeight;
                 } else {
                     clearInterval(timer);
@@ -397,90 +357,267 @@ function add(text, type, instant = false){
         textSpan.innerText = text;
         chat.appendChild(div);
     }
+
     chat.scrollTop = chat.scrollHeight;
     return div; 
 }
 
-if(chat.children.length === 0) { add(i18n["ru"].welcome, "ai", false); }
+if(chat.children.length === 0) {
+    add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос! ✨", "ai", false);
+}
+
+function levenshteinDistance(a, b) {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    let matrix = [];
+    for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
+    for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1, 
+                    Math.min(matrix[i][j - 1] + 1, 
+                    matrix[i - 1][j] + 1) 
+                );
+            }
+        }
+    }
+    return matrix[b.length][a.length];
+}
 
 function brain(text) {
-    let q = text.toLowerCase().trim().replace(/\s+/g, ""); 
+    let q = text.toLowerCase().trim();
+    let qNoSpace = q.replace(/\s+/g, ""); 
+    
+    if(memory[q]) return memory[q];
+
+    let bestMatch = null;
+    let minDistance = 3; 
+
     for (let key in memory) {
-        if (q === key.toLowerCase().replace(/\s+/g, "")) return memory[key];
+        let keyNoSpace = key.toLowerCase().replace(/\s+/g, "");
+        
+        if (qNoSpace === keyNoSpace) {
+            return memory[key];
+        }
+
+        let dist = levenshteinDistance(q, key.toLowerCase());
+        if (dist < minDistance) {
+            minDistance = dist;
+            bestMatch = key;
+        }
     }
+
+    if (bestMatch) {
+        return memory[bestMatch];
+    }
+
     return null;
 }
 
-function checkAdmin() {
-    document.getElementById("adminPanel").style.display = (document.getElementById("adminPass").value === "nurik777") ? "block" : "none";
+function checkAdmin(){
+    let pass = document.getElementById("adminPass").value;
+    document.getElementById("adminPanel").style.display = (pass === "nurik777") ? "block" : "none";
 }
 
-function bulkLearn() {
+function bulkLearn(){
     let text = document.getElementById("bulk").value;
     let lines = text.split("\n");
+    let count = 0;
+    let newMemory = Object.assign({}, memory);
+
     for(let line of lines){
-        if(line.includes(" это ")){
-            let parts = line.split(" это ");
-            memory[parts[0].trim().toLowerCase()] = parts.slice(1).join(" это ").trim();
+        line = line.trim();
+        if(!line.includes(" это ")) continue;
+        let parts = line.split(" это ");
+        let q = parts[0].trim().toLowerCase();
+        let a = parts.slice(1).join(" это ").trim();
+        if(q && a){ newMemory[q] = a; count++; }
+    }
+    
+    if (count > 0) {
+        memory = newMemory;
+        if (db) {
+            db.ref('serik_memory').set(memory);
+            alert("✅ Успешно сохранено в облаке Firebase!");
         }
     }
-    if (db) db.ref('serik_memory').set(memory);
     document.getElementById("bulk").value = "";
 }
 
-function changeTheme() { document.body.className = "theme-" + document.getElementById("themeSelect").value; }
+function changeTheme() {
+    let theme = document.getElementById("themeSelect").value;
+    document.body.className = "theme-" + theme;
+}
+
+function generateText(prompt) {
+    document.getElementById("input").value = prompt;
+    send();
+}
+
+async function searchWebFallback(queryText) {
+    try {
+        let cleanQuery = queryText.replace(/(пожалуйста|расскажи про|что такое|кто такой|найди|гугл|google|реферат|эссе|кратко)/gi, "").trim();
+        let searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
+        let res = await fetch(searchUrl);
+        let data = await res.json();
+        
+        if (data.query.search.length > 0) {
+            let title = data.query.search[0].title;
+            let contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=0&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
+            let contentRes = await fetch(contentUrl);
+            let contentData = await contentRes.json();
+            let pages = contentData.query.pages;
+            let extract = pages[Object.keys(pages)[0]].extract;
+            
+            if (extract && extract.trim().length > 30) {
+                if(queryText.toLowerCase().includes("кратко")) {
+                    return `🤖 [Smart Web Search]: ${extract.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ")}`;
+                }
+                return `🤖 [Smart Web Search - ${title}]:\n\n${extract.substring(0, 1800)}`;
+            }
+        }
+        return null;
+    } catch(e) { return null; }
+}
 
 async function askSmartAI(queryText) {
+    // 1. Сөйлесу тарихын жаңарту
     chatHistory.push({ role: "user", content: queryText });
     if (chatHistory.length > 10) chatHistory.shift();
 
-    let langMap = { "ru": "русский", "kk": "казахский", "en": "английский", "de": "немецкий", "ar": "арабский" };
-    let aiLang = langMap[currentLang];
+    let textLower = queryText.toLowerCase().trim();
 
-    if (queryText.length < 15) {
-        try {
-            let context = chatHistory.map(h => `${h.role}: ${h.content}`).join("\n");
-            let quickPrompt = `System: ${currentSystemPrompt}\nLanguage: ${aiLang}\nContext:\n${context}\n\nRespond naturally and short in ${aiLang}.`;
-            let res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(quickPrompt)}?model=openai`);
-            let text = await res.text();
-            if (text) { chatHistory.push({ role: "assistant", content: text.trim() }); return text.trim(); }
-        } catch (e) {}
+    // Тілді анықтау
+    let detectedLang = "казахский";
+    if (/[а-яА-Я]/.test(queryText) && !/[әғқңөұүіІӘҒҚҢӨҰҮ]/.test(queryText)) {
+        detectedLang = "русский";
+    } else if (/[a-zA-Z]/.test(queryText) && !/[а-яА-Яәғқңөұүі]/.test(queryText)) {
+        detectedLang = "английский";
     }
 
-    let fullPrompt = `System: ${currentSystemPrompt}\nLanguage: ${aiLang}\nTask: Answer strictly in ${aiLang} language.\nUser: ${queryText}`;
+    // 2. Қысқа диалогты анықтау
+    const shortPhrases = [
+        "салем", "сәлем", "привет", "калайсын", "қалайсың", "как дела", "не хабар", "не істеп", 
+        "что делаешь", "hi", "hello", "ок", "хорошо", "рахмет", "спасибо", "кимсин", "кімсің", "кто ты"
+    ];
     
+    let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) || queryText.length < 10;
+
+    if (isShortDialogue) {
+        try {
+            let context = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Serik'}: ${h.content}`).join("\n");
+            let quickPrompt = `System Instruction: ${currentSystemPrompt}\nLanguage: ${detectedLang}\nContext:\n${context}\n\nRespond naturally in ${detectedLang}. Keep it short.`;
+            
+            let res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(quickPrompt)}?model=openai`);
+            let text = await res.text();
+            if (text && !text.toLowerCase().includes("not found")) {
+                chatHistory.push({ role: "assistant", content: text.trim() });
+                return text.trim();
+            }
+        } catch (e) { 
+            console.log("Error in quick dialogue"); 
+        }
+    }
+
+    // 🧠 АДАМ СИЯҚТЫ ОЙЛАНУ БЛОГЫ (Chain of Thought)
+    console.log("Жүйе: Ішкі ойлану процесі іске қосылды...");
+    let reasoningPrompt = `You are Serik AI. Before answering, think step-by-step like a human expert. Analyze the user's core intent, required facts, and logical structure.
+User Query: ${queryText}
+Write a very brief 2-sentence internal reasoning/thoughts strictly in English language.`;
+
+    let reasoningText = "";
+    try {
+        let reasonRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(reasoningPrompt)}?model=openai`);
+        reasoningText = await reasonRes.text();
+        console.log("🧠 Серіктің ішкі ойы:", reasoningText);
+    } catch (e) {
+        reasoningText = "Analyze carefully and provide a logical response.";
+    }
+
+    // 3. Күрделі сұрақтарды өңдеу (Ойлану нәтижесін модельдерге қосып жібереміз)
+    let context = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Serik'}: ${h.content}`).join("\n");
+    let fullPrompt = `System Instruction: ${currentSystemPrompt}\nLanguage: ${detectedLang}\nInternal Thoughts: ${reasoningText}\nContext:\n${context}\n\nTask: Detailed expert answer in ${detectedLang}.`;
+
     let answers = await Promise.allSettled([
         fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`).then(r => r.text()),
+        fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=llama`).then(r => r.text()),
         fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=mistral`).then(r => r.text())
     ]);
 
-    let valid = answers.filter(a => a.status === "fulfilled" && a.value && !a.value.includes("not found")).map((a, i) => `[Model ${i}]:\n${a.value.trim()}`);
-    
-    if (valid.length === 0) return i18n[currentLang].error;
+    let validAnswers = [];
+    answers.forEach((ans, index) => {
+        if (ans.status === "fulfilled" && ans.value && !ans.value.toLowerCase().includes("not found")) {
+            validAnswers.push(`[Source ${index + 1}]:\n${ans.value.trim()}`);
+        }
+    });
 
-    let synthPrompt = `Synthesize these answers into one perfect response strictly in ${aiLang}.\n\n${valid.join("\n\n")}`;
+    if (validAnswers.length === 0) {
+        return "❌ Ошибка соединения с ИИ. Попробуйте еще раз.";
+    }
+
+    // 4. Синтезатор
+    let combinedText = validAnswers.join("\n\n");
+    let synthesizerPrompt = `You are the final synthesis engine of Serik AI. Merge the responses into one flawless, wise, human-like answer.
+Rules:
+1. Write strictly in ${detectedLang} language. Do not mix languages.
+2. Use the logical guidance from these internal thoughts: ${reasoningText}
+3. Beautiful markdown formatting.
+
+User Query: ${queryText}
+Content:
+${combinedText}`;
+
     try {
-        let finalRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(synthPrompt)}?model=openai`);
+        let finalRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(synthesizerPrompt)}?model=openai`);
         let finalContent = await finalRes.text();
-        if (finalContent) { chatHistory.push({ role: "assistant", content: finalContent.trim() }); return finalContent.trim(); }
-    } catch (e) {}
+        
+        if (finalContent && !finalContent.toLowerCase().includes("not found")) {
+            chatHistory.push({ role: "assistant", content: finalContent.trim() });
+            return finalContent.trim();
+        }
+    } catch (e) {
+        console.log("Error in synthesis");
+    }
 
-    let fallback = valid[0].split("]:\n")[1] || valid[0];
-    chatHistory.push({ role: "assistant", content: fallback.trim() });
-    return fallback.trim();
-}
+    let fallbackAnswer = validAnswers[0].split("]:\n")[1] || validAnswers[0];
+    chatHistory.push({ role: "assistant", content: fallbackAnswer.trim() });
+    return fallbackAnswer.trim();
+  }
 
-async function send() {
-    let inputEl = document.getElementById("input");
-    let text = inputEl.value.trim();
-    if (!text) return;
+async function send(){
+    let input = document.getElementById("input");
+    let text = input.value.trim();
+    if(!text) return;
+    
     add(text, "user");
-    inputEl.value = "";
+    input.value = "";
+
+    // --- МАТЕМАТИКАЛЫҚ ЕСЕПТЕРДІ ТЕКСЕРУ ---
+    if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
+        showLoading();
+        try {
+            let mathResult = eval(text);
+            setTimeout(() => { 
+                hideLoading();
+                add(`🧮 Ответ: ${mathResult}`, "ai");
+            }, 300);
+            return;
+        } catch(e) {
+            // қате кетсе ИИ өзі жалғастырады
+        }
+    }
 
     let res = brain(text);
     if(res){
         showLoading();
-        setTimeout(() => { hideLoading(); add(res, "ai"); }, 400);
+        setTimeout(() => { 
+            hideLoading();
+            add(res, "ai");
+        }, 400);
         return;
     }
 
@@ -489,6 +626,7 @@ async function send() {
     hideLoading();
     add(finalAnswer, "ai");
 }
+
 </script>
 </body>
 </html>
