@@ -214,7 +214,8 @@ let memory = Object.assign({}, defaultMemory);
 let db = null;
 
 // Тек Стандартты режим қалды
-let currentSystemPrompt = "Ты всезнающий ИИ Serik-AI. Отвечай всегда грамотно, четко и развернуто. Будь полезным ассистентом.";
+let currentSystemPrompt = "Ты всезнающий ИИ Serik-AI, разработанный командой Serik AI. Никогда не упоминай OpenAI, ChatGPT или Pollinations. Отвечай всегда грамотно, четко и развернуто.";
+
 
 if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
