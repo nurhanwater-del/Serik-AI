@@ -490,16 +490,36 @@ async function searchWebFallback(queryText) {
 }
 
 async function askSmartAI(queryText) {
+    // Сөйлесу тарихын жаңарту
+    chatHistory.push({ role: "user", content: queryText });
+    if (chatHistory.length > 10) chatHistory.shift();
+
+    let context = chatHistory.map(h => `${h.role === 'user' ? 'Пайдаланушы' : 'Серік'}: ${h.content}`).join("\n");
+    let fullPrompt = `Жүйелік нұсқаулық: ${currentSystemPrompt}\n\nСөйлесу тарихы:\n${context}\n\nПайдаланушының соңғы сұрағына өзі жазған тілде нақты жауап бер.`;
+
+    // ----------------------------------------------------
+    // 1) БІРІНШІ: DuckDuckGo AI (Тегін Llama-3 үлгісі)
+    // ----------------------------------------------------
     try {
-        chatHistory.push({ role: "user", content: queryText });
-        if (chatHistory.length > 10) chatHistory.shift();
-
-        // МІНЕ О СЫ ЖЕРІН ӨЗГЕРТТІК:
-        let context = chatHistory.map(h => `${h.role === 'user' ? 'Пайдаланушы' : 'Серік'}: ${h.content}`).join("\n");
-        let fullPrompt = `Жүйелік нұсқаулық: ${currentSystemPrompt}\n\nСөйлесу тарихы:\n${context}\n\nПайдаланушының соңғы сұрағына өзі жазған тілде нақты жауап бер.`;
-
-        let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`;
+        console.log("Жүктелуде: 1) DuckDuckGo AI...");
+        let ddgUrl = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=llama`;
+        let res = await fetch(ddgUrl);
+        let text = await res.text();
         
+        if (text && text.length > 2 && !text.toLowerCase().includes("not found")) {
+            chatHistory.push({ role: "assistant", content: text.trim() });
+            return text.trim();
+        }
+    } catch (e) {
+        console.log("1) DuckDuckGo қате берді, келесіге өтемін...");
+    }
+
+    // ----------------------------------------------------
+    // 2) ЕКІНШІ: Pollinations / Groq OpenAI тегін желісі
+    // ----------------------------------------------------
+    try {
+        console.log("Жүктелуде: 2) Pollinations OpenAI...");
+        let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`;
         let res = await fetch(url);
         let text = await res.text();
         
@@ -508,14 +528,42 @@ async function askSmartAI(queryText) {
             return text.trim();
         }
     } catch (e) {
-        console.log("Ошибка ИИ, переключаюсь на поиск...");
+        console.log("2) Pollinations қате берді, келесіге өтемін...");
     }
 
+    // ----------------------------------------------------
+    // 3) ҮШІНШІ: Google Gemini API (Сенімді резерв)
+    // ----------------------------------------------------
+    if (GEMINI_API_KEY && GEMINI_API_KEY !== "МЫНА ЖЕРГЕ_КІЛТТІ_ҚОЙ") {
+        try {
+            console.log("Жүктелуде: 3) Google Gemini...");
+            let geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            let res = await fetch(geminiUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: fullPrompt }] }]
+                })
+            });
+            let data = await res.json();
+            let text = data.candidates[0].content.parts[0].text;
+            
+            if (text && text.trim().length > 0) {
+                chatHistory.push({ role: "assistant", content: text.trim() });
+                return text.trim();
+            }
+        } catch (e) {
+            console.log("3) Google Gemini қате берді.");
+        }
+    }
+
+    // Егер үш ИИ де шаршап қалса, Википедиядан іздейді
     let backup = await searchWebFallback(queryText);
     if(backup) return backup;
 
-    return "❌ Байланыс үзілді. Қайтадан жазып көріңізші!";
+    return "❌ Серверлер уақытша бос емес. Қайтадан жазып көріңізші!";
 }
+
 
 
 
