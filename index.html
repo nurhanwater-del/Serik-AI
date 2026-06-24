@@ -491,6 +491,8 @@ async function searchWebFallback(queryText) {
 
 // Жүйенің ішкі кэш жады (Жауаптарды жылдам беру үшін)
 const smartCache = new Map();
+const contextSummary = { lastTopic: "", keywords: [] };
+
 
 async function askSmartAI(queryText) {
     let textLower = queryText.toLowerCase().trim();
