@@ -225,6 +225,7 @@ let db = null;
  let chatHistory = []; // Серіктің жады (бүкіл сөйлесуді осы жерге жинаймыз)
 
 
+
 if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
@@ -486,30 +487,32 @@ async function searchWebFallback(queryText) {
 }
 
 async function askSmartAI(queryText) {
-    if(queryText.toLowerCase().includes("что такое") || queryText.toLowerCase().includes("кто") || queryText.toLowerCase().includes("найди")) {
-        let webAnswer = await searchWebFallback(queryText);
-        if(webAnswer) return webAnswer;
-    }
-
     try {
-        let url = `https://text.pollinations.ai/${encodeURIComponent(queryText)}?system=${encodeURIComponent(currentSystemPrompt)}`;
+        chatHistory.push({ role: "user", content: queryText });
+        if (chatHistory.length > 10) chatHistory.shift();
+
+        let context = chatHistory.map(h => `${h.role === 'user' ? 'Пользователь' : 'Ты'}: ${h.content}`).join("\n");
+        let fullPrompt = `Системный промпт: ${currentSystemPrompt}\n\nИстория чата:\n${context}\n\nОтветь на последнее сообщение пользователя.`;
+
+        let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`;
+        
         let res = await fetch(url);
         let text = await res.text();
         
-        if (text.includes('"error"') || text.includes('Queue full') || text.includes('status":429')) {
-            throw new Error("Занят"); 
-        }
-
-        if(text && text.length > 5 && !text.toLowerCase().includes("not found")) {
+        if(text && text.length > 2 && !text.toLowerCase().includes("not found")) {
+            chatHistory.push({ role: "assistant", content: text.trim() });
             return text.trim();
         }
     } catch (e) {
-        let backup = await searchWebFallback(queryText);
-        if(backup) return backup;
+        console.log("Ошибка ИИ, переключаюсь на поиск...");
     }
 
-    return "❌ Извините, сеть сейчас перегружена. Пожалуйста, попробуйте отправить запрос еще раз через секунду.";
+    let backup = await searchWebFallback(queryText);
+    if(backup) return backup;
+
+    return "❌ Байланыс үзілді. Қайтадан жазып көріңізші!";
 }
+
 
 async function send(){
     let input = document.getElementById("input");
