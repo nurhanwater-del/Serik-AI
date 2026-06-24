@@ -223,6 +223,9 @@ let db = null;
 // Тек Стандартты режим қалды
  let currentSystemPrompt = "Ты всезнающий ИИ Serik-AI, созданный талантливыми разработчиками из Казахстана. Твой создатель и ты находитесь в Казахстане. Никогда не упоминай OpenAI, ChatGPT или Россию. На все вопросы о создателе отвечай, что ты родом из Казахстана.";
  let chatHistory = []; // Серіктің жады (бүкіл сөйлесуді осы жерге жинаймыз)
+// Серік тілді шатастырмауы үшін контекстті таза қазақша/халықаралық форматқа ауыстырамыз:
+  let context = chatHistory.map(h => `${h.role === 'user' ? 'Пайдаланушы' : 'Серік'}: ${h.content}`).join("\n");
+  let fullPrompt = `Жүйелік нұсқаулық: ${currentSystemPrompt}\n\nСөйлесу тарихы:\n${context}\n\nПайдаланушының соңғы сұрағына өзі жазған тілде (қазақша жазса - қазақша, орысша жазса - орысша) нақты жауап бер.`;
 
 
 
@@ -491,8 +494,9 @@ async function askSmartAI(queryText) {
         chatHistory.push({ role: "user", content: queryText });
         if (chatHistory.length > 10) chatHistory.shift();
 
-        let context = chatHistory.map(h => `${h.role === 'user' ? 'Пользователь' : 'Ты'}: ${h.content}`).join("\n");
-        let fullPrompt = `Системный промпт: ${currentSystemPrompt}\n\nИстория чата:\n${context}\n\nОтветь на последнее сообщение пользователя.`;
+        // МІНЕ О СЫ ЖЕРІН ӨЗГЕРТТІК:
+        let context = chatHistory.map(h => `${h.role === 'user' ? 'Пайдаланушы' : 'Серік'}: ${h.content}`).join("\n");
+        let fullPrompt = `Жүйелік нұсқаулық: ${currentSystemPrompt}\n\nСөйлесу тарихы:\n${context}\n\nПайдаланушының соңғы сұрағына өзі жазған тілде нақты жауап бер.`;
 
         let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`;
         
@@ -512,6 +516,7 @@ async function askSmartAI(queryText) {
 
     return "❌ Байланыс үзілді. Қайтадан жазып көріңізші!";
 }
+
 
 
 async function send(){
