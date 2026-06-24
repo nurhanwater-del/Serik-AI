@@ -489,66 +489,125 @@ async function searchWebFallback(queryText) {
     } catch(e) { return null; }
 }
 
+// Жүйенің ішкі кэш жады (Жауаптарды жылдам беру үшін)
+const smartCache = new Map();
+
 async function askSmartAI(queryText) {
-    // 1. Сөйлесу тарихын жаңарту
+    let textLower = queryText.toLowerCase().trim();
+
+    // 1. КЭШТІ ТЕКСЕРУ (Жылдамдық рекорды)
+    if (smartCache.has(textLower)) {
+        console.log("Жүйе: Дайын жауап кэштен алынды! (Жылдамдық: 0.01 сек)");
+        return smartCache.get(textLower);
+    }
+
+    // Сөйлесу тарихын жаңарту
     chatHistory.push({ role: "user", content: queryText });
     if (chatHistory.length > 10) chatHistory.shift();
 
-    let textLower = queryText.toLowerCase().trim();
+    // 2. ТІЛДІ НАҚТЫ АНЫҚТАУ (Детектор)
+    let detectedLang = "казахский"; // Әдепкі тіл
+    if (/[а-яА-Я]/.test(queryText) && !/[әғқңөұүіІӘҒҚҢӨҰҮ]/.test(queryText)) {
+        detectedLang = "русский";
+    } else if (/[a-zA-Z]/.test(queryText) && !/[а-яА-Яәғқңөұүі]/.test(queryText)) {
+        detectedLang = "английский";
+    }
 
-    // 2. ӘҢГІМЕНІ АЖЫРАТУ (Егер бұл жай ғана амандасу немесе қысқа сөйлесу болса)
+    // 3. ӘҢГІМЕНІ АЖЫРАТУ (Қысқа диалогтар)
     const shortPhrases = [
         "салем", "сәлем", "привет", "калайсын", "қалайсың", "как дела", "не хабар", "не істеп", 
         "что делаешь", "hi", "hello", "ок", "хорошо", "рахмет", "спасибо", "кимсин", "кімсің", "кто ты"
     ];
-    
     let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) || queryText.length < 10;
 
     if (isShortDialogue) {
-        console.log("Жүйе: Бұл кәдімгі диалог. Бір ғана жылдам ИИ қолданылады...");
         try {
             let context = chatHistory.map(h => `${h.role === 'user' ? 'Пайдаланушы' : 'Серік'}: ${h.content}`).join("\n");
-            let quickPrompt = `Жүйелік нұсқаулық: ${currentSystemPrompt}\n\nСөйлесу тарихы:\n${context}\n\nПайдаланушымен достық қарым-қатынаста, ол жазған тілде (қазақша, орысша не ағылшынша) қысқа және табиғи диалог түрінде жауап бер. Артық ұзын ақпарат шығарма.`;
+            let quickPrompt = `Жүйелік нұсқаулық: ${currentSystemPrompt}\n\nСөйлесу тарихы:\n${context}\n\nПайдаланушымен достық қарым-қатынаста, ТЕК ${detectedLang} тілінде, өте қысқа, нұсқа және табиғи диалог түрінде жауап бер. Артық энциклопедиялық ақпарат шығарма.`;
             
             let res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(quickPrompt)}?model=openai`);
             let text = await res.text();
             if (text && !text.toLowerCase().includes("not found")) {
-                chatHistory.push({ role: "assistant", content: text.trim() });
-                return text.trim();
+                let result = text.trim();
+                chatHistory.push({ role: "assistant", content: result });
+                return result;
             }
-        } catch (e) { console.log("Диалогтық ИИ қате берді, негізгі жүйеге өтемін."); }
+        } catch (e) { console.log("Диалогтық ИИ қате берді, негізгі жүйеге көшірілді."); }
     }
 
-    // 3. КҮРДЕЛІ СҰРАҚТАРДЫ СИНТЕЗДЕУ (Егер үлкен ақпарат керек болса)
-    console.log("Жүйе: Күрделі сұрақ анықталды. Бірнеше ИИ параллельді іске қосылды...");
+    // 4. КҮРДЕЛІ СҰРАҚТАРДЫ ПАРАЛЛЕЛЬДІ СИНТЕЗДЕУ
+    console.log(`Жүйе: [${detectedLang.toUpperCase()}] тіліндегі күрделі сұрақ. Параллельді өңдеу...`);
     
     let context = chatHistory.map(h => `${h.role === 'user' ? 'Пайдаланушы' : 'Серік'}: ${h.content}`).join("\n");
-    let fullPrompt = `Жүйелік нұсқаулық: ${currentSystemPrompt}\n\nСөйлесу тарихы:\n${context}\n\nОсы сұраққа толық жауап жаз.`;
+    let fullPrompt = `Жүйелік нұсқаулық: ${currentSystemPrompt}\n\nСөйлесу тарихы:\n${context}\n\nОсы сұраққа толық әрі сапалы жауап дайында.`;
 
-    // Барлық ИИ-лерге бір уақытта параллельді сұраныс жібереміз (Жылдам жұмыс істеуі үшін)
+    // 3 түрлі мықты ИИ-ге бір уақытта сұраныс жіберу
     let answers = await Promise.allSettled([
-        // 1) ChatGPT нұсқасы
         fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`).then(r => r.text()),
-        // 2) DuckDuckGo (Llama) нұсқасы
         fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=llama`).then(r => r.text()),
-        // 3) Google Gemini нұсқасы (Егер кілтің болса, ресми қосасың, қазірше үшінші тегін модель ретінде)
         fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=mistral`).then(r => r.text())
     ]);
 
-    // Тек сәтті келген жауаптарды жинаймыз
     let validAnswers = [];
     answers.forEach((ans, index) => {
         if (ans.status === "fulfilled" && ans.value && !ans.value.toLowerCase().includes("not found")) {
-            validAnswers.push(`[ИИ-Нұсқа ${index + 1}]:\n${ans.value.trim()}`);
+            validAnswers.push(`[Модель ${index + 1} жауабы]:\n${ans.value.trim()}`);
         }
     });
 
-    // Егер ешқандай ИИ жауап бермесе, Википедиядан іздейді
+    // Егер ИИ-лер жауап бере алмай қалса, Интернеттен іздеу (Резерв)
     if (validAnswers.length === 0) {
-        let backup = await searchWebFallback(queryText);
-        if (backup) return backup;
-        return "❌ Серверлерден ақпарат алу мүмкін болмады. Қайтадан жазып көріңізші!";
+        console.log("Жүйе: ИИ серверлері бос емес, Веб-іздеу іске қосылды...");
+        let webResult = await searchWebFallback(queryText);
+        if (webResult) {
+            smartCache.set(textLower, webResult); // Кэшқа сақтау
+            return webResult;
+        }
+        return "❌ Байланыс үзілді. Қайтадан жазып көріңізші!";
     }
+
+    // 5. ЖОҒАРҒЫ СИНТЕЗАТОР (Ең ақылды қорытынды жасау)
+    let combinedText = validAnswers.join("\n\n");
+    let synthesizerPrompt = `Сен — Серік ИИ-дің бас талдаушысысың. Саған бір сұрақ бойынша бірнеше ИИ-ден шикі мәтіндер келді.
+Сенің мақсатың: Осы мәтіндердің қосындысынан ең үздік, нақты және толық жауапты құрастыру.
+
+ҚАТАҢ ШАРТТАР:
+1. Жауапты МІНДЕТТІ ТҮРДЕ тек ${detectedLang} тілінде жаз! Басқа тілдегі сөздерді араластырма.
+2. Қайталанатын сөйлемдерді жой, логикалық қателерді түзет, мәтінді абзацтармен әдемілеп форматта.
+3. Пайдаланушының нақты сұрағына ғана назар аудар.
+
+Пайдаланушының сұрағы: ${queryText}
+
+Келген шикі мәтіндер жиынтығы:
+${combinedText}`;
+
+    try {
+        let finalRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(synthesizerPrompt)}?model=openai`);
+        let finalContent = await finalRes.text();
+        
+        if (finalContent && !finalContent.toLowerCase().includes("not found")) {
+            let finalResult = finalContent.trim();
+            
+            // Жауапты кэш жадына сақтаймыз (Келесі жолы бірден шығу үшін)
+            smartCache.set(textLower, finalResult);
+            if (smartCache.size > 50) { // Кэш өсіп кетпеуі үшін тазалап отырамыз
+                const firstKey = smartCache.keys().next().value;
+                smartCache.delete(firstKey);
+            }
+
+            chatHistory.push({ role: "assistant", content: finalResult });
+            return finalResult;
+        }
+    } catch (e) {
+        console.log("Синтез қатесі, бірінші нұсқа таңдалды.");
+    }
+
+    // Резервтік нұсқа
+    let fallbackAnswer = validAnswers[0].split(":\n")[1] || validAnswers[0];
+    chatHistory.push({ role: "assistant", content: fallbackAnswer.trim() });
+    return fallbackAnswer.trim();
+}
+
 
     // 4. СИНТЕЗАТОР (Барлық жауаптың қосындысынан мінсіз сөйлем құрау)
     console.log("Жүйе: Жауаптар жиналды. Қосындылау және синтез процесі басталды...");
