@@ -485,100 +485,30 @@ async function searchWebFallback(queryText) {
 }
 
 async function askSmartAI(queryText) {
-    // 1. Тарихты жаңарту
-    chatHistory.push({ role: "user", content: queryText });
-    if (chatHistory.length > 10) chatHistory.shift();
-
-    let textLower = queryText.toLowerCase().trim();
-
-    // Тілді анықтау
-    let detectedLang = "казахский";
-    if (/[әғқңөұүіІӘҒҚҢӨҰҮ]/.test(queryText)) {
-        detectedLang = "казахский";
-    } else if (/[а-яА-Я]/.test(queryText)) {
-        detectedLang = "русский";
-    } else if (/[a-zA-Z]/.test(queryText)) {
-        detectedLang = "английский";
+    if(queryText.toLowerCase().includes("что такое") || queryText.toLowerCase().includes("кто") || queryText.toLowerCase().includes("найди")) {
+        let webAnswer = await searchWebFallback(queryText);
+        if(webAnswer) return webAnswer;
     }
 
-    // 2. Сәлемдесу және қысқа фразаларды сүзгіден өткізу
-    const shortPhrases = [
-        "салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", 
-        "как дела", "не хабар", "не істеп", "what's up", "kimsin", "кімсің"
-    ];
-    
-    let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) && queryText.length < 20;
-
-    // Егер сәлемдесу болса, модельдерді қиналдырмай, бірден жауап береді
-    if (isShortDialogue) {
-        let greetingPrompt = `You are Serik AI. User said: "${queryText}". Respond in ${detectedLang} as a friendly, concise assistant. Do NOT give long information. Just be polite.`;
-        try {
-            let res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(greetingPrompt)}?model=openai`);
-            let text = await res.text();
-            if (text && !text.toLowerCase().includes("not found")) {
-                chatHistory.push({ role: "assistant", content: text.trim() });
-                return text.trim();
-            }
-        } catch (e) { return "Сәлем! Қалың қалай?"; }
-    }
-
-    // 3. Терең ойлану (Chain of Thought) - Күрделі сұрақтар үшін
-    console.log("🧠 Ойлану процесі басталды...");
-    let reasoningPrompt = `Analyze this user query: "${queryText}". 
-    Think step-by-step to understand the core intent. 
-    Write a brief 1-sentence internal logic plan to answer this effectively. 
-    Language of thought: English.`;
-
-    let reasoningText = "Provide a comprehensive and accurate answer.";
     try {
-        let reasonRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(reasoningPrompt)}?model=openai`);
-        reasoningText = await reasonRes.text();
-    } catch (e) { reasoningText = "Analyze and answer accurately."; }
-
-    // 4. Үш модельден жауап алу (OpenAI, Llama, Mistral)
-    let context = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Serik'}: ${h.content}`).join("\n");
-    let fullPrompt = `System: You are Serik AI.
-    Context: ${context}
-    Internal Logic Guide: ${reasoningText}
-    Task: Provide an expert, human-like response in ${detectedLang}. 
-    Focus on accuracy and logical structure.`;
-
-    let answers = await Promise.allSettled([
-        fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`).then(r => r.text()),
-        fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=llama`).then(r => r.text()),
-        fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=mistral`).then(r => r.text())
-    ]);
-
-    let validAnswers = answers
-        .filter(a => a.status === "fulfilled" && a.value && !a.value.toLowerCase().includes("not found"))
-        .map(a => a.value.trim());
-
-    if (validAnswers.length === 0) return "❌ Кешір, Серік қазір ойлана алмай тұр. Тағы байқап көрші.";
-
-    // 5. Синтезатор (Қорытындылау)
-    let synthesizerPrompt = `You are the master synthesis engine. Merge these 3 perspectives into one perfect, highly intelligent response in ${detectedLang}.
-    Follow this logical guide: ${reasoningText}
-    
-    Inputs:
-    1: ${validAnswers[0]}
-    2: ${validAnswers[1] || "N/A"}
-    3: ${validAnswers[2] || "N/A"}
-    
-    Output strictly in ${detectedLang} with beautiful formatting.`;
-
-    try {
-        let finalRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(synthesizerPrompt)}?model=openai`);
-        let finalContent = await finalRes.text();
+        let url = `https://text.pollinations.ai/${encodeURIComponent(queryText)}?system=${encodeURIComponent(currentSystemPrompt)}`;
+        let res = await fetch(url);
+        let text = await res.text();
         
-        if (finalContent && !finalContent.toLowerCase().includes("not found")) {
-            chatHistory.push({ role: "assistant", content: finalContent.trim() });
-            return finalContent.trim();
+        if (text.includes('"error"') || text.includes('Queue full') || text.includes('status":429')) {
+            throw new Error("Занят"); 
         }
-    } catch (e) { console.log("Synthesis error"); }
 
-    return validAnswers[0];
+        if(text && text.length > 5 && !text.toLowerCase().includes("not found")) {
+            return text.trim();
+        }
+    } catch (e) {
+        let backup = await searchWebFallback(queryText);
+        if(backup) return backup;
+    }
+
+    return "❌ Извините, сеть сейчас перегружена. Пожалуйста, попробуйте отправить запрос еще раз через секунду.";
 }
-
 
 async function send(){
     let input = document.getElementById("input");
