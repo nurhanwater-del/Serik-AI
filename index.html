@@ -188,13 +188,20 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
         <button onclick="generateText('Найди ошибки в написанном коде')">💻 Проверка кода</button>
     </div>
 
-    <div class="row">
+        <div class="row">
+        <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Очистить чат">🗑️</button>
         <input id="input" placeholder="Введите ваш вопрос..." onkeydown="if(event.key==='Enter') send()">
         <button onclick="send()">Отправить</button>
     </div>
+
 </div>
 
 <script>
+  function clearChat() {
+    chat.innerHTML = "";
+    add("Привет! Я Serik AI Pro. Чат очищен и готов к работе! ✨", "ai", false);
+}
+
 // --- FIREBASE БАПТАУЛАРЫ ---
 const firebaseConfig = {
   apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
