@@ -575,7 +575,28 @@ async function send(){
             chat.scrollTop = chat.scrollHeight;
         }, 1500); // 1.5 секундта сурет дайын болады
         return;
-    }
+        // 📹 ВИДЕО АНИМАЦИЯ ГЕНЕРАТОРЫ (ТЕГІН)
+if (textLower.includes("видео") || textLower.includes("анимация") || textLower.includes("video")) {
+    showLoading();
+    let cleanPrompt = text.replace(/(видео жаса|сделай видео|видео|video|анимация)/gi, "").trim();
+    if(!cleanPrompt) cleanPrompt = "cyberpunk city loop";
+
+    // Pollinations анимациялық видео сілтемесі (GIF форматта тегін шығады)
+    let videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&nologo=true&private=true&feed=true`;
+    
+    setTimeout(() => {
+        hideLoading();
+        let div = document.createElement("div");
+        div.className = "msg ai";
+        div.innerHTML = `<p>📹 Вот твое видео (анимация) по запросу: "${cleanPrompt}":</p>
+                         <img src="${videoUrl}" style="width: 100%; border-radius: 8px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" alt="Generated Video">`;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+    }, 2000);
+    return;
+}
+
+
 
     // --- МАТЕМАТИКАЛЫҚ ЕСЕПТЕРДІ ТЕКСЕРУ ---
     if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
