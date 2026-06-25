@@ -552,6 +552,31 @@ async function send(){
     add(text, "user");
     input.value = "";
 
+    let textLower = text.toLowerCase();
+
+    // 📸 ФОТО ГЕНЕРАТОР ЛОГИКАСЫ (ТЕГІН ӘРІ ШЕКСІЗ)
+    if (textLower.includes("сурет") || textLower.includes("нарисуй") || textLower.includes("image") || textLower.includes("photo")) {
+        showLoading();
+        // Сұраныстан артық сөздерді алып тастап, промпт дайындаймыз
+        let cleanPrompt = text.replace(/(сурет сал|нарисуй|маған|мне|фото|сурет)/gi, "").trim();
+        if(!cleanPrompt) cleanPrompt = "beautiful futuristic kazakhstan";
+
+        // Pollinations тегін фото генераторының сілтемесі
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&nologo=true&private=true`;
+        
+        setTimeout(() => {
+            hideLoading();
+            // Чатқа суретті тікелей шығару
+            let div = document.createElement("div");
+            div.className = "msg ai";
+            div.innerHTML = `<p>🎨 Вот твой рисунок по запросу: "${cleanPrompt}":</p>
+                             <img src="${imageUrl}" style="width: 100%; border-radius: 8px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" alt="Generated Image">`;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }, 1500); // 1.5 секундта сурет дайын болады
+        return;
+    }
+
     // --- МАТЕМАТИКАЛЫҚ ЕСЕПТЕРДІ ТЕКСЕРУ ---
     if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
         showLoading();
@@ -579,6 +604,8 @@ async function send(){
     let finalAnswer = await askSmartAI(text);
     hideLoading();
     add(finalAnswer, "ai");
+}
+
 }
 </script>
 </body>
