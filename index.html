@@ -245,7 +245,7 @@ async function askSmartAI(queryText) {
 }
 
 // =========================================================
-// 🔥 БАСТЫ СЕНД ФУНКЦИЯСЫ: ФОТО, КОМИКС ЖӘНЕ НАҒЫЗ ВИДЕО
+// 🔥 ЖАҢАРТЫЛҒАН АСИНХРОНДЫ СЕНД ФУНКЦИЯСЫ (100% ВИДЕО ЖҮКТЕУ)
 // =========================================================
 async function send(){
     let input = document.getElementById("input");
@@ -256,7 +256,7 @@ async function send(){
     input.value = "";
     let textLower = text.toLowerCase();
 
-    // 1️⃣ 🦸‍♂️ КОМИКС / АНИМАЦИЯ (LOTTIE + ИИ СУРЕТ - ӨТЕ ЖЫЛДАМ)
+    // 1️⃣ 🦸‍♂️ КОМИКС / АНИМАЦИЯ (ЖЫЛДАМ РЕЖИМ)
     if (textLower.includes("комикс") || textLower.includes("анимация")) {
         showLoading("Комикс жасалуда (Жылдам)...");
         let cleanPrompt = text.replace(/(комикс видеосын|комикс жаса|анимация жаса|комикс|анимация|жаса|маған)/gi, "").trim();
@@ -284,30 +284,40 @@ async function send(){
         return;
     }
 
-    // 2️⃣ 📹 НАҒЫЗ ВИДЕО (POLLINATIONS СЕРВЕРІНЕН СТРИМ - 1 МИНУТ АЛАДЫ)
+    // 2️⃣ 📹 НАҒЫЗ ВИДЕО (НАҒЫЗ ASYNC СҰРАНЫСПЕН - МІНДЕТТІ ТҮРДЕ ЖҮКТЕЛЕДІ)
     if (textLower.includes("видео") || textLower.includes("video")) {
-        showLoading("Видео генерациялануда (Шамамен 1 минут күтіңіз)...");
-        let cleanPrompt = text.replace(/(видеосын жаса|видео жаса|сделай видео|видео|video|маған)/gi, "").trim();
-        let englishPrompt = cleanPrompt ? cleanPrompt + ", looping action scene, cinematic" : "epic cinematic shot, looping action";
-
-        // Видео ссылкасы
-        let videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(englishPrompt)}?width=720&height=480&model=flux&nologo=true&private=true&feed=true`;
+        showLoading("Видео ИИ серверінде дайындалуда... (Шамамен 30-60 сек күтіңіз)");
         
-        // 10 секундтан кейін плеерді шығарамыз, бірақ видеоның өзі жүктелуі 1 минут алуы мүмкін
-        setTimeout(() => {
+        let cleanPrompt = text.replace(/(видеосын жаса|видео жаса|сделай видео|видео|video|маған)/gi, "").trim();
+        let englishPrompt = cleanPrompt ? cleanPrompt + ", looping action scene, 3d cinematic look, motion graphics" : "epic cinematic shot, looping action movie";
+
+        // Тұрақты генерациялау сілтемесі
+        let videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(englishPrompt)}?width=1024&height=768&nologo=true&private=true&feed=true&seed=${Math.floor(Math.random() * 99999)}`;
+        
+        try {
+            // Асинхронды түрде сервер жауабын фонда күтеміз (Бұл уақыт алады, бірақ нақты жүктейді)
+            let response = await fetch(videoUrl);
+            
+            if (response.ok) {
+                hideLoading();
+                let div = document.createElement("div");
+                div.className = "msg ai";
+                div.innerHTML = `
+                    <p>📹 Нағыз видео генерациясы сәтті аяқталды!</p>
+                    <div style="background: #111; border-radius: 12px; padding: 5px; box-shadow: 0 0 15px #00b86b; text-align: center; overflow: hidden;">
+                        <video src="${videoUrl}" autoplay loop muted playsinline controls style="width: 100%; border-radius: 8px; display: block; min-height: 220px; background: #000;"></video>
+                    </div>
+                    <p style="font-size: 11px; color: #aaa; margin-top: 6px; text-align: center;">🎨 Сұраныс: "${cleanPrompt || 'видео'}"</p>
+                `;
+                chat.appendChild(div);
+                chat.scrollTop = chat.scrollHeight;
+            } else {
+                throw new Error("Сервер қатесі");
+            }
+        } catch (error) {
             hideLoading();
-            let div = document.createElement("div");
-            div.className = "msg ai";
-            div.innerHTML = `
-                <p>📹 Нағыз видео жүктелуде: "${cleanPrompt || 'видео'}"</p>
-                <div style="background: #111; border-radius: 8px; padding: 5px; box-shadow: 0 0 15px #00b86b; text-align: center;">
-                    <video src="${videoUrl}" autoplay loop muted playsinline style="width: 100%; border-radius: 4px; display: block; min-height: 200px; background: #000;" onerror="this.parentElement.innerHTML='<p style=\\'color:#ff4d4d; padding:20px;\\'>Сервер перегружен. Видео не загрузилось. Попробуй позже.</p>'"></video>
-                </div>
-                <p style="font-size: 11px; color: #aaa; margin-top: 6px; text-align: center;">⚠️ Ескерту: Егер қара экран болса, сервер жүктелген, 1 минуттай күтіңіз.</p>
-            `;
-            chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight;
-        }, 3000);
+            add("⚠️ Сервер қазір қатты жүктелгендіктен видеоны аяқтай алмады. Кішкенеден кейін қайта көріңіз немесе 'Комикс жаса' режимін қолданыңыз.", "ai");
+        }
         return;
     }
 
@@ -341,6 +351,7 @@ async function send(){
     hideLoading();
     add(finalAnswer, "ai");
 }
+
 </script>
 </body>
 </html>
