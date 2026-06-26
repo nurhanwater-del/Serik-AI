@@ -244,9 +244,6 @@ async function askSmartAI(queryText) {
     return "Қате кетті, қайтадан көріңіз.";
 }
 
-// =========================================================
-// 🔥 НАҒЫЗ ТҰРАҚТЫ АСИНХРОНДЫ СЕНД ФУНКЦИЯСЫ (ҚАТУСЫЗ РЕЖИМ)
-// =========================================================
 async function send(){
     let input = document.getElementById("input");
     let text = input.value.trim();
@@ -256,115 +253,63 @@ async function send(){
     input.value = "";
     let textLower = text.toLowerCase();
 
-    // 🛠️ КӨМЕКШІ ФУНКЦИЯ: Суреттің толық жүктелгенін фонда күту (Promise + Async)
-    const loadImageAsync = (url) => {
-        return new Promise((resolve) => {
-            let img = new Image();
-            img.onload = () => resolve(true);
-            img.onerror = () => resolve(false);
-            img.src = url;
-        });
-    };
-
-    // 1️⃣ 🦸‍♂️ КОМИКС / АНИМАЦИЯ (ФОНДА КҮТІП, КЕЙІН ШЫҒАРУ)
+    // 1️⃣ КОМИКС РЕЖИМІ (Бұрынғыдай жылдам)
     if (textLower.includes("комикс") || textLower.includes("анимация")) {
-        showLoading("Комикс ИИ серверінде салынып жатыр... (Фонда жүктелуде)");
+        showLoading("Комикс жасалуда...");
         let cleanPrompt = text.replace(/(комикс видеосын|комикс жаса|анимация жаса|комикс|анимация|жаса|маған)/gi, "").trim();
-        let englishPrompt = cleanPrompt ? cleanPrompt + ", high quality anime style, detailed masterpiece" : "cyberpunk character, high quality anime style";
-
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(englishPrompt)}?width=1024&height=720&nologo=true&private=true&seed=${Math.floor(Math.random() * 99999)}`;
-        
-        // 🔥 Артқы фонда суреттің генерацияланып, жүктелуін күтеміз
-        let isLoaded = await loadImageAsync(imageUrl);
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt || "anime hero")}?width=1024&height=768&nologo=true&private=true&seed=${Math.floor(Math.random() * 99999)}`;
         
         hideLoading();
-        if (isLoaded) {
-            let div = document.createElement("div");
-            div.className = "msg ai";
-            div.innerHTML = `
-                <p>✨ Твой комикс готов: "${cleanPrompt || 'комикс'}"</p>
-                <div style="position: relative; background: #111; border-radius: 12px; overflow: hidden; width: 100%; aspect-ratio: 16/10;">
-                    <img src="${imageUrl}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
-                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.65;">
-                        <lottie-player src="https://lottie.host/df293774-4bda-4702-bf0b-6060ee693d20/z63K2E20Yn.json" speed="1" style="width: 100%; height: 100%;" loop autoplay></lottie-player>
-                    </div>
+        let div = document.createElement("div");
+        div.className = "msg ai";
+        div.innerHTML = `
+            <p>✨ Комикс дайын: "${cleanPrompt || 'комикс'}"</p>
+            <div style="position:relative; background:#000; border-radius:12px; overflow:hidden;">
+                <img src="${imageUrl}" style="width:100%; display:block;">
+                <div style="position:absolute; top:0; left:0; width:100%; height:100%;">
+                    <lottie-player src="https://lottie.host/df293774-4bda-4702-bf0b-6060ee693d20/z63K2E20Yn.json" loop autoplay speed="1"></lottie-player>
                 </div>
-                <p style="font-size: 11px; color: #aaa; margin-top: 6px; text-align: center;">📱 Жылдам комикс режимі (Асинхронды тексерілді)</p>
-            `;
-            chat.appendChild(div);
-        } else {
-            add("⚠️ Серверден суретті алу мүмкін болмады. Сәлден соң қайтадан байқап көріңіз.", "ai");
-        }
-        chat.scrollTop = chat.scrollHeight;
+            </div>`;
+        chat.appendChild(div);
         return;
     }
 
-    // 2️⃣ 📹 НАҒЫЗ ВИДЕО (ФОНДА FETCH АРҚЫЛЫ ТОЛЫҚ КҮТУ)
+    // 2️⃣ 📹 НАҒЫЗ АСИНХРОНДЫ ВИДЕО (Толық күту режимі)
     if (textLower.includes("видео") || textLower.includes("video")) {
-        showLoading("Видео ИИ серверінде жиналып жатыр... (Шамамен 30-50 сек күтіңіз)");
-        let cleanPrompt = text.replace(/(видеосын жаса|видео жаса|сделай видео|видео|video|маған)/gi, "").trim();
-        let englishPrompt = cleanPrompt ? cleanPrompt + ", looping action scene, cinematic 3d look" : "epic cinematic looping action shot";
-
-        let videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(englishPrompt)}?width=1024&height=768&nologo=true&private=true&feed=true&seed=${Math.floor(Math.random() * 99999)}`;
+        showLoading("Видео ИИ серверінде генерациялануда... (Бұл 1 минуттай уақыт алады)");
+        let cleanPrompt = text.replace(/(видеосын жаса|видео жаса|видео|video|маған)/gi, "").trim();
+        let videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt || "cinematic action")}?width=1024&height=768&nologo=true&private=true&feed=true&seed=${Math.floor(Math.random() * 99999)}`;
         
         try {
-            // 🔥 Сервер шынымен файлды толық дайындап біткенше фонда күтеміз
+            // ФОНДА КҮТУ: Сервер жауабын толық алғанша күтеміз
             let response = await fetch(videoUrl);
-            hideLoading();
             
             if (response.ok) {
+                hideLoading();
                 let div = document.createElement("div");
                 div.className = "msg ai";
                 div.innerHTML = `
-                    <p>📹 Нағыз видео генерациясы сәтті аяқталды!</p>
-                    <div style="background: #111; border-radius: 12px; padding: 5px; box-shadow: 0 0 15px #00b86b; text-align: center; overflow: hidden;">
-                        <video src="${videoUrl}" autoplay loop muted playsinline controls style="width: 100%; border-radius: 8px; display: block; min-height: 220px; background: #000;"></video>
-                    </div>
-                    <p style="font-size: 11px; color: #aaa; margin-top: 6px; text-align: center;">🎨 Сұраныс: "${cleanPrompt || 'видео'}"</p>
-                `;
+                    <p>📹 Видео генерациясы аяқталды!</p>
+                    <div style="background: #000; border-radius: 12px; padding: 2px;">
+                        <video controls autoplay playsinline style="width: 100%; border-radius: 10px;">
+                            <source src="${videoUrl}" type="video/mp4">
+                        </video>
+                    </div>`;
                 chat.appendChild(div);
             } else {
-                throw new Error("Сервер жауап бермеді");
+                throw new Error("Сервер қатесі");
             }
-        } catch (error) {
+        } catch (e) {
             hideLoading();
-            add("⚠️ Видео сервері қазір бос емес немесе жүктеме жоғары. Кішкене уақыттан кейін қайталаңыз.", "ai");
+            add("⚠️ Видео жасау сәтсіз болды. Сервер жүктелген болуы мүмкін. Қайта көріңіз.", "ai");
         }
         chat.scrollTop = chat.scrollHeight;
         return;
     }
 
-    // 3️⃣ 📸 ФОТО / СУРЕТ (АСИНХРОНДЫ КҮТУМЕН)
-    if (textLower.includes("сурет") || textLower.includes("фото") || textLower.includes("нарисуй")) {
-        showLoading("Сурет салынуда... (Фонда тексерілуде)");
-        let cleanPrompt = text.replace(/(сурет сал|сурет|нарисуй|фото|маған)/gi, "").trim();
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt || "beautiful futuristic city")}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random() * 99999)}`;
-        
-        // 🔥 Сурет дайын болғанша күтеміз
-        let isLoaded = await loadImageAsync(imageUrl);
-        hideLoading();
-        
-        if (isLoaded) {
-            let div = document.createElement("div");
-            div.className = "msg ai";
-            div.innerHTML = `<p>🎨 Сурет дайын: "${cleanPrompt || 'сурет'}"</p><img src="${imageUrl}" style="width: 100%; border-radius: 8px;">`;
-            chat.appendChild(div);
-        } else {
-            add("⚠️ Суретті жүктеу сәтсіз аяқталды. Сервер бос емес.", "ai");
-        }
-        chat.scrollTop = chat.scrollHeight;
-        return;
-    }
-
-    // 4️⃣ МАТЕМАТИКА
-    if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
-        try { add(`🧮 Ответ: ${eval(text)}`, "ai"); return; } catch(e) { }
-    }
-
-    // 5️⃣ БАЗА ЖӘНЕ ИИ
+    // 3️⃣ БАЗА ЖӘНЕ ИИ
     let res = brain(text);
     if(res){ add(res, "ai"); return; }
-
     showLoading();
     let finalAnswer = await askSmartAI(text);
     hideLoading();
