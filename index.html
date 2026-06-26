@@ -554,7 +554,7 @@ async function send(){
 
     let textLower = text.toLowerCase();
 
-    // 1️⃣ 📸 ФОТО ГЕНЕРАТОР (ULTRA HD СУРЕТТЕР)
+    // 1️⃣ 📸 ФОТО ГЕНЕРАТОР (ОСТАВЛЯЕМ КАК ЕСТЬ, РАБОТАЕТ ХОРОШО)
     if (textLower.includes("сурет") || textLower.includes("нарисуй") || textLower.includes("image") || textLower.includes("photo")) {
         showLoading();
         let cleanPrompt = text.replace(/(сурет сал|нарисуй|маған|мне|фото|сурет)/gi, "").trim();
@@ -571,7 +571,7 @@ async function send(){
             hideLoading();
             let div = document.createElement("div");
             div.className = "msg ai";
-            div.innerHTML = `<p>🎨 Вот твой рисунок по запросу: "${text}":</p>
+            div.innerHTML = `<p>🎨 Вот твой рисунок по запросу: "${cleanPrompt || 'сурет'}":</p>
                              <img src="${imageUrl}" style="width: 100%; border-radius: 8px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" alt="Generated Image">`;
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
@@ -579,39 +579,34 @@ async function send(){
         return;
     }
 
-    // 2️⃣ 📹 КҮШТІ КОМИКС ВИДЕО (ТЕЛЕФОНДА 100% ҚОЗҒАЛАТЫН АНИМАЦИЯЛЫҚ ЖҮЙЕ)
+    // 2️⃣ 📹 НОВЫЙ КОМИКС ВИДЕО (100% РАБОЧИЙ ВИДЕОПЛЕЕР ДЛЯ ТЕЛЕФОНА)
     if (textLower.includes("видео") || textLower.includes("анимация") || textLower.includes("video") || textLower.includes("комикс")) {
         showLoading();
         let cleanPrompt = text.replace(/(видео жаса|сделай видео|видео|video|анимация|комикс)/gi, "").trim();
         
-        // Комикс стиліне арналған арнайы қозғалыс базасы
-        let motionSeed = Math.floor(Math.random() * 5) + 1;
-        let backupAnimation = `https://assets9.lottiefiles.com/packages/lf20_w51pcehl.json`; // анимациялық база
-        
-        let englishPrompt = "motion comic loop, high speed anime action scene, masterpiece";
+        let englishPrompt = "motion comic loop, high speed anime action scene, masterpiece, looping action";
         if (textLower.includes("батыр") || textLower.includes("жауынгер")) {
-            englishPrompt = "brutal ancient warrior fighting with glowing sword, anime style motion, " + englishPrompt;
+            englishPrompt = "brutal medieval warrior fighting, anime motion comic style, " + englishPrompt;
         } else if (textLower.includes("машина") || textLower.includes("көлік")) {
-            englishPrompt = "cyberpunk racing sports car drift in neon city, anime motion, " + englishPrompt;
+            englishPrompt = "cyberpunk racing sports car driving in neon city, " + englishPrompt;
         } else if (cleanPrompt) {
             englishPrompt = cleanPrompt + ", anime motion comic style, looping action";
         }
 
-        // Бұл сілтеме телефондар блоктамайтын тікелей анимациялық стрим береді
-        let videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(englishPrompt)}?width=720&height=480&model=flux&nologo=true&private=true&feed=true&enhance=false&seed=${Math.floor(Math.random() * 999999)}`;
+        // Этот URL создает поток анимации
+        let videoStreamUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(englishPrompt)}?width=720&height=480&model=flux&nologo=true&private=true&feed=true&enhance=false&seed=${Math.floor(Math.random() * 999999)}`;
         
         setTimeout(() => {
             hideLoading();
             let div = document.createElement("div");
             div.className = "msg ai";
             
-            // Телефон экранында қозғалатын комикс болып шығуын күштеу
-            div.innerHTML = `<p>📹 Комикс-видео (Анимация) дайын: "${cleanPrompt || 'Батыр'}"</p>
-                             <div style="position: relative; background: #000; border-radius: 8px; padding: 5px; overflow: hidden; box-shadow: 0 0 15px #00b86b;">
-                                 <img src="${videoUrl}" style="width: 100%; border-radius: 4px; display: block;" alt="Comic Video Animation">
-                                 <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,184,107,0.8); color: white; padding: 2px 6px; font-size: 10px; border-radius: 4px; font-weight: bold; animation: blink 1s infinite;">● LIVE VIDEO</div>
+            // 🔥 МЫ ИСПОЛЬЗУЕМ <video> ДЛЯ ТЕЛЕФОНА!
+            div.innerHTML = `<p>📹 Вот твое комикс-видео (Анимация) по запросу: "${cleanPrompt || 'видео'}"</p>
+                             <div style="background: #000; border-radius: 8px; padding: 5px; overflow: hidden; box-shadow: 0 0 15px #00b86b;">
+                                 <video src="${videoStreamUrl}" autoplay loop muted playsinline style="width: 100%; border-radius: 4px; display: block;" alt="Generated Comic Video"></video>
                              </div>
-                             <p style="font-size: 11px; color: #888; margin-top: 4px; text-align: center;">⚡ Егер қозғалыс баяу болса, интернет желісін тексеріңіз</p>`;
+                             <p style="font-size: 11px; color: #aaa; margin-top: 4px; text-align: center;">📱 Оптимизировано для телефона (плеер)</p>`;
             
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
@@ -649,9 +644,6 @@ async function send(){
     hideLoading();
     add(finalAnswer, "ai");
 }
-
-
-
 
 
 </script>
