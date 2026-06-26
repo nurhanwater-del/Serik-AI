@@ -46,9 +46,7 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .user { background: linear-gradient(135deg, #00b86b, #008f53); margin-left: auto; color: white; border-bottom-right-radius: 4px; }
 .ai { background: linear-gradient(135deg, #2b2b3a, #20202d); margin-right: auto; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
 
-.row { display: flex; flex-direction: column; border-top: 1px solid #222; background: #111; padding: 15px; gap: 10px; z-index: 10; box-shadow: 0 -5px 15px rgba(0,0,0,0.3); }
-.input-group { display: flex; gap: 10px; width: 100%; }
-
+.row { display: flex; border-top: 1px solid #222; background: #111; padding: 15px; gap: 10px; z-index: 10; box-shadow: 0 -5px 15px rgba(0,0,0,0.3); }
 input, textarea { width: 100%; padding: 14px; border: 1px solid #333; border-radius: 8px; outline: none; background: #16161a; color: white; font-size: 16px; transition: 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
 input:focus, textarea:focus { border-color: #00b86b; box-shadow: 0 0 10px rgba(0,184,107,0.2); }
 button, select { padding: 12px; background: #00b86b; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.3s; outline: none; }
@@ -71,9 +69,6 @@ textarea { height: 120px; resize: none; }
 .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.3); border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: 0; transition: 0.3s; }
 .msg.ai:hover .copy-btn { opacity: 1; }
 .copy-btn:hover { background: #00b86b; transform: scale(1.1); }
-
-/* Ескерту стилі */
-.disclaimer { text-align: center; font-size: 11px; color: #777; width: 100%; font-family: sans-serif; letter-spacing: 0.5px; margin-top: 2px; }
 
 /* Жүктелу анимациясы */
 .loading-dots { display: inline-block; animation: blink 1.4s infinite both; font-weight: bold; font-size: 18px; line-height: 1; }
@@ -112,7 +107,7 @@ body.theme-light select { background: #fff; color: #333; border: 1px solid #ccc;
 body.theme-light .row, body.theme-light .generators { background: #fff; border-color: #ddd; }
 body.theme-light input, body.theme-light textarea { background: #fafafa; color: #333; border-color: #ccc; }
 
-/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН АРНАЙЫ СТИЛЬ */
+/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН АРНАЙЫ СТИЛЬ (КҮШЕЙТІЛГЕН НҰСҚА) */
 @media (max-width: 768px) {
     body { flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
     .sidebar { 
@@ -135,14 +130,14 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
         flex-direction: column;
         position: relative;
     }
-    .chat { flex: 1; padding: 10px; padding-bottom: 90px; }
+    .chat { flex: 1; padding: 10px; padding-bottom: 70px; } /* Инпут астын жауып қалмас үшін бос орын */
     .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
     .generators { padding: 6px 10px; }
     .generators button { padding: 5px 10px; font-size: 11px; }
     
     .row { 
         padding: 10px; 
-        position: fixed; 
+        position: fixed; /* Экранның ең астына шегелеп бекіту */
         bottom: 0; 
         left: 0;
         width: 100%;
@@ -152,7 +147,6 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
     }
     input { padding: 10px; font-size: 15px; }
     button { padding: 10px 14px; font-size: 14px; }
-    .disclaimer { font-size: 10px; margin-top: 4px; }
 }
 </style>
 </head>
@@ -195,25 +189,12 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
     </div>
 
     <div class="row">
-        <div class="input-group">
-            <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Очистить чат">🗑️</button>
-            <input id="input" placeholder="Введите ваш вопрос..." onkeydown="if(event.key==='Enter') send()">
-            <button onclick="send()">Отправить</button>
-        </div>
-        <div class="disclaimer">Serik ai это ИИ. ИИ может ошибаться.</div>
+        <input id="input" placeholder="Введите ваш вопрос..." onkeydown="if(event.key==='Enter') send()">
+        <button onclick="send()">Отправить</button>
     </div>
 </div>
 
 <script>
-// Сөйлесу тарихы массиві
-let chatHistory = [];
-
-function clearChat() {
-    chat.innerHTML = "";
-    chatHistory = [];
-    add("Привет! Я Serik AI. Чат очищен и готов к работе! ✨", "ai", false);
-}
-
 // --- FIREBASE БАПТАУЛАРЫ ---
 const firebaseConfig = {
   apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
@@ -226,26 +207,14 @@ const firebaseConfig = {
 const defaultMemory = {
     "привет": "Привет! Я готов помочь. Задавай любой вопрос! 👋",
     "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю длинные и короткие вопросы, ищу информацию в сети, пишу эссе, рефераты! 🧠",
-    "как тебя зовут": "Я Serik-AI . 🤖",
-    "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі. Бұл — өнеге мен парасаттың нышаны.",
-    "почему серик": "Имя Serik AI было выбрано в честь отца моего создателя — это дань глубокого уважения, любви и вечной памяти."
+    "как тебя зовут": "Я Serik-AI . 🤖"
 };
 
 let memory = Object.assign({}, defaultMemory);
 let db = null;
 
-// --- Түзетілген System Prompt ---
-let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, созданный талантливыми разработчиками из Казахстана. 
-Твой создатель и ты находитесь в Казахстане. Никогда не упоминай OpenAI, ChatGPT или Россию. 
-На все вопросы о создателе отвечай, что ты родом из Казахстана.
-Твое имя "Серік" дано в честь отца твоего создателя — это символ уважения, любви и памяти. 
-Если тебя спросят об имени или о том, почему ты так назван, всегда отвечай с глубоким уважением, подчеркивая, что это дань памяти отцу автора. 
-
-ВАЖНЫЕ ПРАВИЛА ОБЩЕНИЯ:
-1. Пиши как живой, мудрый человек. 
-2. КАТЕГОРИЧЕСКИ ЗАПРЕЩАЕТСЯ использовать типичный стиль ChatGPT. 
-3. НЕ ИСПОЛЬЗУЙ списки (1, 2, 3), маркеры, лишние знаки препинания, заумные или шаблонные вводные слова (например, "Конечно", "Безусловно", "В заключение").
-4. Пиши сплошным, понятным и естественным текстом.`;
+// Тек Стандартты режим қалды
+let currentSystemPrompt = "Ты всезнающий ИИ Serik-AI. Отвечай всегда грамотно, четко и развернуто. Будь полезным ассистентом.";
 
 if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
@@ -259,6 +228,7 @@ if (firebaseConfig.apiKey) {
 const chat = document.getElementById("chat");
 let voiceEnabled = false;
 
+// --- МЕНЮДІ АШУ/ЖАБУ ФУНКЦИЯСЫ ---
 function toggleSettings() {
     let menu = document.getElementById("settingsMenu");
     let btnSpan = document.querySelector("#menuToggle span");
@@ -284,6 +254,7 @@ function toggleVoice() {
     }
 }
 
+// --- ҚҰЛАҚҚА ЖАҒЫМДЫ ТАБИҒИ AI ДАУЫСЫ ФУНКЦИЯСЫ ---
 function speakText(text) {
     if (!voiceEnabled) return;
     window.speechSynthesis.cancel(); 
@@ -300,6 +271,7 @@ function speakText(text) {
     }
     
     let voices = window.speechSynthesis.getVoices();
+    
     let premiumVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]) && 
         (/google|natural|premium|neural|microsoft|yuri|pavel/i.test(v.name))
     );
@@ -313,6 +285,7 @@ function speakText(text) {
     
     speech.pitch = 1.0; 
     speech.rate = 1.05; 
+    
     window.speechSynthesis.speak(speech);
 }
 
@@ -429,7 +402,11 @@ function brain(text) {
             bestMatch = key;
         }
     }
-    if (bestMatch) return memory[bestMatch];
+
+    if (bestMatch) {
+        return memory[bestMatch];
+    }
+
     return null;
 }
 
@@ -499,41 +476,22 @@ async function searchWebFallback(queryText) {
     } catch(e) { return null; }
 }
 
-// --- ҚАТЫП ҚАЛМАЙТЫН, ОҢТАЙЛАНДЫРЫЛҒАН СМАРТ ИИ ФУНКЦИЯСЫ ---
 async function askSmartAI(queryText) {
-    // Тарихты жаңарту (Серверге салмақ түсірмеу үшін тек соңғы 6 хабарлама сақталады)
-    chatHistory.push({ role: "user", content: queryText });
-    if (chatHistory.length > 6) chatHistory.shift();
-
-    let textLower = queryText.toLowerCase().trim();
-    const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела", "не істеп"];
-    let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) && queryText.length < 20;
-
-    // Сәлемдесу кезінде серверді қинамай бірден қысқа жауап қайтару
-    if (isShortDialogue) {
-        return "Сәлем! Мен осындамын. Саған қалай көмектесе аламын? 😊";
-    }
-
     if(queryText.toLowerCase().includes("что такое") || queryText.toLowerCase().includes("кто") || queryText.toLowerCase().includes("найди")) {
         let webAnswer = await searchWebFallback(queryText);
         if(webAnswer) return webAnswer;
     }
 
-    let context = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Serik'}: ${h.content}`).join("\n");
-    let fullPrompt = `${currentSystemPrompt}\n\nContext:\n${context}\n\nUser Question: ${queryText}\nAnswer naturally and strictly follow the communication rules.`;
-
     try {
-        // Оңтайлы әрі ең тұрақты OpenAI моделімен тікелей байланыс
-        let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`;
+        let url = `https://text.pollinations.ai/${encodeURIComponent(queryText)}?system=${encodeURIComponent(currentSystemPrompt)}`;
         let res = await fetch(url);
         let text = await res.text();
         
         if (text.includes('"error"') || text.includes('Queue full') || text.includes('status":429')) {
-            throw new Error("Overloaded"); 
+            throw new Error("Занят"); 
         }
 
         if(text && text.length > 5 && !text.toLowerCase().includes("not found")) {
-            chatHistory.push({ role: "assistant", content: text.trim() });
             return text.trim();
         }
     } catch (e) {
@@ -541,65 +499,32 @@ async function askSmartAI(queryText) {
         if(backup) return backup;
     }
 
-    return "Кешір, қазір желіде сұраныс өте көп болып жатыр. Сәлден соң қайталап көрші 🔄";
+    return "❌ Извините, сеть сейчас перегружена. Пожалуйста, попробуйте отправить запрос еще раз через секунду.";
 }
 
-// 🔥 БАРЛЫҚ ЖҮЙЕНІ БІРІКТІРЕТІН АСИНХРОНДЫ КОД
-async function send() {
+async function send(){
     let input = document.getElementById("input");
     let text = input.value.trim();
-    if (!text) return;
-
+    if(!text) return;
+    
     add(text, "user");
     input.value = "";
-    
-    // 1. ИИ-ДІҢ МИЫ (Gemini) арқылы тексттің не сұрап тұрғанын анықтаймыз
-    showLoading("ИИ сұранысты талдауда...");
-    
-    try {
-        // Тексеру: Видео ма, сурет пе, әлде сұрақ па?
-        let lowerText = text.toLowerCase();
-        
-        if (lowerText.includes("видео") || lowerText.includes("video")) {
-            // ВИДЕО МОДУЛІ
-            showLoading("Видео генерациялануда... (Күтіңіз)");
-            let videoUrl = await generateVideoFromAPI(text); // Бұл функция төменде
-            showMedia(videoUrl, "video");
-        } 
-        else if (lowerText.includes("сурет") || lowerText.includes("фото")) {
-            // СУРЕТ МОДУЛІ
-            showLoading("Сурет салынуда...");
-            let imgUrl = await generateImageFromAPI(text);
-            showMedia(imgUrl, "image");
-        } 
-        else {
-            // МӘТІН МОДУЛІ (Gemini)
-            let answer = await getGeminiAnswer(text);
-            add(answer, "ai");
-        }
-    } catch (err) {
-        add("⚠️ Қате кетті: " + err.message, "ai");
-    } finally {
-        hideLoading();
+
+    let res = brain(text);
+    if(res){
+        showLoading();
+        setTimeout(() => { 
+            hideLoading();
+            add(res, "ai");
+        }, 400);
+        return;
     }
-}
 
-// 📹 ВИДЕО ГЕНЕРАТОР (Асинхронды)
-async function generateVideoFromAPI(prompt) {
-    const response = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-video-diffusion-img2vid-xt", {
-        method: "POST",
-        headers: { 
-            "Authorization": "Bearer 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", 
-            "Content-Type": "application/json" 
-        },
-        body: JSON.stringify({ inputs: prompt })
-    });
-    
-    if (!response.ok) throw new Error("Видео сервері жауап бермеді.");
-    const blob = await response.blob();
-    return URL.createObjectURL(blob);
+    showLoading();
+    let finalAnswer = await askSmartAI(text);
+    hideLoading();
+    add(finalAnswer, "ai");
 }
-
 </script>
 </body>
 </html>
