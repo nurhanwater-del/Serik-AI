@@ -544,42 +544,54 @@ async function askSmartAI(queryText) {
     return "Кешір, қазір желіде сұраныс өте көп болып жатыр. Сәлден соң қайталап көрші 🔄";
 }
 
-async function send(){
+// 🔥 ИИ-дің миы (Brain) және Асинхронды видео генерациясы біріктірілген нұсқа
+async function send() {
     let input = document.getElementById("input");
     let text = input.value.trim();
-    if(!text) return;
-    
+    if (!text) return;
+
     add(text, "user");
     input.value = "";
+    let textLower = text.toLowerCase();
 
-    // --- МАТЕМАТИКАЛЫҚ ЕСЕПТЕРДІ ТЕКСЕРУ ---
-    if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
-        showLoading();
+    // 1️⃣ ВИДЕО ГЕНЕРАЦИЯЛАУ (Асинхронды, миды өшірмейді)
+    if (textLower.includes("видео") || textLower.includes("video")) {
+        showLoading("Видео ИИ-де дайындалуда...");
+        let cleanPrompt = text.replace(/(видеосын жаса|видео жаса|видео|video|маған)/gi, "").trim();
+        let videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=768&nologo=true&private=true&feed=true&seed=${Math.floor(Math.random() * 99999)}`;
+        
         try {
-            let mathResult = eval(text);
-            setTimeout(() => { 
-                hideLoading();
-                add(`🧮 Ответ: ${mathResult}`, "ai");
-            }, 300);
-            return;
-        } catch(e) { }
-    }
-
-    let res = brain(text);
-    if(res){
-        showLoading();
-        setTimeout(() => { 
+            let response = await fetch(videoUrl);
             hideLoading();
-            add(res, "ai");
-        }, 400);
-        return;
+            if (response.ok) {
+                let div = document.createElement("div");
+                div.className = "msg ai";
+                div.innerHTML = `
+                    <p>📹 Видео дайын: "${cleanPrompt}"</p>
+                    <video src="${videoUrl}" controls autoplay playsinline style="width:100%; border-radius:10px;"></video>
+                `;
+                chat.appendChild(div);
+            } else throw new Error();
+        } catch (e) {
+            hideLoading();
+            add("⚠️ Видео сервері қазір бос емес, бірақ сенің сұрағыңды ИИ-ге жолдап жатырмын...", "ai");
+            // Видео істемесе де, ИИ-дің миына жібереміз (төмендегі кодқа өтеді)
+        }
     }
 
-    showLoading();
-    let finalAnswer = await askSmartAI(text);
+    // 2️⃣ ИИ-ДІҢ МИЫ (Ойлау жүйесі)
+    // Егер видео болмаса немесе видеодан кейін жауап керек болса:
+    showLoading("ИИ ойланып жатыр...");
+    
+    // Бұл жерде сенің бұрынғы brain() және askSmartAI() функцияларың істей береді
+    let res = brain(text); 
+    let finalAnswer = res ? res : await askSmartAI(text);
+    
     hideLoading();
     add(finalAnswer, "ai");
+    chat.scrollTop = chat.scrollHeight;
 }
+
 </script>
 </body>
-          </html>
+</html>
