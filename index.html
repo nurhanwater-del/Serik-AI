@@ -507,43 +507,26 @@ async function askSmartAI(queryText) {
 
     let textLower = queryText.toLowerCase().trim();
     const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела", "не істеп"];
-    let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) && queryText.length < 20;
-
-    // Сәлемдесу кезінде серверді қинамай бірден қысқа жауап қайтару
-    if (isShortDialogue) {
-        return "Сәлем! Мен осындамын. Саған қалай көмектесе аламын? 😊";
-    }
-
-    if(queryText.toLowerCase().includes("что такое") || queryText.toLowerCase().includes("кто") || queryText.toLowerCase().includes("найди")) {
-        let webAnswer = await searchWebFallback(queryText);
-        if(webAnswer) return webAnswer;
-    }
-
-    let context = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Serik'}: ${h.content}`).join("\n");
-    let fullPrompt = `${currentSystemPrompt}\n\nContext:\n${context}\n\nUser Question: ${queryText}\nAnswer naturally and strictly follow the communication rules.`;
-
-    try {
-        // Оңтайлы әрі ең тұрақты OpenAI моделімен тікелей байланыс
-        let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`;
-        let res = await fetch(url);
-        let text = await res.text();
-        
-        if (text.includes('"error"') || text.includes('Queue full') || text.includes('status":429')) {
-            throw new Error("Overloaded"); 
-        }
-
-        if(text && text.length > 5 && !text.toLowerCase().includes("not found")) {
-            chatHistory.push({ role: "assistant", content: text.trim() });
-            return text.trim();
-        }
-    } catch (e) {
-        let backup = await searchWebFallback(queryText);
-        if(backup) return backup;
-    }
-
-    return "Кешір, қазір желіде сұраныс өте көп болып жатыр. Сәлден соң қайталап көрші 🔄";
+    let isShor
+  // --- СЕНІҢ БАЗАЛЫҚ ФУНКЦИЯЛАРЫҢ (ӨЗГЕРГЕН ЖОҚ) ---
+function showLoading() {
+    document.getElementById("loading").style.display = "flex";
 }
 
+function hideLoading() {
+    document.getElementById("loading").style.display = "none";
+}
+
+function add(message, sender) {
+    let chat = document.getElementById("chat");
+    let div = document.createElement("div");
+    div.className = "msg " + sender;
+    div.innerText = message;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+// --- БАТЫР ЖӘНЕ ВИДЕО СҰРАНЫСТАРЫН ӨҢДЕЙТІН ЖАҢА SEND ФУНКЦИЯСЫ ---
 async function send(){
     let input = document.getElementById("input");
     let text = input.value.trim();
@@ -554,7 +537,7 @@ async function send(){
 
     let textLower = text.toLowerCase();
 
-    // 1️⃣ 📸 ФОТО ГЕНЕРАТОР (ОСТАВЛЯЕМ КАК ЕСТЬ, РАБОТАЕТ ХОРОШО)
+    // 1️⃣ 📸 ФОТО ГЕНЕРАТОР
     if (textLower.includes("сурет") || textLower.includes("нарисуй") || textLower.includes("image") || textLower.includes("photo")) {
         showLoading();
         let cleanPrompt = text.replace(/(сурет сал|нарисуй|маған|мне|фото|сурет)/gi, "").trim();
@@ -571,7 +554,7 @@ async function send(){
             hideLoading();
             let div = document.createElement("div");
             div.className = "msg ai";
-            div.innerHTML = `<p>🎨 Вот твой рисунок по запросу: "${cleanPrompt || 'сурет'}":</p>
+            div.innerHTML = `<p>🎨 Вот твой рисунок по запросу: "${cleanPrompt}":</p>
                              <img src="${imageUrl}" style="width: 100%; border-radius: 8px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" alt="Generated Image">`;
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
@@ -579,7 +562,7 @@ async function send(){
         return;
     }
 
-    // 2️⃣ 📹 НОВЫЙ КОМИКС ВИДЕО (100% РАБОЧИЙ ВИДЕОПЛЕЕР ДЛЯ ТЕЛЕФОНА)
+    // 2️⃣ 📹 КОМИКС ВИДЕО (ҚОЗҒАЛАТЫН АНИМАЦИЯ ПЛЕЕРІ)
     if (textLower.includes("видео") || textLower.includes("анимация") || textLower.includes("video") || textLower.includes("комикс")) {
         showLoading();
         let cleanPrompt = text.replace(/(видео жаса|сделай видео|видео|video|анимация|комикс)/gi, "").trim();
@@ -593,7 +576,6 @@ async function send(){
             englishPrompt = cleanPrompt + ", anime motion comic style, looping action";
         }
 
-        // Этот URL создает поток анимации
         let videoStreamUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(englishPrompt)}?width=720&height=480&model=flux&nologo=true&private=true&feed=true&enhance=false&seed=${Math.floor(Math.random() * 999999)}`;
         
         setTimeout(() => {
@@ -601,7 +583,6 @@ async function send(){
             let div = document.createElement("div");
             div.className = "msg ai";
             
-            // 🔥 МЫ ИСПОЛЬЗУЕМ <video> ДЛЯ ТЕЛЕФОНА!
             div.innerHTML = `<p>📹 Вот твое комикс-видео (Анимация) по запросу: "${cleanPrompt || 'видео'}"</p>
                              <div style="background: #000; border-radius: 8px; padding: 5px; overflow: hidden; box-shadow: 0 0 15px #00b86b;">
                                  <video src="${videoStreamUrl}" autoplay loop muted playsinline style="width: 100%; border-radius: 4px; display: block;" alt="Generated Comic Video"></video>
@@ -644,6 +625,7 @@ async function send(){
     hideLoading();
     add(finalAnswer, "ai");
 }
+
 
 
 </script>
