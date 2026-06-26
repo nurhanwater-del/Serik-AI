@@ -544,43 +544,33 @@ async function askSmartAI(queryText) {
     return "Кешір, қазір желіде сұраныс өте көп болып жатыр. Сәлден соң қайталап көрші 🔄";
 }
 
-// 🔥 ИИ-дің миы (Brain) және Асинхронды видео генерациясы біріктірілген нұсқа
 // 🔥 БАРЛЫҚ ИИ БІРІКТІРІЛГЕН СЕНТРАЛДЫ ФУНКЦИЯ
-async function send() {
-    let input = document.getElementById("input");
-    let text = input.value.trim();
-    if (!text) return;
+const HF_TOKEN = "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"; // Бұл кілтті кейін Гитхабтан өшіріп, Vercel-ге жасырып жаз!
+const GEMINI_API_KEY = "Сенің_Gemini_Кілтің"; 
 
-    add(text, "user");
-    input.value = "";
-    
-    // 1. КОНТЕКСТТІ АНЫҚТАУ (Қай ИИ-ді шақыру керек?)
-    let promptLower = text.toLowerCase();
-    showLoading("ИИ жүйесі талдауда...");
-
-    try {
-        // ВИДЕО МОДУЛІ
-        if (promptLower.includes("видео")) {
-            let videoResult = await generateVideo(text); // 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
-            showMedia(videoResult, "video");
-        } 
-        // СУРЕТ МОДУЛІ
-        else if (promptLower.includes("сурет") || promptLower.includes("фото")) {
-            let imgResult = await generateImage(text); // Бұл жерде Flux API кілтімен
-            showMedia(imgResult, "image");
-        } 
-        // МӘТІН/ОЙЛАУ МОДУЛІ (GPT/Gemini)
-        else {
-            let textResult = await getAIAnswer(text); // Бұл жерде Gemini API кілтімен
-            add(textResult, "ai");
-        }
-    } catch (err) {
-        add("⚠️ Жүйеде қате кетті: " + err.message, "ai");
-    } finally {
-        hideLoading();
-    }
+async function generateVideo(prompt) {
+    // Hugging Face API-ге сұраныс
+    let response = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-video-diffusion-img2vid-xt", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${HF_TOKEN}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ inputs: prompt })
+    });
+    let blob = await response.blob();
+    return URL.createObjectURL(blob);
 }
 
+async function getAIAnswer(text) {
+    // Gemini API-ге сұраныс
+    let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: [{ parts: [{ text: text }] }] })
+    });
+    let data = await response.json();
+    return data.candidates[0].content.parts[0].text;
+}
+
+// ... осы жерден кейін сенің send() функцияң істей береді
 
 </script>
 </body>
