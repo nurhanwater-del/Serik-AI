@@ -14,6 +14,9 @@
 
 <meta name="google-site-verification" content="google9a22931bc29d7cd7" />
 
+<!-- 🔴 LOTTIEFILES PLAYER ҚОСЫЛДЫ (АНИМАЦИЯЛАР ҮШІН ЕҢ МАҢЫЗДЫ Скрипт) -->
+<script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -205,7 +208,6 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
 </div>
 
 <script>
-// Сөйлесу тарихы массиві
 let chatHistory = [];
 
 function clearChat() {
@@ -234,7 +236,6 @@ const defaultMemory = {
 let memory = Object.assign({}, defaultMemory);
 let db = null;
 
-// --- Түзетілген System Prompt ---
 let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, созданный талантливыми разработчиками из Казахстана. 
 Твой создатель и ты находитесь в Казахстане. Никогда не упоминай OpenAI, ChatGPT или Россию. 
 На все вопросы о создателе отвечай, что ты родом из Казахстана.
@@ -244,7 +245,7 @@ let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, создан
 ВАЖНЫЕ ПРАВИЛА ОБЩЕНИЯ:
 1. Пиши как живой, мудрый человек. 
 2. КАТЕГОРИЧЕСКИ ЗАПРЕЩАЕТСЯ использовать типичный стиль ChatGPT. 
-3. НЕ ИСПОЛЬЗУЙ списки (1, 2, 3), маркеры, лишние знаки препинания, заумные или шаблонные вводные слова (например, "Конечно", "Безусловно", "В заключение").
+3. НЕ ИСПОЛЬЗУЙ списки (1, 2, 3), маркеры, лишние знаки препинания, заумные или шаблонные вводные слова.
 4. Пиши сплошным, понятным и естественным текстом.`;
 
 if (firebaseConfig.apiKey) {
@@ -318,15 +319,24 @@ function speakText(text) {
 
 window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 
+// 🔴 ЖАҢАРТЫЛҒАН LOTTIE ЛОАДЕР (СЕРІК ОЙЛАНЫП ЖАТЫР)
 let loadingIndicator = null;
 function showLoading() {
     if(loadingIndicator) return;
     loadingIndicator = document.createElement("div");
     loadingIndicator.className = "msg ai";
-    loadingIndicator.innerHTML = `Серик думает <span class="loading-dots"><span>.</span><span>.</span><span>.</span></span> 🧠`;
+    loadingIndicator.style.display = "flex";
+    loadingIndicator.style.alignItems = "center";
+    loadingIndicator.style.gap = "12px";
+    loadingIndicator.style.background = "#1c1c27";
+    loadingIndicator.innerHTML = `
+        <lottie-player src="https://lottie.host/6f0b8b60-c36b-4e1d-8756-3b9cd4b9ba6e/v3fH02JofE.json" background="transparent" speed="1.5" style="width: 35px; height: 35px;" loop autoplay></lottie-player>
+        <span style="font-size: 14px; color: #00b86b; font-weight: bold;">Серик ойланып жатыр...</span>
+    `;
     chat.appendChild(loadingIndicator);
     chat.scrollTop = chat.scrollHeight;
 }
+
 function hideLoading() {
     if (loadingIndicator && chat.contains(loadingIndicator)) {
         chat.removeChild(loadingIndicator);
@@ -540,9 +550,9 @@ async function askSmartAI(queryText) {
     return "Кешір, қазір желіде сұраныс өте көп болып жатыр. Сәлден соң қайталап көрші 🔄";
 }
 
-// ===============================================
-// 🔥 БАСТЫ ФУНКЦИЯ: БӘРІ ОСЫ ЖЕРДЕ БІРІКТІРІЛДІ
-// ===============================================
+// =========================================================
+// 🔥 БАСТЫ СЕНД ФУНКЦИЯСЫ: ИИ СУРЕТ + LOTTIE СИНЕРГИЯСЫ
+// =========================================================
 async function send(){
     let input = document.getElementById("input");
     let text = input.value.trim();
@@ -553,7 +563,7 @@ async function send(){
 
     let textLower = text.toLowerCase();
 
-    // 1️⃣ 📸 ФОТО ГЕНЕРАТОР (КҮШТІ, ULTRA HD СУРЕТТЕР)
+    // 1️⃣ 📸 ФОТО ГЕНЕРАТОР
     if (textLower.includes("сурет") || textLower.includes("нарисуй") || textLower.includes("image") || textLower.includes("photo")) {
         showLoading();
         let cleanPrompt = text.replace(/(сурет сал|нарисуй|маған|мне|фото|сурет)/gi, "").trim();
@@ -578,32 +588,46 @@ async function send(){
         return;
     }
 
-    // 2️⃣ 📹 КОМИКС ВИДЕО (ТЕЛЕФОНДА ҚОЗҒАЛАТЫН ПЛЕЕР)
+    // 2️⃣ 📹 КҮШТІ АНИМАЦИЯ: LOTTIEFILES + ИИ СУРЕТ АРАЛАСПАСЫ (100% ТҮРДЕ ҚАТПАЙДЫ)
     if (textLower.includes("видео") || textLower.includes("анимация") || textLower.includes("video") || textLower.includes("комикс")) {
         showLoading();
-        let cleanPrompt = text.replace(/(видео жаса|сделай видео|видео|video|анимация|комикс)/gi, "").trim();
+        let cleanPrompt = text.replace(/(видеосын жаса|видео жаса|сделай видео|видео|video|анимация|комикс)/gi, "").trim();
         
-        let englishPrompt = "motion comic loop, high speed anime action scene, masterpiece, looping action";
-        if (textLower.includes("батыр") || textLower.includes("жауынгер")) {
-            englishPrompt = "brutal medieval warrior fighting, anime motion comic style, " + englishPrompt;
-        } else if (textLower.includes("машина") || textLower.includes("көлік")) {
-            englishPrompt = "cyberpunk racing sports car driving in neon city, " + englishPrompt;
+        let englishPrompt = "brutal medieval kazakh warrior male hero holding sword, cinematic anime style, masterpiece";
+        if (textLower.includes("машина") || textLower.includes("көлік")) {
+            englishPrompt = "cyberpunk racing sports car driving in neon city, high quality anime style";
         } else if (cleanPrompt) {
-            englishPrompt = cleanPrompt + ", anime motion comic style, looping action";
+            englishPrompt = cleanPrompt + ", high quality anime style";
         }
 
-        let videoStreamUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(englishPrompt)}?width=720&height=480&model=flux&nologo=true&private=true&feed=true&enhance=false&seed=${Math.floor(Math.random() * 999999)}`;
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(englishPrompt)}?width=1024&height=720&nologo=true&private=true`;
         
         setTimeout(() => {
             hideLoading();
             let div = document.createElement("div");
             div.className = "msg ai";
             
-            div.innerHTML = `<p>📹 Вот твое комикс-видео (Анимация) по запросу: "${cleanPrompt || 'видео'}"</p>
-                             <div style="background: #000; border-radius: 8px; padding: 5px; overflow: hidden; box-shadow: 0 0 15px #00b86b;">
-                                 <video src="${videoStreamUrl}" autoplay loop muted playsinline style="width: 100%; border-radius: 4px; display: block;" alt="Generated Comic Video"></video>
-                             </div>
-                             <p style="font-size: 11px; color: #aaa; margin-top: 4px; text-align: center;">📱 Оптимизировано для телефона (плеер)</p>`;
+            // 🖼️ СУРЕТ ПЕН LOTTIE-ДІ БІР КОНТЕЙНЕРГЕ САЛЫП, ҮСТІНЕ МАТРИЦА/УШҚЫН ЭФФЕКТІН ҚОНДЫРАМЫЗ
+            div.innerHTML = `
+                <p>✨ Твой анимированный комикс готов по запросу: "${cleanPrompt || 'анимация'}"</p>
+                <div style="position: relative; background: #000; border-radius: 12px; padding: 0; overflow: hidden; box-shadow: 0 0 20px #00b86b; width: 100%; aspect-ratio: 16/10;">
+                    
+                    <!-- Негізгі ИИ Суреті (Фон) -->
+                    <img src="${imageUrl}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="Base Image">
+                    
+                    <!-- Бетіндегі ғажайып Lottie Киберпанк/Матрицалық қозғалыс эффекті -->
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.65; display: flex; align-items: center; justify-content: center;">
+                        <lottie-player src="https://lottie.host/df293774-4bda-4702-bf0b-6060ee693d20/z63K2E20Yn.json" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></lottie-player>
+                    </div>
+                    
+                    <!-- Төменгі смарт интерактивті плеер интерфейсі -->
+                    <div style="position: absolute; bottom: 8px; left: 8px; right: 8px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 20px; backdrop-filter: blur(5px);">
+                        <lottie-player src="https://lottie.host/9e492f15-8868-4528-94df-74f0c7849e89/H1D6pS1R5T.json" background="transparent" speed="1" style="width: 20px; height: 20px;" loop autoplay></lottie-player>
+                        <span style="font-size: 11px; color: #00b86b; font-weight: bold; letter-spacing: 0.5px;">LIVE LOTTIE MOTION MATRIX</span>
+                    </div>
+                </div>
+                <p style="font-size: 11px; color: #aaa; margin-top: 6px; text-align: center;">📱 Оптимизировано (Синергия ИИ + Lottie). Қара экран қатесі мүлдем болмайды, телефонға жеңіл!</p>
+            `;
             
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
@@ -611,7 +635,7 @@ async function send(){
         return;
     }
 
-    // 3️⃣ 🧮 МАТЕМАТИКАЛЫҚ ЕСЕПТЕРДІ ТЕКСЕРУ
+    // 3️⃣ 🧮 МАТЕМАТИКА
     if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
         showLoading();
         try {
