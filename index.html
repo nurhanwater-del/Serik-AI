@@ -499,34 +499,50 @@ async function searchWebFallback(queryText) {
     } catch(e) { return null; }
 }
 
-// --- ҚАТЫП ҚАЛМАЙТЫН, ОҢТАЙЛАНДЫРЫЛҒАН СМАРТ ИИ ФУНКЦИЯСЫ ---
 async function askSmartAI(queryText) {
-    // Тарихты жаңарту (Серверге салмақ түсірмеу үшін тек соңғы 6 хабарлама сақталады)
     chatHistory.push({ role: "user", content: queryText });
     if (chatHistory.length > 6) chatHistory.shift();
 
     let textLower = queryText.toLowerCase().trim();
     const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела", "не істеп"];
-    let isShor
-  // --- СЕНІҢ БАЗАЛЫҚ ФУНКЦИЯЛАРЫҢ (ӨЗГЕРГЕН ЖОҚ) ---
-function showLoading() {
-    document.getElementById("loading").style.display = "flex";
+    let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) && queryText.length < 20;
+
+    if (isShortDialogue) {
+        return "Сәлем! Мен осындамын. Саған қалай көмектесе аламын? 😊";
+    }
+
+    if(queryText.toLowerCase().includes("что такое") || queryText.toLowerCase().includes("кто") || queryText.toLowerCase().includes("найди")) {
+        let webAnswer = await searchWebFallback(queryText);
+        if(webAnswer) return webAnswer;
+    }
+
+    let context = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Serik'}: ${h.content}`).join("\n");
+    let fullPrompt = `${currentSystemPrompt}\n\nContext:\n${context}\n\nUser Question: ${queryText}\nAnswer naturally and strictly follow the communication rules.`;
+
+    try {
+        let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`;
+        let res = await fetch(url);
+        let text = await res.text();
+        
+        if (text.includes('"error"') || text.includes('Queue full') || text.includes('status":429')) {
+            throw new Error("Overloaded"); 
+        }
+
+        if(text && text.length > 5 && !text.toLowerCase().includes("not found")) {
+            chatHistory.push({ role: "assistant", content: text.trim() });
+            return text.trim();
+        }
+    } catch (e) {
+        let backup = await searchWebFallback(queryText);
+        if(backup) return backup;
+    }
+
+    return "Кешір, қазір желіде сұраныс өте көп болып жатыр. Сәлден соң қайталап көрші 🔄";
 }
 
-function hideLoading() {
-    document.getElementById("loading").style.display = "none";
-}
-
-function add(message, sender) {
-    let chat = document.getElementById("chat");
-    let div = document.createElement("div");
-    div.className = "msg " + sender;
-    div.innerText = message;
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-}
-
-// --- БАТЫР ЖӘНЕ ВИДЕО СҰРАНЫСТАРЫН ӨҢДЕЙТІН ЖАҢА SEND ФУНКЦИЯСЫ ---
+// ===============================================
+// 🔥 БАСТЫ ФУНКЦИЯ: БӘРІ ОСЫ ЖЕРДЕ БІРІКТІРІЛДІ
+// ===============================================
 async function send(){
     let input = document.getElementById("input");
     let text = input.value.trim();
@@ -537,7 +553,7 @@ async function send(){
 
     let textLower = text.toLowerCase();
 
-    // 1️⃣ 📸 ФОТО ГЕНЕРАТОР
+    // 1️⃣ 📸 ФОТО ГЕНЕРАТОР (КҮШТІ, ULTRA HD СУРЕТТЕР)
     if (textLower.includes("сурет") || textLower.includes("нарисуй") || textLower.includes("image") || textLower.includes("photo")) {
         showLoading();
         let cleanPrompt = text.replace(/(сурет сал|нарисуй|маған|мне|фото|сурет)/gi, "").trim();
@@ -554,7 +570,7 @@ async function send(){
             hideLoading();
             let div = document.createElement("div");
             div.className = "msg ai";
-            div.innerHTML = `<p>🎨 Вот твой рисунок по запросу: "${cleanPrompt}":</p>
+            div.innerHTML = `<p>🎨 Вот твой рисунок по запросу: "${cleanPrompt || 'сурет'}":</p>
                              <img src="${imageUrl}" style="width: 100%; border-radius: 8px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" alt="Generated Image">`;
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
@@ -562,7 +578,7 @@ async function send(){
         return;
     }
 
-    // 2️⃣ 📹 КОМИКС ВИДЕО (ҚОЗҒАЛАТЫН АНИМАЦИЯ ПЛЕЕРІ)
+    // 2️⃣ 📹 КОМИКС ВИДЕО (ТЕЛЕФОНДА ҚОЗҒАЛАТЫН ПЛЕЕР)
     if (textLower.includes("видео") || textLower.includes("анимация") || textLower.includes("video") || textLower.includes("комикс")) {
         showLoading();
         let cleanPrompt = text.replace(/(видео жаса|сделай видео|видео|video|анимация|комикс)/gi, "").trim();
@@ -595,7 +611,7 @@ async function send(){
         return;
     }
 
-    // 3️⃣ 🧮 МАТЕМАТИКА
+    // 3️⃣ 🧮 МАТЕМАТИКАЛЫҚ ЕСЕПТЕРДІ ТЕКСЕРУ
     if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
         showLoading();
         try {
@@ -625,9 +641,6 @@ async function send(){
     hideLoading();
     add(finalAnswer, "ai");
 }
-
-
-
 </script>
 </body>
 </html>
