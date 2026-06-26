@@ -561,7 +561,7 @@ async function send() {
     try {
         // ВИДЕО МОДУЛІ
         if (promptLower.includes("видео")) {
-            let videoResult = await generateVideo(text); // Бұл жерде HuggingFace API кілтімен істейді
+            let videoResult = await generateVideo(text); // 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
             showMedia(videoResult, "video");
         } 
         // СУРЕТ МОДУЛІ
@@ -580,6 +580,7 @@ async function send() {
         hideLoading();
     }
 }
+
 
 </script>
 </body>
