@@ -14,7 +14,6 @@
 
 <meta name="google-site-verification" content="google9a22931bc29d7cd7" />
 
-<!-- 🔴 LOTTIEFILES PLAYER ҚОСЫЛДЫ (АНИМАЦИЯЛАР ҮШІН ЕҢ МАҢЫЗДЫ Скрипт) -->
 <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -24,7 +23,6 @@
 * { box-sizing: border-box; }
 body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0f0f14; color: white; display: flex; height: 100vh; overflow: hidden; transition: background 0.4s, color 0.4s; }
 
-/* Скроллбар стилі */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
@@ -33,7 +31,6 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .sidebar { width: 280px; background: #1a1a24; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; transition: background 0.4s; z-index: 10; box-shadow: 2px 0 15px rgba(0,0,0,0.5); }
 .sidebar h3 { text-align: center; margin-top: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; color: #00b86b; text-shadow: 0 0 10px rgba(0,184,107,0.3); }
 
-/* --- МЕНЮ СТИЛЬДЕРІ --- */
 #menuToggle { background: #2b2b3a; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; }
 #menuToggle:hover { background: #3a3a4d; border-color: #00b86b; }
 .settings-menu { display: none; flex-direction: column; gap: 10px; background: #111118; padding: 15px; border-radius: 10px; border: 1px solid #333; margin-top: -5px; }
@@ -43,119 +40,43 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; height: 100vh; }
 .chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; scroll-behavior: smooth; }
 
-/* Хабарлама стильдері */
 .msg { padding: 14px 18px; margin: 8px 0; border-radius: 14px; max-width: 85%; white-space: pre-wrap; word-wrap: break-word; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); line-height: 1.5; font-size: 15px; transition: transform 0.2s ease-out; }
-.msg:hover { transform: translateY(-1px); }
 .user { background: linear-gradient(135deg, #00b86b, #008f53); margin-left: auto; color: white; border-bottom-right-radius: 4px; }
 .ai { background: linear-gradient(135deg, #2b2b3a, #20202d); margin-right: auto; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
 
 .row { display: flex; flex-direction: column; border-top: 1px solid #222; background: #111; padding: 15px; gap: 10px; z-index: 10; box-shadow: 0 -5px 15px rgba(0,0,0,0.3); }
 .input-group { display: flex; gap: 10px; width: 100%; }
 
-input, textarea { width: 100%; padding: 14px; border: 1px solid #333; border-radius: 8px; outline: none; background: #16161a; color: white; font-size: 16px; transition: 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+input, textarea { width: 100%; padding: 14px; border: 1px solid #333; border-radius: 8px; outline: none; background: #16161a; color: white; font-size: 16px; transition: 0.3s; }
 input:focus, textarea:focus { border-color: #00b86b; box-shadow: 0 0 10px rgba(0,184,107,0.2); }
-button, select { padding: 12px; background: #00b86b; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.3s; outline: none; }
+button, select { padding: 12px; background: #00b86b; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.3s; }
 button:hover { background: #009e5b; transform: scale(1.02); }
-button:active { transform: scale(0.98); }
 select { background: #2b2b3a; width: 100%; color: white; }
-select:hover { background: #3a3a4d; }
 
-#voiceBtn { background: #444; border-radius: 8px; }
-#voiceBtn.active { background: linear-gradient(135deg, #007bff, #0056b3); box-shadow: 0 0 10px rgba(0,123,255,0.4); }
-#adminPanel { display: none; margin-top: 10px; background: #222230; padding: 15px; border-radius: 10px; border: 1px solid #333; }
-textarea { height: 120px; resize: none; }
+#voiceBtn { background: #444; }
+#voiceBtn.active { background: linear-gradient(135deg, #007bff, #0056b3); }
+#adminPanel { display: none; margin-top: 10px; background: #222230; padding: 15px; border-radius: 10px; }
 
-/* Тез арада генерациялау батырмалары */
 .generators { display: flex; gap: 10px; padding: 12px 15px; background: #1a1a24; border-top: 1px solid #2b2b3a; overflow-x: auto; white-space: nowrap; }
 .generators button { background: #2b2b3a; padding: 8px 14px; font-size: 13px; border: 1px solid #444; border-radius: 20px; font-weight: normal; }
-.generators button:hover { background: #00b86b; border-color: #00b86b; color: white; }
+.generators button:hover { background: #00b86b; border-color: #00b86b; }
 
-/* Көшіру батырмасы */
 .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.3); border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: 0; transition: 0.3s; }
 .msg.ai:hover .copy-btn { opacity: 1; }
-.copy-btn:hover { background: #00b86b; transform: scale(1.1); }
+.disclaimer { text-align: center; font-size: 11px; color: #777; width: 100%; }
 
-/* Ескерту стилі */
-.disclaimer { text-align: center; font-size: 11px; color: #777; width: 100%; font-family: sans-serif; letter-spacing: 0.5px; margin-top: 2px; }
-
-/* Жүктелу анимациясы */
-.loading-dots { display: inline-block; animation: blink 1.4s infinite both; font-weight: bold; font-size: 18px; line-height: 1; }
-.loading-dots span { animation: blink 1.4s infinite both; }
-.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
-
-/* --- ТАҚЫРЫПТАР (THEMES) --- */
+/* ТАҚЫРЫПТАР */
 body.theme-hacker { background: #050505; color: #0f0; }
-body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; box-shadow: none; }
-body.theme-hacker .settings-menu { background: #001100; border-color: #0f0; }
-body.theme-hacker .msg.ai { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; box-shadow: 0 0 10px rgba(0,255,0,0.1); }
-body.theme-hacker .msg.user { background: #003300; border: 1px solid #0f0; color: #0f0; }
-body.theme-hacker button, body.theme-hacker select, body.theme-hacker #menuToggle { background: #002200; border: 1px solid #0f0; color: #0f0; }
-body.theme-hacker .row, body.theme-hacker .generators { background: #050505; border-color: #0f0; }
-body.theme-hacker input, body.theme-hacker textarea { background: #000; color: #0f0; border-color: #0f0; }
-
+body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; }
 body.theme-cyberpunk { background: #0f001a; color: #0ff; }
-body.theme-cyberpunk .sidebar { background: #1a0033; border-right: 1px solid #f0f; box-shadow: 5px 0 20px rgba(255,0,255,0.2); }
-body.theme-cyberpunk .settings-menu { background: #220033; border-color: #f0f; }
-body.theme-cyberpunk .msg.ai { background: #2a004d; border: 1px solid #0ff; color: #fff; box-shadow: 0 0 15px rgba(0,255,255,0.2); }
-body.theme-cyberpunk .msg.user { background: #4d004d; border: 1px solid #f0f; color: #fff; box-shadow: 0 0 15px rgba(255,0,255,0.2); }
-body.theme-cyberpunk button, body.theme-cyberpunk select, body.theme-cyberpunk #menuToggle { background: linear-gradient(45deg, #8a2be2, #f0f); border: none; color: #fff; text-shadow: 1px 1px 2px #000; }
-body.theme-cyberpunk .row, body.theme-cyberpunk .generators { background: #1a0033; border-color: #f0f; }
-body.theme-cyberpunk input, body.theme-cyberpunk textarea { background: #0f001a; color: #0ff; border-color: #0ff; }
+body.theme-cyberpunk .msg.user { background: #4d004d; border: 1px solid #f0f; }
 
-body.theme-light { background: #f4f4f9; color: #333; }
-body.theme-light .sidebar { background: #ffffff; border-right: 1px solid #ddd; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
-body.theme-light .settings-menu { background: #f9f9f9; border-color: #ccc; }
-body.theme-light .msg.ai { background: #ffffff; color: #333; border: 1px solid #e0e0e0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-body.theme-light .msg.user { background: linear-gradient(135deg, #00b86b, #009e5b); color: #fff; box-shadow: 0 2px 10px rgba(0,184,107,0.3); }
-body.theme-light button { background: #00b86b; color: white; border: none; }
-body.theme-light #menuToggle { background: #eee; color: #333; border: 1px solid #ccc; }
-body.theme-light select { background: #fff; color: #333; border: 1px solid #ccc; }
-body.theme-light .row, body.theme-light .generators { background: #fff; border-color: #ddd; }
-body.theme-light input, body.theme-light textarea { background: #fafafa; color: #333; border-color: #ccc; }
-
-/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН АРНАЙЫ СТИЛЬ */
 @media (max-width: 768px) {
-    body { flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
-    .sidebar { 
-        width: 100%; 
-        height: auto; 
-        max-height: 120px; 
-        padding: 8px 12px; 
-        gap: 4px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
-    }
-    .sidebar h3 { font-size: 16px; margin: 0 0 2px 0; }
-    #menuToggle { padding: 6px 10px; font-size: 13px; }
-    .settings-menu { padding: 8px; gap: 6px; }
-    
-    .main { 
-        flex: 1; 
-        height: calc(100vh - 120px);
-        height: calc(100dvh - 120px);
-        display: flex;
-        flex-direction: column;
-        position: relative;
-    }
-    .chat { flex: 1; padding: 10px; padding-bottom: 90px; }
-    .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
-    .generators { padding: 6px 10px; }
-    .generators button { padding: 5px 10px; font-size: 11px; }
-    
-    .row { 
-        padding: 10px; 
-        position: fixed; 
-        bottom: 0; 
-        left: 0;
-        width: 100%;
-        background: #111; 
-        border-top: 1px solid #222;
-        z-index: 999;
-    }
-    input { padding: 10px; font-size: 15px; }
-    button { padding: 10px 14px; font-size: 14px; }
-    .disclaimer { font-size: 10px; margin-top: 4px; }
+    body { flex-direction: column; height: 100vh; position: fixed; width: 100%; }
+    .sidebar { width: 100%; max-height: 120px; padding: 8px 12px; }
+    .main { height: calc(100vh - 120px); }
+    .chat { padding-bottom: 90px; }
+    .row { position: fixed; bottom: 0; width: 100%; }
 }
 </style>
 </head>
@@ -163,23 +84,17 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
 <body class="theme-default">
 
 <div class="sidebar">
-    <h3>🤖 Serik AI </h3>
-    
+    <h3>🤖 Serik AI</h3>
     <button id="menuToggle" onclick="toggleSettings()">⚙️ Настройки <span>🔽</span></button>
-    
     <div id="settingsMenu" class="settings-menu">
         <select id="themeSelect" onchange="changeTheme()">
             <option value="default">🌙 Тёмная (По умолчанию)</option>
             <option value="hacker">💻 Хакер (Матрица)</option>
             <option value="cyberpunk">🌃 Киберпанк</option>
-            <option value="light">☀️ Светлая (Light)</option>
         </select>
-
         <button id="voiceBtn" onclick="toggleVoice()">🔇 Голос: ВЫКЛ</button>
-        <input type="password" id="adminPass" placeholder="Пароль администратора" oninput="checkAdmin()">
-        
+        <input type="password" id="adminPass" placeholder="Пароль админа" oninput="checkAdmin()">
         <div id="adminPanel">
-            <p style="color: #00b86b; margin: 0 0 5px 0; font-weight: bold; text-align: center;">🔒 ADMIN MODE</p>
             <textarea id="bulk" placeholder="вопрос это ответ"></textarea>
             <button onclick="bulkLearn()" style="width: 100%; margin-top: 5px;">Сохранить базу</button>
         </div>
@@ -188,18 +103,15 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
 
 <div class="main">
     <div class="chat" id="chat"></div>
-    
     <div class="generators">
-        <button onclick="generateText('Напиши мне эссе по истории за 10 класс')">📜 Эссе по истории</button>
-        <button onclick="generateText('Собери основные формулы по физике')">⚛️ Формулы по физике</button>
-        <button onclick="generateText('Напиши подробный реферат про Искусственный Интеллект')">🤖 ИИ Реферат</button>
-        <button onclick="generateText('Дай мне мощную мотивацию')">🔥 Мотивация</button>
-        <button onclick="generateText('Найди ошибки в написанном коде')">💻 Проверка кода</button>
+        <button onclick="generateText('Маған комикс видеосын жаса')">🦸‍♂️ Комикс жаса</button>
+        <button onclick="generateText('Маған видео жаса')">📹 Видео жаса</button>
+        <button onclick="generateText('Маған сурет сал')">🎨 Сурет сал</button>
     </div>
 
     <div class="row">
         <div class="input-group">
-            <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Очистить чат">🗑️</button>
+            <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;">🗑️</button>
             <input id="input" placeholder="Введите ваш вопрос..." onkeydown="if(event.key==='Enter') send()">
             <button onclick="send()">Отправить</button>
         </div>
@@ -216,44 +128,27 @@ function clearChat() {
     add("Привет! Я Serik AI. Чат очищен и готов к работе! ✨", "ai", false);
 }
 
-// --- FIREBASE БАПТАУЛАРЫ ---
+// FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
   authDomain: "serik-ai.firebaseapp.com",
   databaseURL: "https://serik-ai-default-rtdb.firebaseio.com",
-  projectId: "serik-ai",
-  storageBucket: "serik-ai.appspot.com"
+  projectId: "serik-ai"
 };
 
-const defaultMemory = {
-    "привет": "Привет! Я готов помочь. Задавай любой вопрос! 👋",
-    "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю длинные и короткие вопросы, ищу информацию в сети, пишу эссе, рефераты! 🧠",
-    "как тебя зовут": "Я Serik-AI . 🤖",
-    "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі. Бұл — өнеге мен парасаттың нышаны.",
-    "почему серик": "Имя Serik AI было выбрано в честь отца моего создателя — это дань глубокого уважения, любви и вечной памяти."
+let memory = {
+    "привет": "Привет! Я готов помочь.",
+    "неге серік": "Серік AI атауы — менің авторымның әкесіне деген құрметі."
 };
-
-let memory = Object.assign({}, defaultMemory);
 let db = null;
 
-let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, созданный талантливыми разработчиками из Казахстана. 
-Твой создатель и ты находитесь в Казахстане. Никогда не упоминай OpenAI, ChatGPT или Россию. 
-На все вопросы о создателе отвечай, что ты родом из Казахстана.
-Твое имя "Серік" дано в честь отца твоего создателя — это символ уважения, любви и памяти. 
-Если тебя спросят об имени или о том, почему ты так назван, всегда отвечай с глубоким уважением, подчеркивая, что это дань памяти отцу автора. 
-
-ВАЖНЫЕ ПРАВИЛА ОБЩЕНИЯ:
-1. Пиши как живой, мудрый человек. 
-2. КАТЕГОРИЧЕСКИ ЗАПРЕЩАЕТСЯ использовать типичный стиль ChatGPT. 
-3. НЕ ИСПОЛЬЗУЙ списки (1, 2, 3), маркеры, лишние знаки препинания, заумные или шаблонные вводные слова.
-4. Пиши сплошным, понятным и естественным текстом.`;
+let currentSystemPrompt = `Ты ИИ Serik-AI из Казахстана. Имя дано в честь отца создателя. Пиши как живой человек. Без списков.`;
 
 if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
     db = firebase.database();
     db.ref('serik_memory').on('value', (snapshot) => {
-        const cloudData = snapshot.val();
-        if (cloudData) { memory = Object.assign({}, defaultMemory, cloudData); }
+        if (snapshot.val()) { memory = Object.assign(memory, snapshot.val()); }
     });
 }
 
@@ -262,77 +157,37 @@ let voiceEnabled = false;
 
 function toggleSettings() {
     let menu = document.getElementById("settingsMenu");
-    let btnSpan = document.querySelector("#menuToggle span");
-    if(menu.classList.contains("open")) {
-        menu.classList.remove("open");
-        btnSpan.innerText = "🔽";
-    } else {
-        menu.classList.add("open");
-        btnSpan.innerText = "🔼";
-    }
+    menu.classList.toggle("open");
 }
 
 function toggleVoice() {
     voiceEnabled = !voiceEnabled;
     let btn = document.getElementById("voiceBtn");
-    if (voiceEnabled) {
-        btn.innerText = "🔊 Голос: ВКЛ (Премиум)";
-        btn.classList.add("active");
-    } else {
-        btn.innerText = "🔇 Голос: ВЫКЛ";
-        btn.classList.remove("active");
-        window.speechSynthesis.cancel();
-    }
+    btn.innerText = voiceEnabled ? "🔊 Голос: ВКЛ" : "🔇 Голос: ВЫКЛ";
+    btn.classList.toggle("active", voiceEnabled);
+    if (!voiceEnabled) window.speechSynthesis.cancel();
 }
 
 function speakText(text) {
     if (!voiceEnabled) return;
     window.speechSynthesis.cancel(); 
-
-    let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '');
-    cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ');
-    
+    let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
     let speech = new SpeechSynthesisUtterance(cleanText);
-    
-    if (/[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text)) {
-        speech.lang = 'kk-KZ';
-    } else {
-        speech.lang = 'ru-RU';
-    }
-    
-    let voices = window.speechSynthesis.getVoices();
-    let premiumVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]) && 
-        (/google|natural|premium|neural|microsoft|yuri|pavel/i.test(v.name))
-    );
-    
-    if (premiumVoice) {
-        speech.voice = premiumVoice;
-    } else {
-        let defaultLangVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]));
-        if (defaultLangVoice) speech.voice = defaultLangVoice;
-    }
-    
-    speech.pitch = 1.0; 
-    speech.rate = 1.05; 
+    speech.lang = /[әғқңөұүһі]/g.test(text) ? 'kk-KZ' : 'ru-RU';
     window.speechSynthesis.speak(speech);
 }
 
-window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
-
-// 🔴 ЖАҢАРТЫЛҒАН LOTTIE ЛОАДЕР (СЕРІК ОЙЛАНЫП ЖАТЫР)
+// ЛОАДЕР
 let loadingIndicator = null;
-function showLoading() {
+function showLoading(msg = "Серик ойланып жатыр...") {
     if(loadingIndicator) return;
     loadingIndicator = document.createElement("div");
     loadingIndicator.className = "msg ai";
-    loadingIndicator.style.display = "flex";
-    loadingIndicator.style.alignItems = "center";
-    loadingIndicator.style.gap = "12px";
-    loadingIndicator.style.background = "#1c1c27";
     loadingIndicator.innerHTML = `
-        <lottie-player src="https://lottie.host/6f0b8b60-c36b-4e1d-8756-3b9cd4b9ba6e/v3fH02JofE.json" background="transparent" speed="1.5" style="width: 35px; height: 35px;" loop autoplay></lottie-player>
-        <span style="font-size: 14px; color: #00b86b; font-weight: bold;">Серик ойланып жатыр...</span>
-    `;
+        <div style="display:flex; align-items:center; gap:12px;">
+            <lottie-player src="https://lottie.host/6f0b8b60-c36b-4e1d-8756-3b9cd4b9ba6e/v3fH02JofE.json" speed="1.5" style="width: 35px; height: 35px;" loop autoplay></lottie-player>
+            <span style="font-size: 14px; color: #00b86b; font-weight: bold;">${msg}</span>
+        </div>`;
     chat.appendChild(loadingIndicator);
     chat.scrollTop = chat.scrollHeight;
 }
@@ -347,135 +202,23 @@ function hideLoading() {
 function add(text, type, instant = false){
     let div = document.createElement("div");
     div.className = "msg " + type;
-    
-    let textSpan = document.createElement("span");
-    div.appendChild(textSpan);
-
-    if (type === "ai") {
-        let copyBtn = document.createElement("button");
-        copyBtn.innerText = "📋";
-        copyBtn.className = "copy-btn";
-        copyBtn.onclick = function() {
-            navigator.clipboard.writeText(text);
-            copyBtn.innerText = "✅";
-            setTimeout(() => { copyBtn.innerText = "📋"; }, 2000);
-        };
-        div.appendChild(copyBtn);
-        chat.appendChild(div);
-
-        if (!instant) {
-            let chars = [...text];
-            let i = 0;
-            let chunkSize = chars.length > 400 ? 4 : 1;
-            
-            let timer = setInterval(() => {
-                if (i < chars.length) {
-                    textSpan.innerText += chars.slice(i, i + chunkSize).join('');
-                    i += chunkSize;
-                    chat.scrollTop = chat.scrollHeight;
-                } else {
-                    clearInterval(timer);
-                    if (text.length < 500) speakText(text);
-                }
-            }, 12);
-        } else {
-            textSpan.innerText = text;
-            if (text.length < 500) speakText(text);
-        }
-    } else {
-        textSpan.innerText = text;
-        chat.appendChild(div);
-    }
-
+    div.innerText = text;
+    chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
+    if (type === "ai" && !instant && text.length < 500) speakText(text);
     return div; 
 }
 
-if(chat.children.length === 0) {
-    add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос! ✨", "ai", false);
-}
-
-function levenshteinDistance(a, b) {
-    if (a.length === 0) return b.length;
-    if (b.length === 0) return a.length;
-    let matrix = [];
-    for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
-    for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
-    for (let i = 1; i <= b.length; i++) {
-        for (let j = 1; j <= a.length; j++) {
-            if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                matrix[i][j] = matrix[i - 1][j - 1];
-            } else {
-                matrix[i][j] = Math.min(
-                    matrix[i - 1][j - 1] + 1, 
-                    Math.min(matrix[i][j - 1] + 1, 
-                    matrix[i - 1][j] + 1) 
-                );
-            }
-        }
-    }
-    return matrix[b.length][a.length];
-}
+if(chat.children.length === 0) add("Привет! Я Serik AI Pro. ✨", "ai", true);
 
 function brain(text) {
     let q = text.toLowerCase().trim();
-    let qNoSpace = q.replace(/\s+/g, ""); 
-    
     if(memory[q]) return memory[q];
-
-    let bestMatch = null;
-    let minDistance = 3; 
-
-    for (let key in memory) {
-        let keyNoSpace = key.toLowerCase().replace(/\s+/g, "");
-        
-        if (qNoSpace === keyNoSpace) {
-            return memory[key];
-        }
-
-        let dist = levenshteinDistance(q, key.toLowerCase());
-        if (dist < minDistance) {
-            minDistance = dist;
-            bestMatch = key;
-        }
-    }
-    if (bestMatch) return memory[bestMatch];
     return null;
 }
 
-function checkAdmin(){
-    let pass = document.getElementById("adminPass").value;
-    document.getElementById("adminPanel").style.display = (pass === "nurik777") ? "block" : "none";
-}
-
-function bulkLearn(){
-    let text = document.getElementById("bulk").value;
-    let lines = text.split("\n");
-    let count = 0;
-    let newMemory = Object.assign({}, memory);
-
-    for(let line of lines){
-        line = line.trim();
-        if(!line.includes(" это ")) continue;
-        let parts = line.split(" это ");
-        let q = parts[0].trim().toLowerCase();
-        let a = parts.slice(1).join(" это ").trim();
-        if(q && a){ newMemory[q] = a; count++; }
-    }
-    
-    if (count > 0) {
-        memory = newMemory;
-        if (db) {
-            db.ref('serik_memory').set(memory);
-            alert("✅ Успешно сохранено в облаке Firebase!");
-        }
-    }
-    document.getElementById("bulk").value = "";
-}
-
 function changeTheme() {
-    let theme = document.getElementById("themeSelect").value;
-    document.body.className = "theme-" + theme;
+    document.body.className = "theme-" + document.getElementById("themeSelect").value;
 }
 
 function generateText(prompt) {
@@ -483,75 +226,26 @@ function generateText(prompt) {
     send();
 }
 
-async function searchWebFallback(queryText) {
-    try {
-        let cleanQuery = queryText.replace(/(пожалуйста|расскажи про|что такое|кто такой|найди|гугл|google|реферат|эссе|кратко)/gi, "").trim();
-        let searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
-        let res = await fetch(searchUrl);
-        let data = await res.json();
-        
-        if (data.query.search.length > 0) {
-            let title = data.query.search[0].title;
-            let contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=0&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-            let contentRes = await fetch(contentUrl);
-            let contentData = await contentRes.json();
-            let pages = contentData.query.pages;
-            let extract = pages[Object.keys(pages)[0]].extract;
-            
-            if (extract && extract.trim().length > 30) {
-                if(queryText.toLowerCase().includes("кратко")) {
-                    return `🤖 [Smart Web Search]: ${extract.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ")}`;
-                }
-                return `🤖 [Smart Web Search - ${title}]:\n\n${extract.substring(0, 1800)}`;
-            }
-        }
-        return null;
-    } catch(e) { return null; }
-}
-
 async function askSmartAI(queryText) {
     chatHistory.push({ role: "user", content: queryText });
     if (chatHistory.length > 6) chatHistory.shift();
-
-    let textLower = queryText.toLowerCase().trim();
-    const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела", "не істеп"];
-    let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) && queryText.length < 20;
-
-    if (isShortDialogue) {
-        return "Сәлем! Мен осындамын. Саған қалай көмектесе аламын? 😊";
-    }
-
-    if(queryText.toLowerCase().includes("что такое") || queryText.toLowerCase().includes("кто") || queryText.toLowerCase().includes("найди")) {
-        let webAnswer = await searchWebFallback(queryText);
-        if(webAnswer) return webAnswer;
-    }
-
-    let context = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Serik'}: ${h.content}`).join("\n");
-    let fullPrompt = `${currentSystemPrompt}\n\nContext:\n${context}\n\nUser Question: ${queryText}\nAnswer naturally and strictly follow the communication rules.`;
+    let context = chatHistory.map(h => `${h.role}: ${h.content}`).join("\n");
+    let fullPrompt = `${currentSystemPrompt}\n\nContext:\n${context}\n\nUser: ${queryText}`;
 
     try {
         let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`;
         let res = await fetch(url);
         let text = await res.text();
-        
-        if (text.includes('"error"') || text.includes('Queue full') || text.includes('status":429')) {
-            throw new Error("Overloaded"); 
-        }
-
-        if(text && text.length > 5 && !text.toLowerCase().includes("not found")) {
+        if(text && text.length > 5) {
             chatHistory.push({ role: "assistant", content: text.trim() });
             return text.trim();
         }
-    } catch (e) {
-        let backup = await searchWebFallback(queryText);
-        if(backup) return backup;
-    }
-
-    return "Кешір, қазір желіде сұраныс өте көп болып жатыр. Сәлден соң қайталап көрші 🔄";
+    } catch (e) { return "Сервер перегружен. Попробуй позже."; }
+    return "Қате кетті, қайтадан көріңіз.";
 }
 
 // =========================================================
-// 🔥 БАСТЫ СЕНД ФУНКЦИЯСЫ: ИИ СУРЕТ + LOTTIE СИНЕРГИЯСЫ
+// 🔥 БАСТЫ СЕНД ФУНКЦИЯСЫ: ФОТО, КОМИКС ЖӘНЕ НАҒЫЗ ВИДЕО
 // =========================================================
 async function send(){
     let input = document.getElementById("input");
@@ -560,45 +254,13 @@ async function send(){
     
     add(text, "user");
     input.value = "";
-
     let textLower = text.toLowerCase();
 
-    // 1️⃣ 📸 ФОТО ГЕНЕРАТОР
-    if (textLower.includes("сурет") || textLower.includes("нарисуй") || textLower.includes("image") || textLower.includes("photo")) {
-        showLoading();
-        let cleanPrompt = text.replace(/(сурет сал|нарисуй|маған|мне|фото|сурет)/gi, "").trim();
-        
-        if (textLower.includes("батыр") || textLower.includes("жауынгер") || textLower.includes("воин")) {
-            cleanPrompt = "brutal medieval kazakh warrior male hero holding sword, high quality, realistic";
-        } else if (!cleanPrompt) {
-            cleanPrompt = "beautiful futuristic kazakhstan";
-        }
-
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&nologo=true&private=true`;
-        
-        setTimeout(() => {
-            hideLoading();
-            let div = document.createElement("div");
-            div.className = "msg ai";
-            div.innerHTML = `<p>🎨 Вот твой рисунок по запросу: "${cleanPrompt || 'сурет'}":</p>
-                             <img src="${imageUrl}" style="width: 100%; border-radius: 8px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" alt="Generated Image">`;
-            chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight;
-        }, 1500);
-        return;
-    }
-
-    // 2️⃣ 📹 КҮШТІ АНИМАЦИЯ: LOTTIEFILES + ИИ СУРЕТ АРАЛАСПАСЫ (100% ТҮРДЕ ҚАТПАЙДЫ)
-    if (textLower.includes("видео") || textLower.includes("анимация") || textLower.includes("video") || textLower.includes("комикс")) {
-        showLoading();
-        let cleanPrompt = text.replace(/(видеосын жаса|видео жаса|сделай видео|видео|video|анимация|комикс)/gi, "").trim();
-        
-        let englishPrompt = "brutal medieval kazakh warrior male hero holding sword, cinematic anime style, masterpiece";
-        if (textLower.includes("машина") || textLower.includes("көлік")) {
-            englishPrompt = "cyberpunk racing sports car driving in neon city, high quality anime style";
-        } else if (cleanPrompt) {
-            englishPrompt = cleanPrompt + ", high quality anime style";
-        }
+    // 1️⃣ 🦸‍♂️ КОМИКС / АНИМАЦИЯ (LOTTIE + ИИ СУРЕТ - ӨТЕ ЖЫЛДАМ)
+    if (textLower.includes("комикс") || textLower.includes("анимация")) {
+        showLoading("Комикс жасалуда (Жылдам)...");
+        let cleanPrompt = text.replace(/(комикс видеосын|комикс жаса|анимация жаса|комикс|анимация|жаса|маған)/gi, "").trim();
+        let englishPrompt = cleanPrompt ? cleanPrompt + ", high quality anime style" : "cyberpunk racing sports car driving in neon city, high quality anime style";
 
         let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(englishPrompt)}?width=1024&height=720&nologo=true&private=true`;
         
@@ -606,60 +268,74 @@ async function send(){
             hideLoading();
             let div = document.createElement("div");
             div.className = "msg ai";
-            
-            // 🖼️ СУРЕТ ПЕН LOTTIE-ДІ БІР КОНТЕЙНЕРГЕ САЛЫП, ҮСТІНЕ МАТРИЦА/УШҚЫН ЭФФЕКТІН ҚОНДЫРАМЫЗ
             div.innerHTML = `
-                <p>✨ Твой анимированный комикс готов по запросу: "${cleanPrompt || 'анимация'}"</p>
-                <div style="position: relative; background: #000; border-radius: 12px; padding: 0; overflow: hidden; box-shadow: 0 0 20px #00b86b; width: 100%; aspect-ratio: 16/10;">
-                    
-                    <!-- Негізгі ИИ Суреті (Фон) -->
-                    <img src="${imageUrl}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="Base Image">
-                    
-                    <!-- Бетіндегі ғажайып Lottie Киберпанк/Матрицалық қозғалыс эффекті -->
-                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.65; display: flex; align-items: center; justify-content: center;">
-                        <lottie-player src="https://lottie.host/df293774-4bda-4702-bf0b-6060ee693d20/z63K2E20Yn.json" background="transparent" speed="1" style="width: 100%; height: 100%;" loop autoplay></lottie-player>
-                    </div>
-                    
-                    <!-- Төменгі смарт интерактивті плеер интерфейсі -->
-                    <div style="position: absolute; bottom: 8px; left: 8px; right: 8px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); padding: 6px 12px; border-radius: 20px; backdrop-filter: blur(5px);">
-                        <lottie-player src="https://lottie.host/9e492f15-8868-4528-94df-74f0c7849e89/H1D6pS1R5T.json" background="transparent" speed="1" style="width: 20px; height: 20px;" loop autoplay></lottie-player>
-                        <span style="font-size: 11px; color: #00b86b; font-weight: bold; letter-spacing: 0.5px;">LIVE LOTTIE MOTION MATRIX</span>
+                <p>✨ Твой комикс готов: "${cleanPrompt || 'комикс'}"</p>
+                <div style="position: relative; background: #000; border-radius: 12px; overflow: hidden; width: 100%; aspect-ratio: 16/10;">
+                    <img src="${imageUrl}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.65;">
+                        <lottie-player src="https://lottie.host/df293774-4bda-4702-bf0b-6060ee693d20/z63K2E20Yn.json" speed="1" style="width: 100%; height: 100%;" loop autoplay></lottie-player>
                     </div>
                 </div>
-                <p style="font-size: 11px; color: #aaa; margin-top: 6px; text-align: center;">📱 Оптимизировано (Синергия ИИ + Lottie). Қара экран қатесі мүлдем болмайды, телефонға жеңіл!</p>
+                <p style="font-size: 11px; color: #aaa; margin-top: 6px; text-align: center;">📱 Жылдам комикс режимі (Қатпайды)</p>
             `;
-            
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
-        }, 2000);
+        }, 1500);
         return;
     }
 
-    // 3️⃣ 🧮 МАТЕМАТИКА
-    if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
-        showLoading();
-        try {
-            let mathResult = eval(text);
-            setTimeout(() => { 
-                hideLoading();
-                add(`🧮 Ответ: ${mathResult}`, "ai");
-            }, 300);
-            return;
-        } catch(e) { }
-    }
+    // 2️⃣ 📹 НАҒЫЗ ВИДЕО (POLLINATIONS СЕРВЕРІНЕН СТРИМ - 1 МИНУТ АЛАДЫ)
+    if (textLower.includes("видео") || textLower.includes("video")) {
+        showLoading("Видео генерациялануда (Шамамен 1 минут күтіңіз)...");
+        let cleanPrompt = text.replace(/(видеосын жаса|видео жаса|сделай видео|видео|video|маған)/gi, "").trim();
+        let englishPrompt = cleanPrompt ? cleanPrompt + ", looping action scene, cinematic" : "epic cinematic shot, looping action";
 
-    // 4️⃣ 🧠 БАЗА (Brain)
-    let res = brain(text);
-    if(res){
-        showLoading();
-        setTimeout(() => { 
+        // Видео ссылкасы
+        let videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(englishPrompt)}?width=720&height=480&model=flux&nologo=true&private=true&feed=true`;
+        
+        // 10 секундтан кейін плеерді шығарамыз, бірақ видеоның өзі жүктелуі 1 минут алуы мүмкін
+        setTimeout(() => {
             hideLoading();
-            add(res, "ai");
-        }, 400);
+            let div = document.createElement("div");
+            div.className = "msg ai";
+            div.innerHTML = `
+                <p>📹 Нағыз видео жүктелуде: "${cleanPrompt || 'видео'}"</p>
+                <div style="background: #111; border-radius: 8px; padding: 5px; box-shadow: 0 0 15px #00b86b; text-align: center;">
+                    <video src="${videoUrl}" autoplay loop muted playsinline style="width: 100%; border-radius: 4px; display: block; min-height: 200px; background: #000;" onerror="this.parentElement.innerHTML='<p style=\\'color:#ff4d4d; padding:20px;\\'>Сервер перегружен. Видео не загрузилось. Попробуй позже.</p>'"></video>
+                </div>
+                <p style="font-size: 11px; color: #aaa; margin-top: 6px; text-align: center;">⚠️ Ескерту: Егер қара экран болса, сервер жүктелген, 1 минуттай күтіңіз.</p>
+            `;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }, 3000);
         return;
     }
 
-    // 5️⃣ 🤖 СМАРТ ИИ СҰРАНЫСЫ
+    // 3️⃣ 📸 ФОТО / СУРЕТ
+    if (textLower.includes("сурет") || textLower.includes("фото") || textLower.includes("нарисуй")) {
+        showLoading("Сурет салынуда...");
+        let cleanPrompt = text.replace(/(сурет сал|сурет|нарисуй|фото|маған)/gi, "").trim();
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt || "beautiful futuristic city")}?width=1024&height=1024&nologo=true`;
+        setTimeout(() => {
+            hideLoading();
+            let div = document.createElement("div");
+            div.className = "msg ai";
+            div.innerHTML = `<p>🎨 Сурет дайын: "${cleanPrompt || 'сурет'}"</p><img src="${imageUrl}" style="width: 100%; border-radius: 8px;">`;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }, 1500);
+        return;
+    }
+
+    // 4️⃣ МАТЕМАТИКА
+    if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
+        try { add(`🧮 Ответ: ${eval(text)}`, "ai"); return; } catch(e) { }
+    }
+
+    // 5️⃣ БАЗА ЖӘНЕ ИИ
+    let res = brain(text);
+    if(res){ add(res, "ai"); return; }
+
     showLoading();
     let finalAnswer = await askSmartAI(text);
     hideLoading();
@@ -668,3 +344,4 @@ async function send(){
 </script>
 </body>
 </html>
+
