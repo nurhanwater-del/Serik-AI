@@ -502,29 +502,24 @@ async function askSmartAI(queryText) {
     return "❌ Извините, сеть сейчас перегружена. Пожалуйста, попробуйте отправить запрос еще раз через секунду.";
 }
 
-async function send(){
-    let input = document.getElementById("input");
-    let text = input.value.trim();
-    if(!text) return;
-    
-    add(text, "user");
-    input.value = "";
+async function askSmartAI(queryText) {
+    try {
+        // Pollinations-ты алып тастадық, енді өз серверімізге жібереміз
+        let response = await fetch("http://localhost:8000/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: queryText })
+        });
 
-    let res = brain(text);
-    if(res){
-        showLoading();
-        setTimeout(() => { 
-            hideLoading();
-            add(res, "ai");
-        }, 400);
-        return;
+        let data = await response.json();
+        return data.answer; // Серверден келген жауапты қайтарамыз
+        
+    } catch (e) {
+        console.error("Серверге қосылу қатесі:", e);
+        return "⚠️ Қазір сервер істемей тұр, Ubuntu-дағы Python серверді іске қосқаныңа көз жеткіз.";
     }
-
-    showLoading();
-    let finalAnswer = await askSmartAI(text);
-    hideLoading();
-    add(finalAnswer, "ai");
 }
+
 </script>
 </body>
 </html>
