@@ -554,7 +554,7 @@ async function send(){
 
     let textLower = text.toLowerCase();
 
-    // 1️⃣ 📸 ФОТО ГЕНЕРАТОР ЛОГИКАСЫ (ТЕГІН ӘРІ ШЕКСІЗ - ULTRA HD)
+    // 1️⃣ 📸 ФОТО ГЕНЕРАТОР (ULTRA HD СУРЕТТЕР)
     if (textLower.includes("сурет") || textLower.includes("нарисуй") || textLower.includes("image") || textLower.includes("photo")) {
         showLoading();
         let cleanPrompt = text.replace(/(сурет сал|нарисуй|маған|мне|фото|сурет)/gi, "").trim();
@@ -574,24 +574,33 @@ async function send(){
         return;
     }
 
-    // 2️⃣ 📹 ВИДЕО АНИМАЦИЯ ГЕНЕРАТОРЫ (УӘДЕ ЕТІЛГЕН НАҒЫЗ 720p КЕҢ ФОРМАТ)
-    if (textLower.includes("видео") || textLower.includes("анимация") || textLower.includes("video")) {
+    // 2️⃣ 📹 КОМИКС ВИДЕО (АНИМАЦИЯЛЫҚ ҚОЗҒАЛАТЫН КОМИКС)
+    if (textLower.includes("видео") || textLower.includes("анимация") || textLower.includes("video") || textLower.includes("комикс")) {
         showLoading();
-        let cleanPrompt = text.replace(/(видео жаса|сделай видео|видео|video|анимация)/gi, "").trim();
-        if(!cleanPrompt) cleanPrompt = "cyberpunk city loop";
+        let cleanPrompt = text.replace(/(видео жаса|сделай видео|видео|video|анимация|комикс)/gi, "").trim();
+        
+        // Егер бос болса, дайын комикс промпт қоямыз. Промпт соңына комикс/аниме стилін міндетті түрде қосамыз
+        if(!cleanPrompt) {
+            cleanPrompt = "cyberpunk kazakh warrior, motion comic style, animated anime";
+        } else {
+            cleanPrompt = cleanPrompt + ", motion comic style, animated anime, high quality";
+        }
 
-        // Нағыз 720p (1280x720) кино форматтағы тегін видео анимация сілтемесі
-        let videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1280&height=720&nologo=true&private=true&feed=true`;
+        // 720p кең формат және арнайы аниме/комикс моделін қолданамыз (&model=flux-anime)
+        let videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1280&height=720&model=flux-anime&nologo=true&private=true&feed=true`;
         
         setTimeout(() => {
             hideLoading();
             let div = document.createElement("div");
             div.className = "msg ai";
-            div.innerHTML = `<p>📹 Вот твое видео по запросу: "${cleanPrompt}":</p>
-                             <img src="${videoUrl}" style="width: 100%; border-radius: 8px; margin-top: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" alt="Generated Video">`;
+            div.innerHTML = `<p>📹 Вот твое комикс-видео по запросу: "${cleanPrompt}":</p>
+                             <div style="background: #111; padding: 10px; border-radius: 8px; text-align: center;">
+                                 <img src="${videoUrl}" style="width: 100%; border-radius: 4px; box-shadow: 0 0 15px rgba(0, 184, 107, 0.4);" alt="Generated Comic Video">
+                                 <p style="font-size: 12px; color: #aaa; margin: 8px 0 0 0;">✨ Стиль: Анимированный комикс (720p)</p>
+                             </div>`;
             chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
-        }, 2000);
+        }, 2500); // Сапалы өңдеу үшін 2.5 секунд күтеді
         return;
     }
 
@@ -619,12 +628,13 @@ async function send(){
         return;
     }
 
-    // 5️⃣ 🤖 СМАРТ ИИ СҰРАНЫСЫ (Мәтіндік жауап)
+    // 5️⃣ 🤖 СМАРТ ИИ СҰРАНЫСЫ
     showLoading();
     let finalAnswer = await askSmartAI(text);
     hideLoading();
     add(finalAnswer, "ai");
 }
+
 
 </script>
 </body>
