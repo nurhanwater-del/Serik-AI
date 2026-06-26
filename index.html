@@ -502,21 +502,21 @@ async function askSmartAI(queryText) {
     return "❌ Извините, сеть сейчас перегружена. Пожалуйста, попробуйте отправить запрос еще раз через секунду.";
 }
 
-async function askSmartAI(queryText) {
-    try {
-        // Pollinations-ты алып тастадық, енді өз серверімізге жібереміз
-        let response = await fetch("http://localhost:8000/ask", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: queryText })
-        });
-
+async function generateVideoFromBackend(prompt) {
+    showLoading("Сервер видео дайындауда...");
+    let response = await fetch("http://localhost:8000/generate-video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: prompt })
+    });
+    
+    if (response.ok) {
         let data = await response.json();
-        return data.answer; // Серверден келген жауапты қайтарамыз
-        
-    } catch (e) {
-        console.error("Серверге қосылу қатесі:", e);
-        return "⚠️ Қазір сервер істемей тұр, Ubuntu-дағы Python серверді іске қосқаныңа көз жеткіз.";
+        // Серверден келген видеоны көрсетеміз
+        add("✅ Видео дайын!", "ai");
+        // ... (видеоны көрсететін код)
+    } else {
+        add("⚠️ Видео қазір дайындалмай жатыр.", "ai");
     }
 }
 
