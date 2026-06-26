@@ -545,6 +545,7 @@ async function askSmartAI(queryText) {
 }
 
 // 🔥 ИИ-дің миы (Brain) және Асинхронды видео генерациясы біріктірілген нұсқа
+// 🔥 БАРЛЫҚ ИИ БІРІКТІРІЛГЕН СЕНТРАЛДЫ ФУНКЦИЯ
 async function send() {
     let input = document.getElementById("input");
     let text = input.value.trim();
@@ -552,44 +553,32 @@ async function send() {
 
     add(text, "user");
     input.value = "";
-    let textLower = text.toLowerCase();
+    
+    // 1. КОНТЕКСТТІ АНЫҚТАУ (Қай ИИ-ді шақыру керек?)
+    let promptLower = text.toLowerCase();
+    showLoading("ИИ жүйесі талдауда...");
 
-    // 1️⃣ ВИДЕО ГЕНЕРАЦИЯЛАУ (Асинхронды, миды өшірмейді)
-    if (textLower.includes("видео") || textLower.includes("video")) {
-        showLoading("Видео ИИ-де дайындалуда...");
-        let cleanPrompt = text.replace(/(видеосын жаса|видео жаса|видео|video|маған)/gi, "").trim();
-        let videoUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=768&nologo=true&private=true&feed=true&seed=${Math.floor(Math.random() * 99999)}`;
-        
-        try {
-            let response = await fetch(videoUrl);
-            hideLoading();
-            if (response.ok) {
-                let div = document.createElement("div");
-                div.className = "msg ai";
-                div.innerHTML = `
-                    <p>📹 Видео дайын: "${cleanPrompt}"</p>
-                    <video src="${videoUrl}" controls autoplay playsinline style="width:100%; border-radius:10px;"></video>
-                `;
-                chat.appendChild(div);
-            } else throw new Error();
-        } catch (e) {
-            hideLoading();
-            add("⚠️ Видео сервері қазір бос емес, бірақ сенің сұрағыңды ИИ-ге жолдап жатырмын...", "ai");
-            // Видео істемесе де, ИИ-дің миына жібереміз (төмендегі кодқа өтеді)
+    try {
+        // ВИДЕО МОДУЛІ
+        if (promptLower.includes("видео")) {
+            let videoResult = await generateVideo(text); // Бұл жерде HuggingFace API кілтімен істейді
+            showMedia(videoResult, "video");
+        } 
+        // СУРЕТ МОДУЛІ
+        else if (promptLower.includes("сурет") || promptLower.includes("фото")) {
+            let imgResult = await generateImage(text); // Бұл жерде Flux API кілтімен
+            showMedia(imgResult, "image");
+        } 
+        // МӘТІН/ОЙЛАУ МОДУЛІ (GPT/Gemini)
+        else {
+            let textResult = await getAIAnswer(text); // Бұл жерде Gemini API кілтімен
+            add(textResult, "ai");
         }
+    } catch (err) {
+        add("⚠️ Жүйеде қате кетті: " + err.message, "ai");
+    } finally {
+        hideLoading();
     }
-
-    // 2️⃣ ИИ-ДІҢ МИЫ (Ойлау жүйесі)
-    // Егер видео болмаса немесе видеодан кейін жауап керек болса:
-    showLoading("ИИ ойланып жатыр...");
-    
-    // Бұл жерде сенің бұрынғы brain() және askSmartAI() функцияларың істей береді
-    let res = brain(text); 
-    let finalAnswer = res ? res : await askSmartAI(text);
-    
-    hideLoading();
-    add(finalAnswer, "ai");
-    chat.scrollTop = chat.scrollHeight;
 }
 
 </script>
