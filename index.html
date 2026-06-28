@@ -512,29 +512,38 @@ async function searchWebFallback(queryText) {
 
 // --- ҚАТЫП ҚАЛМАЙТЫН, ОҢТАЙЛАНДЫРЫЛҒАН СМАРТ ИИ ФУНКЦИЯСЫ ---
 async function askSmartAI(queryText) {
-    // Тарихты жаңарту (Серверге салмақ түсірмеу үшін тек соңғы 6 хабарлама сақталады)
+    // 1. Память: Пайдаланушының жаңа сұрағын тарихқа қосамыз
     chatHistory.push({ role: "user", content: queryText });
-    if (chatHistory.length > 6) chatHistory.shift();
+    
+    // Тарих тым үлкен болып кетпеуі үшін соңғы 10 хабарламаны ғана ұстаймыз
+    if (chatHistory.length > 10) chatHistory.shift();
 
     let textLower = queryText.toLowerCase().trim();
     const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела", "не істеп"];
     let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) && queryText.length < 20;
 
-    // Сәлемдесу кезінде серверді қинамай бірден қысқа жауап қайтару
     if (isShortDialogue) {
-        return "Сәлем! Мен осындамын. Саған қалай көмектесе аламын? 😊";
+        // Қысқа сәлемдесуді де ИИ-дің жадына сақтап қоямыз
+        let helloAnswer = "Сәлем! Мен осындамын. Саған қалай көмектесе аламын? 😊";
+        chatHistory.push({ role: "assistant", content: helloAnswer });
+        return helloAnswer;
     }
 
     if(queryText.toLowerCase().includes("что такое") || queryText.toLowerCase().includes("кто") || queryText.toLowerCase().includes("найди")) {
         let webAnswer = await searchWebFallback(queryText);
-        if(webAnswer) return webAnswer;
+        if(webAnswer) {
+            chatHistory.push({ role: "assistant", content: webAnswer });
+            return webAnswer;
+        }
     }
 
-    let context = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Serik'}: ${h.content}`).join("\n");
-    let fullPrompt = `${currentSystemPrompt}\n\nContext:\n${context}\n\nUser Question: ${queryText}\nAnswer naturally and strictly follow the communication rules.`;
+    // 2. Жадыны біріктіру: Бүкіл өткен диалогты ИИ түсінетіндей форматқа жинаймыз
+    let conversationContext = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.content}`).join("\n");
+    
+    // Системдік промпт пен бүкіл сөйлесу тарихын бірге жібереміз
+    let fullPrompt = `${currentSystemPrompt}\n\n[Conversation History]:\n${conversationContext}\n\nAssistant, respond directly to the latest User message based on the history above.`;
 
     try {
-        // Оңтайлы әрі ең тұрақты OpenAI моделімен тікелей байланыс
         let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`;
         let res = await fetch(url);
         let text = await res.text();
@@ -544,12 +553,17 @@ async function askSmartAI(queryText) {
         }
 
         if(text && text.length > 5 && !text.toLowerCase().includes("not found")) {
-            chatHistory.push({ role: "assistant", content: text.trim() });
-            return text.trim();
+            let aiResponse = text.trim();
+            // 3. Память: ИИ-дің берген жауабын да тарихқа міндетті түрде қосамыз
+            chatHistory.push({ role: "assistant", content: aiResponse });
+            return aiResponse;
         }
     } catch (e) {
         let backup = await searchWebFallback(queryText);
-        if(backup) return backup;
+        if(backup) {
+            chatHistory.push({ role: "assistant", content: backup });
+            return backup;
+        }
     }
 
     return "Кешір, қазір желіде сұраныс өте көп болып жатыр. Сәлден соң қайталап көрші 🔄";
@@ -563,7 +577,7 @@ async function send(){
     add(text, "user");
     input.value = "";
 
-    // --- МАТЕМАТИКАЛЫҚ ЕСЕПТЕР (Тұр) ---
+    // --- МАТЕМАТИКАЛЫҚ ЕСЕПТЕР ---
     if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
         showLoading();
         try {
@@ -576,7 +590,7 @@ async function send(){
         } catch(e) { }
     }
 
-    // --- МИ (Brain) (Тұр) ---
+    // --- МИ (Brain) ---
     let res = brain(text);
     if(res){
         showLoading();
@@ -587,7 +601,7 @@ async function send(){
         return;
     }
 
-    // --- СУРЕТ ГЕНЕРАЦИЯСЫ (Жаңа қосылған) ---
+    // --- СУРЕТ ГЕНЕРАЦИЯСЫ ---
     let lowerText = text.toLowerCase();
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
@@ -605,7 +619,7 @@ async function send(){
         return;
     }
 
-    // --- ИИ (askSmartAI) (Тұр) ---
+    // --- ИИ (askSmartAI - Енді тарихпен бірге жұмыс істейді) ---
     showLoading();
     let finalAnswer = await askSmartAI(text);
     hideLoading();
