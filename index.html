@@ -483,91 +483,67 @@ function generateText(prompt) {
     document.getElementById("input").value = prompt;
     send();
 }
-
-async function searchWebFallback(queryText) {
-    try {
-        let cleanQuery = queryText.replace(/(пожалуйста|расскажи про|что такое|кто такой|найди|гугл|google|реферат|эссе|кратко)/gi, "").trim();
-        let searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
-        let res = await fetch(searchUrl);
-        let data = await res.json();
-        
-        if (data.query.search.length > 0) {
-            let title = data.query.search[0].title;
-            let contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=0&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-            let contentRes = await fetch(contentUrl);
-            let contentData = await contentRes.json();
-            let pages = contentData.query.pages;
-            let extract = pages[Object.keys(pages)[0]].extract;
-            
-            if (extract && extract.trim().length > 30) {
-                if(queryText.toLowerCase().includes("кратко")) {
-                    return `🤖 [Smart Web Search]: ${extract.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ")}`;
-                }
-                return `🤖 [Smart Web Search - ${title}]:\n\n${extract.substring(0, 1800)}`;
-            }
-        }
-        return null;
-    } catch(e) { return null; }
-}
-
-// --- ҚАТЫП ҚАЛМАЙТЫН, ОҢТАЙЛАНДЫРЫЛҒАН СМАРТ ИИ ФУНКЦИЯСЫ ---
+// --- ҚАТЫП ҚАЛМАЙТЫН, ФОТО ТАЛДАЙТЫН ЖӘНЕ ЖАДЫСЫ БАР СМАРТ ИИ ---
 async function askSmartAI(queryText) {
-    // 1. Память: Пайдаланушының жаңа сұрағын тарихқа қосамыз
     chatHistory.push({ role: "user", content: queryText });
-    
-    // Тарих тым үлкен болып кетпеуі үшін соңғы 10 хабарламаны ғана ұстаймыз
     if (chatHistory.length > 10) chatHistory.shift();
 
     let textLower = queryText.toLowerCase().trim();
-    const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела", "не істеп"];
-    let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) && queryText.length < 20;
 
-    if (isShortDialogue) {
-        // Қысқа сәлемдесуді де ИИ-дің жадына сақтап қоямыз
-        let helloAnswer = "Сәлем! Мен осындамын. Саған қалай көмектесе аламын? 😊";
+    // Сәлемдесу фильтрі
+    const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела"];
+    if (shortPhrases.some(phrase => textLower === phrase || textLower.startsWith(phrase + " "))) {
+        let helloAnswer = "Сәлем! Жағдай қалай? Саған қалай көмектесе аламын? 😊";
         chatHistory.push({ role: "assistant", content: helloAnswer });
         return helloAnswer;
     }
 
-    if(queryText.toLowerCase().includes("что такое") || queryText.toLowerCase().includes("кто") || queryText.toLowerCase().includes("найди")) {
-        let webAnswer = await searchWebFallback(queryText);
-        if(webAnswer) {
-            chatHistory.push({ role: "assistant", content: webAnswer });
-            return webAnswer;
+    // --- ВЕБ-ІЗДЕУДІ ҚАТАҢ БАҚЫЛАУ (Әңгіме айтқанда мүлдем іске қосылмайды) ---
+    let webContext = "";
+    // Тек нақты іздеу сұрақтарымен басталғанда ғана (мысалы: "что такое...", "кім ол...", "найди...")
+    if (textLower.startsWith("что такое") || textLower.startsWith("кто такой") || textLower.startsWith("кім ол") || textLower.startsWith("не ол") || textLower.startsWith("найди")) {
+        try {
+            let searchData = await searchWebFallback(queryText);
+            if (searchData && searchData.length > 10) {
+                webContext = `\n\n[Found Web Search Information]:\n${searchData}`;
+            }
+        } catch (e) {
+            console.log("Веб іздеу қатесі:", e);
         }
     }
 
-    // 2. Жадыны біріктіру: Бүкіл өткен диалогты ИИ түсінетіндей форматқа жинаймыз
     let conversationContext = chatHistory.map(h => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.content}`).join("\n");
+    let fullPrompt = `${currentSystemPrompt}${webContext}\n\n[Conversation History]:\n${conversationContext}\n\nAssistant, respond naturally to the latest User message.`;
+
+    // --- СЕРВЕРДІҢ ҚАТЫП ҚАЛУЫНАН ҚОРҒАУ (FALLBACK MODELS) ---
+    // Егер негізгі модель (openai) жүктемеден қатып қалса, ИИ автоматты түрде келесі жеңіл модельдерге ауысады
+    let models = ["openai", "mistral", "llama"]; 
     
-    // Системдік промпт пен бүкіл сөйлесу тарихын бірге жібереміз
-    let fullPrompt = `${currentSystemPrompt}\n\n[Conversation History]:\n${conversationContext}\n\nAssistant, respond directly to the latest User message based on the history above.`;
+    for (let model of models) {
+        try {
+            let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=${model}`;
+            let res = await fetch(url);
+            let text = await res.text();
+            
+            if (text && text.length > 2 && !text.includes('"error"') && !text.includes('Queue full') && !text.toLowerCase().includes("not found")) {
+                let aiResponse = text.trim();
+                chatHistory.push({ role: "assistant", content: aiResponse });
+                return aiResponse;
+            }
+        } catch (e) {
+            console.log(`${model} моделі жүктелмеді, келесіге ауысу...`);
+        }
+    }
 
-    try {
-        let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`;
-        let res = await fetch(url);
-        let text = await res.text();
-        
-        if (text.includes('"error"') || text.includes('Queue full') || text.includes('status":429')) {
-            throw new Error("Overloaded"); 
-        }
-
-        if(text && text.length > 5 && !text.toLowerCase().includes("not found")) {
-            let aiResponse = text.trim();
-            // 3. Память: ИИ-дің берген жауабын да тарихқа міндетті түрде қосамыз
-            chatHistory.push({ role: "assistant", content: aiResponse });
-            return aiResponse;
-        }
-    } catch (e) {
-        let backup = await searchWebFallback(queryText);
-        if(backup) {
-            chatHistory.push({ role: "assistant", content: backup });
-            return backup;
-        }
+    // Егер барлық модельдер қатып қалса және веб-мәтін табылған болса, соны көрсетеді
+    if (webContext) {
+        return `🌐 [Сервер жүктеліп тұр, бірақ Википедиядан табылды]: ${webContext.replace('\n\n[Found Web Search Information]:\n', '')}`;
     }
 
     return "Кешір, қазір желіде сұраныс өте көп болып жатыр. Сәлден соң қайталап көрші 🔄";
 }
+
+// --- ТОЛЫҚ АСИНХРОНДЫ ОҢТАЙЛАНДЫРЫЛҒАН SEND ФУНКЦИЯСЫ ---
 async function send() {
     let input = document.getElementById("input");
     let text = input.value.trim();
@@ -600,8 +576,31 @@ async function send() {
         return;
     }
 
-    // --- СУРЕТ ГЕНЕРАЦИЯСЫ ---
     let lowerText = text.toLowerCase();
+
+    // --- ФОТОНЫ КӨРІП ТАЛДАУ (Vision) қосылды ---
+    // Егер қолданушы мәтіннің ішіне суреттің сілтемесін (http...jpg/png) қосып жіберсе
+    let imgUrlMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
+    if (imgUrlMatch) {
+        showLoading();
+        let detectedImageUrl = imgUrlMatch[0];
+        let cleanQuestion = text.replace(detectedImageUrl, "").trim() || "Что на этом изображении?";
+        
+        try {
+            // Pollinations Vision API арқылы суретті талдау
+            let visionUrl = `https://text.pollinations.ai/${encodeURIComponent(cleanQuestion)}?image=${encodeURIComponent(detectedImageUrl)}&model=openai`;
+            let res = await fetch(visionUrl);
+            let responseText = await res.text();
+            
+            hideLoading();
+            add(`👁️ [Суретті талдау нәтижесі]:\n\n${responseText.trim()}`, "ai");
+            return;
+        } catch(e) {
+            console.error("Суретті тану қатесі:", e);
+        }
+    }
+
+    // --- СУРЕТ ГЕНЕРАЦИЯСЫ (Text-to-Image) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
         let cleanPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
@@ -618,10 +617,9 @@ async function send() {
         return;
     }
 
-    // --- НАҒЫЗ АСИНХРОНДЫ ИИ СҰРАНЫСЫ (await) ---
+    // --- НАҒЫЗ АСИНХРОНДЫ ИИ СҰРАНЫСЫ ---
     showLoading();
     try {
-        // askSmartAI толық аяқталып, жауап қайтарғанша күтеді (await)
         let finalAnswer = await askSmartAI(text); 
         hideLoading();
         add(finalAnswer, "ai");
@@ -631,6 +629,7 @@ async function send() {
         add("Кешір, серверде қате орын алды. ⚠️", "ai");
     }
 }
+
 
 </script>
 </body>
