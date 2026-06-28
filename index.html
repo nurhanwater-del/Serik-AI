@@ -72,11 +72,6 @@ textarea { height: 120px; resize: none; }
 .msg.ai:hover .copy-btn { opacity: 1; }
 .copy-btn:hover { background: #00b86b; transform: scale(1.1); }
 
-/* Аудио жүктеу батырмасы (ЖАҢА) */
-.download-audio-btn { position: absolute; top: 8px; right: 42px; background: rgba(0,0,0,0.3); border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: 0; transition: 0.3s; }
-.msg.ai:hover .download-audio-btn { opacity: 1; }
-.download-audio-btn:hover { background: #00b86b; transform: scale(1.1); }
-
 /* Ескерту стилі */
 .disclaimer { text-align: center; font-size: 11px; color: #777; width: 100%; font-family: sans-serif; letter-spacing: 0.5px; margin-top: 2px; }
 
@@ -177,7 +172,7 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
             <option value="light">☀️ Светлая (Light)</option>
         </select>
 
-        <button id="voiceBtn" onclick="toggleVoice()">🔇 Авто-Голос: ВЫКЛ</button>
+        <button id="voiceBtn" onclick="toggleVoice()">🔇 Голос: ВЫКЛ</button>
         <input type="password" id="adminPass" placeholder="Пароль администратора" oninput="checkAdmin()">
         
         <div id="adminPanel">
@@ -276,56 +271,14 @@ function toggleSettings() {
     }
 }
 
-// ЖАҢА: MP3 файл қылып жүктеу функциясы
-async function downloadVoiceover(text, btnElement) {
-    let originalText = btnElement.innerText;
-    btnElement.innerText = "⏳";
-    
-    let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '')
-                        .replace(/[#*`~_\-()]/g, ' ')
-                        .replace(/<[^>]*>?/gm, '')
-                        .trim();
-                        
-    if (cleanText.length > 600) {
-        cleanText = cleanText.substring(0, 600);
-    }
-    
-    // Тегін StreamElements API (Maxim - орысша дауыс)
-    let url = `https://api.streamelements.com/kappa/v2/speech?voice=Maxim&text=${encodeURIComponent(cleanText)}`;
-    
-    try {
-        let res = await fetch(url);
-        if (!res.ok) throw new Error("Генерация қатесі");
-        
-        let blob = await res.blob();
-        
-        let a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "SerikAI_Audio.mp3";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        
-        btnElement.innerText = "✅"; 
-    } catch (e) {
-        alert("Қате шықты! Аудионы генерациялау мүмкін болмады.");
-        btnElement.innerText = "❌";
-    }
-    
-    setTimeout(() => { btnElement.innerText = originalText; }, 2000);
-}
-
-// Авто-озвучка (Браузер ішінде)
 function toggleVoice() {
     voiceEnabled = !voiceEnabled;
     let btn = document.getElementById("voiceBtn");
     if (voiceEnabled) {
-        btn.innerText = "🔊 Авто-Голос: ВКЛ";
+        btn.innerText = "🔊 Голос: ВКЛ (Премиум)";
         btn.classList.add("active");
-        let silent = new SpeechSynthesisUtterance('');
-        window.speechSynthesis.speak(silent);
     } else {
-        btn.innerText = "🔇 Авто-Голос: ВЫКЛ";
+        btn.innerText = "🔇 Голос: ВЫКЛ";
         btn.classList.remove("active");
         window.speechSynthesis.cancel();
     }
@@ -381,7 +334,6 @@ function hideLoading() {
     }
 }
 
-// --- ХАБАРЛАМАЛАРДЫ ҚОСУ ФУНКЦИЯСЫ ---
 function add(text, type, instant = false){
     let div = document.createElement("div");
     div.className = "msg " + type;
@@ -390,28 +342,15 @@ function add(text, type, instant = false){
     div.appendChild(textSpan);
 
     if (type === "ai") {
-        // 🎵 Аудио генерация жасау батырмасы
-        let downloadBtn = document.createElement("button");
-        downloadBtn.innerText = "🎵";
-        downloadBtn.className = "download-audio-btn";
-        downloadBtn.title = "Скачать аудио озвучку";
-        downloadBtn.onclick = function() {
-            downloadVoiceover(text, downloadBtn);
-        };
-        div.appendChild(downloadBtn);
-
-        // 📋 Көшіру батырмасы
         let copyBtn = document.createElement("button");
         copyBtn.innerText = "📋";
         copyBtn.className = "copy-btn";
-        copyBtn.title = "Скопировать текст";
         copyBtn.onclick = function() {
             navigator.clipboard.writeText(text);
             copyBtn.innerText = "✅";
             setTimeout(() => { copyBtn.innerText = "📋"; }, 2000);
         };
         div.appendChild(copyBtn);
-        
         chat.appendChild(div);
 
         if (!instant) {
@@ -560,7 +499,9 @@ async function searchWebFallback(queryText) {
     } catch(e) { return null; }
 }
 
+// --- ҚАТЫП ҚАЛМАЙТЫН, ОҢТАЙЛАНДЫРЫЛҒАН СМАРТ ИИ ФУНКЦИЯСЫ ---
 async function askSmartAI(queryText) {
+    // Тарихты жаңарту (Серверге салмақ түсірмеу үшін тек соңғы 6 хабарлама сақталады)
     chatHistory.push({ role: "user", content: queryText });
     if (chatHistory.length > 6) chatHistory.shift();
 
@@ -568,6 +509,7 @@ async function askSmartAI(queryText) {
     const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела", "не істеп"];
     let isShortDialogue = shortPhrases.some(phrase => textLower.includes(phrase)) && queryText.length < 20;
 
+    // Сәлемдесу кезінде серверді қинамай бірден қысқа жауап қайтару
     if (isShortDialogue) {
         return "Сәлем! Мен осындамын. Саған қалай көмектесе аламын? 😊";
     }
@@ -581,6 +523,7 @@ async function askSmartAI(queryText) {
     let fullPrompt = `${currentSystemPrompt}\n\nContext:\n${context}\n\nUser Question: ${queryText}\nAnswer naturally and strictly follow the communication rules.`;
 
     try {
+        // Оңтайлы әрі ең тұрақты OpenAI моделімен тікелей байланыс
         let url = `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai`;
         let res = await fetch(url);
         let text = await res.text();
@@ -609,6 +552,7 @@ async function send(){
     add(text, "user");
     input.value = "";
 
+    // --- МАТЕМАТИКАЛЫҚ ЕСЕПТЕРДІ ТЕКСЕРУ ---
     if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
         showLoading();
         try {
