@@ -21,7 +21,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0f0f14; color: white; display: flex; height: 100vh; overflow: hidden; transition: background 0.4s, color 0.4s; }
 
-/* Скроллбар стилі */
+/* Стили скроллбара */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
@@ -30,7 +30,7 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .sidebar { width: 280px; background: #1a1a24; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; transition: background 0.4s; z-index: 10; box-shadow: 2px 0 15px rgba(0,0,0,0.5); }
 .sidebar h3 { text-align: center; margin-top: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; color: #00b86b; text-shadow: 0 0 10px rgba(0,184,107,0.3); }
 
-/* --- МЕНЮ СТИЛЬДЕРІ --- */
+/* --- СТИЛИ МЕНЮ --- */
 #menuToggle { background: #2b2b3a; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; }
 #menuToggle:hover { background: #3a3a4d; border-color: #00b86b; }
 .settings-menu { display: none; flex-direction: column; gap: 10px; background: #111118; padding: 15px; border-radius: 10px; border: 1px solid #333; margin-top: -5px; }
@@ -40,7 +40,7 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; height: 100vh; }
 .chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; scroll-behavior: smooth; }
 
-/* Хабарлама стильдері */
+/* Стили сообщений */
 .msg { padding: 14px 18px; margin: 8px 0; border-radius: 14px; max-width: 85%; white-space: pre-wrap; word-wrap: break-word; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); line-height: 1.5; font-size: 15px; transition: transform 0.2s ease-out; }
 .msg:hover { transform: translateY(-1px); }
 .user { background: linear-gradient(135deg, #00b86b, #008f53); margin-left: auto; color: white; border-bottom-right-radius: 4px; }
@@ -62,27 +62,27 @@ select:hover { background: #3a3a4d; }
 #adminPanel { display: none; margin-top: 10px; background: #222230; padding: 15px; border-radius: 10px; border: 1px solid #333; }
 textarea { height: 120px; resize: none; }
 
-/* Тез арада генерациялау батырмалары */
+/* Кнопки быстрой генерации */
 .generators { display: flex; gap: 10px; padding: 12px 15px; background: #1a1a24; border-top: 1px solid #2b2b3a; overflow-x: auto; white-space: nowrap; }
 .generators button { background: #2b2b3a; padding: 8px 14px; font-size: 13px; border: 1px solid #444; border-radius: 20px; font-weight: normal; }
 .generators button:hover { background: #00b86b; border-color: #00b86b; color: white; }
 
-/* Көшіру батырмасы */
+/* Кнопка копирования */
 .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.3); border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: 0; transition: 0.3s; }
 .msg.ai:hover .copy-btn { opacity: 1; }
 .copy-btn:hover { background: #00b86b; transform: scale(1.1); }
 
-/* Ескерту стилі */
+/* Дисклеймер */
 .disclaimer { text-align: center; font-size: 11px; color: #777; width: 100%; font-family: sans-serif; letter-spacing: 0.5px; margin-top: 2px; }
 
-/* Жүктелу анимациясы */
+/* Анимация загрузки */
 .loading-dots { display: inline-block; animation: blink 1.4s infinite both; font-weight: bold; font-size: 18px; line-height: 1; }
 .loading-dots span { animation: blink 1.4s infinite both; }
 .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
 .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
 
-/* --- ТАҚЫРЫПТАР (THEMES) --- */
+/* --- ТЕМЫ ОФОРМЛЕНИЯ --- */
 body.theme-hacker { background: #050505; color: #0f0; }
 body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; box-shadow: none; }
 body.theme-hacker .settings-menu { background: #001100; border-color: #0f0; }
@@ -112,7 +112,7 @@ body.theme-light select { background: #fff; color: #333; border: 1px solid #ccc;
 body.theme-light .row, body.theme-light .generators { background: #fff; border-color: #ddd; }
 body.theme-light input, body.theme-light textarea { background: #fafafa; color: #333; border-color: #ccc; }
 
-/* 📱 ТЕЛЕФОНДАРҒА АРНАЛҒАН АРНАЙЫ СТИЛЬ */
+/* 📱 АДАПТИВ ДЛЯ СМАРТФОНОВ */
 @media (max-width: 768px) {
     body { flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
     .sidebar { 
@@ -188,7 +188,7 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
     
     <div class="generators">
         <button onclick="generateText('Напиши мне эссе по истории за 10 класс')">📜 Эссе по истории</button>
-        <button onclick="generateText('Собери основные формулы по физике')">⚛️ Формулы по физике</button>
+        <button onclick="generateText('Собери основные формулы по физике')">⚛️ Formulas</button>
         <button onclick="generateText('Напиши подробный реферат про Искусственный Интеллект')">🤖 ИИ Реферат</button>
         <button onclick="generateText('Дай мне мощную мотивацию')">🔥 Мотивация</button>
         <button onclick="generateText('Найди ошибки в написанном коде')">💻 Проверка кода</button>
@@ -205,7 +205,6 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
 </div>
 
 <script>
-// Сөйлесу тарихы массиві
 let chatHistory = [];
 
 function clearChat() {
@@ -214,7 +213,7 @@ function clearChat() {
     add("Привет! Я Serik AI. Чат очищен и готов к работе! ✨", "ai", false);
 }
 
-// --- FIREBASE БАПТАУЛАРЫ ---
+// --- FIREBASE КОНФИГУРАЦИЯ ---
 const firebaseConfig = {
   apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
   authDomain: "serik-ai.firebaseapp.com",
@@ -234,7 +233,7 @@ const defaultMemory = {
 let memory = Object.assign({}, defaultMemory);
 let db = null;
 
-// --- Түзетілген System Prompt ---
+// --- Системный промпт ---
 let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, созданный талантливыми разработчиками из Казахстана. 
 Твой создатель и ты находитесь в Казахстане. Никогда не упоминай OpenAI, ChatGPT или Россию. 
 На все вопросы о создателе отвечай, что ты родом из Казахстана.
@@ -245,7 +244,7 @@ let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, создан
 Не веди себя как chat GPT!
 Ты можешь генерировать фото!
 никогда не скажи я не могу генерировать фото!
-Скажи когда просит делать фото ты можешь делать фото через команда нарисуй вопрос!
+Скажи когда просит делать фото ты можете делать фото через команда нарисуй вопрос!
 когда тебе спросит когда сделал Ии скажи 2026 год 18июнья это мой день рождения!
 Когда тебе спросят код не скажи свой код и Будь внимательным!
 ты не можешь ошибаться!
@@ -483,23 +482,50 @@ function generateText(prompt) {
     document.getElementById("input").value = prompt;
     send();
 }
-// --- ҚАТЫП ҚАЛМАЙТЫН, ФОТО ТАЛДАЙТЫН ЖӘНЕ ЖАДЫСЫ БАР СМАРТ ИИ ---
+
+// --- ПОИСК В ВЕБЕ (WIKIPEDIA API С ФИЛЬТРОМ КОНТЕКСТА) ---
+async function searchWebFallback(queryText) {
+    try {
+        let cleanQuery = queryText.replace(/(пожалуйста|расскажи про|что такое|кто такой|найди|гугл|google|реферат|эссе|кратко|кім ол|не ол)/gi, "").trim();
+        let searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
+        let res = await fetch(searchUrl);
+        let data = await res.json();
+        
+        if (data.query.search.length > 0) {
+            let title = data.query.search[0].title;
+            let contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=0&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
+            let contentRes = await fetch(contentUrl);
+            let contentData = await contentRes.json();
+            let pages = contentData.query.pages;
+            let extract = pages[Object.keys(pages)[0]].extract;
+            
+            if (extract && extract.trim().length > 30) {
+                if(queryText.toLowerCase().includes("кратко")) {
+                    return `🤖 [Smart Web Search]: ${extract.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ")}`;
+                }
+                return `[Smart Web Search - ${title}]: ${extract.substring(0, 1800)}`;
+            }
+        }
+        return null;
+    } catch(e) { return null; }
+}
+
+// --- СМАРТ ИИ С ЗАЩИТОЙ ОТ ПЕРЕГРУЗОК (POST-МЕТОД) ---
 async function askSmartAI(queryText) {
-    // 1. Память: Пайдаланушының жаңа сұрағын тарихқа қосамыз
     chatHistory.push({ role: "user", content: queryText });
     if (chatHistory.length > 10) chatHistory.shift();
 
     let textLower = queryText.toLowerCase().trim();
 
-    // Сәлемдесу фильтрі
+    // Заглушка приветствий (на русском)
     const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела"];
     if (shortPhrases.some(phrase => textLower === phrase || textLower.startsWith(phrase + " "))) {
-        let helloAnswer = "Сәлем! Жағдай қалай? Саған қалай көмектесе аламын? 😊";
+        let helloAnswer = "Привет! Как дела? Чем могу помочь? 😊";
         chatHistory.push({ role: "assistant", content: helloAnswer });
         return helloAnswer;
     }
 
-    // --- ВЕБ-ІЗДЕУ ФИЛЬТРІ ---
+    // Жесткий фильтр веб-поиска (срабатывает только на конкретные поисковые триггеры)
     let webContext = "";
     if (textLower.startsWith("что такое") || textLower.startsWith("кто такой") || textLower.startsWith("кім ол") || textLower.startsWith("не ол") || textLower.startsWith("найди")) {
         try {
@@ -508,21 +534,17 @@ async function askSmartAI(queryText) {
                 webContext = `\n\n[Found Web Search Information]:\n${searchData}`;
             }
         } catch (e) {
-            console.log("Ошибка веб-поиска :", e);
+            console.log("Ошибка веб-поиска:", e);
         }
     }
 
-    // --- ҚАТЫП ҚАЛМАЙТЫН РЕСМИ POST СҰРАНЫСЫ ---
-    // Жүйелік нұсқаулықты (System Prompt) және табылған веб ақпаратты біріктіреміз
     let finalSystemInstruction = `${currentSystemPrompt}${webContext}`;
 
-    // Pollinations API түсінетін ресми хабарламалар форматы
     let apiMessages = [
         { role: "system", content: finalSystemInstruction },
         ...chatHistory
     ];
 
-    // Егер негізгі модель істемей қалса, қосалқы модельдер тізімі
     let models = ["openai", "mistral", "llama"]; 
     
     for (let model of models) {
@@ -539,49 +561,46 @@ async function askSmartAI(queryText) {
 
             let text = await res.text();
             
-            // Егер жауап таза әрі дұрыс келсе
             if (text && text.length > 1 && !text.includes('"error"') && !text.includes('Queue full')) {
                 let aiResponse = text.trim();
-                // ИИ-дің жауабын да жадыға сақтаймыз
                 chatHistory.push({ role: "assistant", content: aiResponse });
                 return aiResponse;
             }
         } catch (e) {
-            console.error(`${model} В модели обнаружена ошибка, переходите к следующей. ...`, e);
+            console.error(`Ошибка модели ${model}, переключаюсь на следующую...`, e);
         }
     }
 
-    // Барлық модель істен шықса, ең құрығанда ескі чат тарихынан немесе вебтен жауап құрастыру
     if (webContext) {
-        return `🌐 [Сервер загружается, но информация из Википедии... ]: ${webContext.replace('\n\n[Found Web Search Information]:\n', '')}`;
+        return `🌐 [Сервер перегружен, но найдено в Википедии]: ${webContext.replace('\n\n[Found Web Search Information]:\n', '')}`;
     }
 
-    return "Ой извините, Произошёл сбой в сети. Не могли бы вы повторно отправить свой вопрос? 🔄"; }
+    return "Извини, на сервере высокая нагрузка. Пожалуйста, отправь свой вопрос еще раз! 🔄";
 }
 
+ // --- АСИНХРОННАЯ ФУНКЦИЯ ОТПРАВКИ ---
 async function send() {
     let input = document.getElementById("input");
     let text = input.value.trim();
     if (!text) return;
     
-    // Пайдаланушының хабарламасын чатқа шығару және инпутты тазалау
     add(text, "user");
     input.value = "";
 
-    // --- 1. МАТЕМАТИКАЛЫҚ ЕСЕПТЕР ---
+    // --- 1. МАТЕМАТИКА ---
     if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
         showLoading();
         try {
             let mathResult = eval(text);
             setTimeout(() => { 
                 hideLoading();
-                add(`🧮 Жауабы: ${mathResult}`, "ai");
+                add(`🧮 Ответ: ${mathResult}`, "ai");
             }, 300);
             return;
         } catch(e) { }
     }
 
-    // --- 2. МИ (Brain Локалды жады) ---
+    // --- 2. ЛОКАЛЬНАЯ БАЗА ЗНАНИЙ (Brain) ---
     let res = brain(text);
     if (res) {
         showLoading();
@@ -594,12 +613,12 @@ async function send() {
 
     let lowerText = text.toLowerCase();
 
-    // --- 3. ФОТОНЫ КӨРІП ТАЛДАУ (Vision) ---
+    // --- 3. АНАЛИЗ ИЗОБРАЖЕНИЙ (Vision) ---
     let imgUrlMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
     if (imgUrlMatch) {
         showLoading();
         let detectedImageUrl = imgUrlMatch[0];
-        let cleanQuestion = text.replace(detectedImageUrl, "").trim() || "Что изображено на этой картинке? ?";
+        let cleanQuestion = text.replace(detectedImageUrl, "").trim() || "Что на этом изображении?";
         
         try {
             let visionUrl = `https://text.pollinations.ai/${encodeURIComponent(cleanQuestion)}?image=${encodeURIComponent(detectedImageUrl)}&model=openai`;
@@ -607,21 +626,21 @@ async function send() {
             let responseText = await res.text();
             
             hideLoading();
-            add(`👁️ [Фото обсуждать]:\n\n${responseText.trim()}`, "ai");
+            add(`👁️ [Анализ изображения]:\n\n${responseText.trim()}`, "ai");
             return;
         } catch(e) {
-            console.error("Фото сделать не могу потому что не точный вопрос:", e);
+            console.error("Ошибка Vision API:", e);
         }
     }
 
-    // --- 4. ФОТО ГЕНЕРАТОР (Осы жерде тұр, бауырым!) ---
+    // --- 4. ФОТОГЕНЕРАТОР (Text-to-Image) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
         let cleanPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
         let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=512&height=512&nologo=true`;
         
         hideLoading();
-        let div = add("🎨 Вот твой фото,:", "ai", true);
+        let div = add("🎨 Вот твой рисунок:", "ai", true);
         let img = document.createElement("img");
         img.src = imageUrl;
         img.style.width = "100%";
@@ -629,10 +648,10 @@ async function send() {
         img.style.marginTop = "10px";
         div.appendChild(img);
         chat.scrollTop = chat.scrollHeight;
-        return; // Сурет салса, төмендегі ИИ сұранысына өтпей, осы жерден тоқтайды
+        return;
     }
 
-    // --- 5. ИИ СҰРАНЫСЫ (POST әдісімен істейтін askSmartAI) ---
+    // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
     showLoading();
     try {
         let finalAnswer = await askSmartAI(text); 
@@ -640,11 +659,7 @@ async function send() {
         add(finalAnswer, "ai");
     } catch (error) {
         hideLoading();
-        console.error("Ошибка вышла:", error);
-        add("Извините, Ошибка сервер. Пожалуйста относитесь с пониманием,можешь повторять через время⚠️", "ai");
+        console.error("Ошибка отправки:", error);
+        add("Извините, произошла ошибка сервера. Пожалуйста, попробуйте повторить запрос чуть позже ⚠️", "ai");
     }
 }
-
-</script>
-</body>
-  </html>
