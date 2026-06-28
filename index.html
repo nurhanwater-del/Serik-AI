@@ -544,52 +544,61 @@ async function askSmartAI(queryText) {
     return "Кешір, қазір желіде сұраныс өте көп болып жатыр. Сәлден соң қайталап көрші 🔄";
 }
 
-async function send() {
+async function send(){
     let input = document.getElementById("input");
     let text = input.value.trim();
-    if (!text) return;
-
+    if(!text) return;
+    
     add(text, "user");
     input.value = "";
 
-    showLoading();
-
-    try {
-        // 1. МИ (Local Memory): Егер сұрақ "мида" болса, соны айтады
-        let brainResult = brain(text);
-        if (brainResult) {
-            hideLoading();
-            add(brainResult, "ai");
-            return; // Мидан жауап тапса, әрі қарай жүрмейді
-        }
-
-        // 2. СУРЕТ (Photo): Егер сурет сұраса, салады
-        let lowerText = text.toLowerCase();
-        if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
-            let cleanPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
-            let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=512&height=512&nologo=true`;
-            
-            hideLoading();
-            let div = add("🎨 Нәтиже:", "ai", true);
-            let img = document.createElement("img");
-            img.src = imageUrl;
-            img.style.width = "100%";
-            img.style.borderRadius = "10px";
-            div.appendChild(img);
-            chat.scrollTop = chat.scrollHeight;
+    // --- МАТЕМАТИКАЛЫҚ ЕСЕПТЕР (Тұр) ---
+    if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
+        showLoading();
+        try {
+            let mathResult = eval(text);
+            setTimeout(() => { 
+                hideLoading();
+                add(`🧮 Ответ: ${mathResult}`, "ai");
+            }, 300);
             return;
-        }
-
-        // 3. АҚЫЛДЫ ИИ (Smart AI): Егер ештеңе таппаса, ИИ-мен сөйлеседі
-        let finalAnswer = await askSmartAI(text);
-        hideLoading();
-        add(finalAnswer, "ai");
-
-    } catch (error) {
-        hideLoading();
-        console.error("Қате:", error);
-        add("Кешір, серверде қате орын алды. ⚠️", "ai");
+        } catch(e) { }
     }
+
+    // --- МИ (Brain) (Тұр) ---
+    let res = brain(text);
+    if(res){
+        showLoading();
+        setTimeout(() => { 
+            hideLoading();
+            add(res, "ai");
+        }, 400);
+        return;
+    }
+
+    // --- СУРЕТ ГЕНЕРАЦИЯСЫ (Жаңа қосылған) ---
+    let lowerText = text.toLowerCase();
+    if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
+        showLoading();
+        let cleanPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=512&height=512&nologo=true`;
+        
+        hideLoading();
+        let div = add("🎨 Нәтиже:", "ai", true);
+        let img = document.createElement("img");
+        img.src = imageUrl;
+        img.style.width = "100%";
+        img.style.borderRadius = "10px";
+        div.appendChild(img);
+        chat.scrollTop = chat.scrollHeight;
+        return;
+    }
+
+    // --- ИИ (askSmartAI) (Тұр) ---
+    showLoading();
+    let finalAnswer = await askSmartAI(text);
+    hideLoading();
+    add(finalAnswer, "ai");
 }
 
 </script>
