@@ -571,13 +571,14 @@ async function askSmartAI(queryText) {
         }
     }
 
-    if (webContext) {
+        if (webContext) {
         return `🌐 [Сервер перегружен, но найдено в Википедии]: ${webContext.replace('\n\n[Found Web Search Information]:\n', '')}`;
     }
 
     return "Извини, на сервере высокая нагрузка. Пожалуйста, отправь свой вопрос еще раз! 🔄";
 }
-  // --- АСИНХРОННАЯ ФУНКЦИЯ ОТПРАВКИ ---
+
+// --- АСИНХРОННАЯ ФУНКЦИЯ ОТПРАВКИ ---
 async function send() {
     let input = document.getElementById("input");
     let text = input.value.trim();
@@ -662,3 +663,6 @@ async function send() {
         add("Извините, произошла ошибка сервера. Пожалуйста, попробуйте повторить запрос чуть позже ⚠️", "ai");
     }
 }
+</script>
+</body>
+</html>
