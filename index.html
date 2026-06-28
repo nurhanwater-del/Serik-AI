@@ -508,7 +508,7 @@ async function askSmartAI(queryText) {
                 webContext = `\n\n[Found Web Search Information]:\n${searchData}`;
             }
         } catch (e) {
-            console.log("Веб іздеу қатесі:", e);
+            console.log("Ошибка веб-поиска :", e);
         }
     }
 
@@ -547,16 +547,16 @@ async function askSmartAI(queryText) {
                 return aiResponse;
             }
         } catch (e) {
-            console.error(`${model} моделінде қате кетті, келесіге ауысу...`, e);
+            console.error(`${model} В модели обнаружена ошибка, переходите к следующей. ...`, e);
         }
     }
 
     // Барлық модель істен шықса, ең құрығанда ескі чат тарихынан немесе вебтен жауап құрастыру
     if (webContext) {
-        return `🌐 [Сервер жүктеліп тұр, бірақ Википедия мәліметі]: ${webContext.replace('\n\n[Found Web Search Information]:\n', '')}`;
+        return `🌐 [Сервер загружается, но информация из Википедии... ]: ${webContext.replace('\n\n[Found Web Search Information]:\n', '')}`;
     }
 
-    return "Ой, желіде үзіліс болды. Сұрағыңды қайтадан жіберіп көрші? 🔄";
+    return "Ой извините, Произошёл сбой в сети. Не могли бы вы повторно отправить свой вопрос? 🔄"; }
 }
 
 async function send() {
@@ -599,7 +599,7 @@ async function send() {
     if (imgUrlMatch) {
         showLoading();
         let detectedImageUrl = imgUrlMatch[0];
-        let cleanQuestion = text.replace(detectedImageUrl, "").trim() || "Мына суретте не бар?";
+        let cleanQuestion = text.replace(detectedImageUrl, "").trim() || "Что изображено на этой картинке? ?";
         
         try {
             let visionUrl = `https://text.pollinations.ai/${encodeURIComponent(cleanQuestion)}?image=${encodeURIComponent(detectedImageUrl)}&model=openai`;
@@ -607,10 +607,10 @@ async function send() {
             let responseText = await res.text();
             
             hideLoading();
-            add(`👁️ [Суретті талдау]:\n\n${responseText.trim()}`, "ai");
+            add(`👁️ [Фото обсуждать]:\n\n${responseText.trim()}`, "ai");
             return;
         } catch(e) {
-            console.error("Суретті тану қатесі:", e);
+            console.error("Фото сделать не могу потому что не точный вопрос:", e);
         }
     }
 
@@ -621,7 +621,7 @@ async function send() {
         let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=512&height=512&nologo=true`;
         
         hideLoading();
-        let div = add("🎨 Міне, сенің суретің:", "ai", true);
+        let div = add("🎨 Вот твой фото,:", "ai", true);
         let img = document.createElement("img");
         img.src = imageUrl;
         img.style.width = "100%";
@@ -640,8 +640,8 @@ async function send() {
         add(finalAnswer, "ai");
     } catch (error) {
         hideLoading();
-        console.error("Қате орын алды:", error);
-        add("Кешір, серверде қате орын алды. Өтініш, сәлден соң қайталап көрші ⚠️", "ai");
+        console.error("Ошибка вышла:", error);
+        add("Извините, Ошибка сервер. Пожалуйста относитесь с пониманием,можешь повторять через время⚠️", "ai");
     }
 }
 
