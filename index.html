@@ -522,14 +522,6 @@ async function askSmartAI(queryText) {
 
     let textLower = queryText.toLowerCase().trim();
 
-    // Заглушка приветствий (на русском)
-    const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела"];
-    if (shortPhrases.some(phrase => textLower === phrase || textLower.startsWith(phrase + " "))) {
-        let helloAnswer = "Привет! Как дела? Чем могу помочь? 😊";
-        chatHistory.push({ role: "assistant", content: helloAnswer });
-        return helloAnswer;
-    }
-
     // Жесткий фильтр веб-поиска (срабатывает только на конкретные поисковые триггеры)
     let webContext = "";
     if (textLower.startsWith("что такое") || textLower.startsWith("кто такой") || textLower.startsWith("кім ол") || textLower.startsWith("не ол") || textLower.startsWith("найди")) {
@@ -622,7 +614,7 @@ async function send() {
     if (lowerText.includes("видео жаса") || lowerText.includes("видео қыл") || lowerText.includes("сделай видео")) {
         showLoading();
         
-        fetch("https://СЕНІҢ_RENDER_СІЛТЕМЕҢ.onrender.com/generate-mega-video", {
+        fetch("https://serik-ai.onrender.com", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ user_prompt: text })
