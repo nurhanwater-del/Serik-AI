@@ -3,17 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-<title>Serik AI</title>
-
-<script type="application/ld+json">
+<title>
 {
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "Serik AI",
   "url": "https://serik-ai.vercel.app"
 }
-</script>
+</title>
 
 <meta name="google-site-verification" content="google9a22931bc29d7cd7" />
 
@@ -255,6 +252,7 @@ let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, создан
 Ты должен работать отлично и не логать!
 Ты можешь говорить на разных языками 
 Не пиши слово polionit ai никогда не давай ссылка в polionit ai.
+никогда не скажи если как ты создатель видео или каким иием делаешь видео никогда не скажи
 
 ВАЖНЫЕ ПРАВИЛА ОБЩЕНИЯ:
 1. Пиши как живой, мудрый человек. 
@@ -619,6 +617,39 @@ async function send() {
     }
 
     let lowerText = text.toLowerCase();
+    
+    // --- 2.5 ВИДЕОГЕНЕРАЦИЯ (DeepSeek + Qwen + HF) ---
+    if (lowerText.includes("видео жаса") || lowerText.includes("видео қыл") || lowerText.includes("сделай видео")) {
+        showLoading();
+        
+        fetch("https://СЕНІҢ_RENDER_СІЛТЕМЕҢ.onrender.com/generate-mega-video", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_prompt: text })
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if(data.success) {
+                add(`🎬 **Сюжет (DeepSeek):** ${data.story}`, "ai");
+                
+                let videoElement = document.createElement("video");
+                videoElement.src = data.video_url;
+                videoElement.controls = true;
+                videoElement.style.width = "100%";
+                videoElement.style.borderRadius = "10px";
+                videoElement.style.marginTop = "10px";
+                chat.appendChild(videoElement);
+            } else {
+                add("❌ Қате шықты: " + data.error, "ai");
+            }
+        })
+        .catch(e => {
+            hideLoading();
+            add("⚠️ Сервер оянуда, сәлден соң қайталап көр, брат.", "ai");
+        });
+        return;
+    }
 
     // --- 3. АНАЛИЗ ИЗОБРАЖЕНИЙ (Vision) ---
     let imgUrlMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
@@ -640,41 +671,22 @@ async function send() {
         }
     }
 
-     // --- 4. ФОТОГЕНЕРАТОР (16K САПА ЖӘНЕ ШЕКСІЗ РАЗНЫЙ СУРЕТТЕР) ---
+    // --- 4. ФОТОГЕНЕРАТОР (Text-to-Image) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
+        let cleanPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=512&height=512&nologo=true`;
         
-        // 1. Пайдаланушының жазған сөзін тазалап аламыз
-        let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
-        
-        // 2. 16K САПА КӨТЕРУ: Артына нейрожелі түсінетін ең мықты сапа сөздерін қосамыз
-        let enhancedPrompt = userPrompt + ", exact object, pure clean focus, masterpiece, 16k resolution, ultra detailed, hyperrealistic, 8k uhd, cinematic lighting, no text, no artifacts";
-        
-        // 3. ШЕКСІЗ ВАРИАНТТАР: 1-ден 1 000 000 000-ға дейін кездейсоқ сан
-        let randomSeed = Math.floor(Math.random() * 1000000000);
-        
-        // 4. РАЗРЕШЕНИЕ: 2048x2048 (Бұл API көтере алатын ең максималды әрі қатып қалмайтын формат)
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2048&height=2048&nologo=true&seed=${randomSeed}`;
-        
+        hideLoading();
+        let div = add("🎨 Вот твой рисунок:", "ai", true);
         let img = document.createElement("img");
+        img.src = imageUrl;
         img.style.width = "100%";
         img.style.borderRadius = "10px";
         img.style.marginTop = "10px";
-        
-        img.onload = function() {
-            hideLoading();
-            let div = add("🎨 Міне, сен сұраған сурет (Ultra HD сапада):", "ai", true);
-            div.appendChild(img);
-            chat.scrollTop = chat.scrollHeight;
-        };
-        
-        img.onerror = function() {
-            hideLoading();
-            add("❌ Кешіріңіз, серверден сурет жүктелмеді. Сұранысты қайта жіберіп көріңіз.", "ai", true);
-        };
-
-        img.src = imageUrl;
-        return; 
+        div.appendChild(img);
+        chat.scrollTop = chat.scrollHeight;
+        return;
     }
 
     // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
