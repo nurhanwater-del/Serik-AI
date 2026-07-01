@@ -1,3 +1,13 @@
+import http.server
+import socketserver
+import threading
+
+def run_dummy_server():
+    handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("", 10000), handler) as httpd:
+        httpd.serve_forever()
+
+threading.Thread(target=run_dummy_server, daemon=True).start()
 import googleapiclient.discovery
 import requests
 import time
