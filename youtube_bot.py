@@ -86,3 +86,5 @@ while True:
     except Exception as e:
         print("Басты қате:", e)
     time.sleep(300)
+
+
