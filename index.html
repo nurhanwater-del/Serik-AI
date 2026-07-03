@@ -3,14 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>
+
+<title>Serik AI</title>
+
+<script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "WebSite",
   "name": "Serik AI",
   "url": "https://serik-ai.vercel.app"
 }
-</title>
+</script>
 
 <meta name="google-site-verification" content="google9a22931bc29d7cd7" />
 
@@ -86,24 +89,24 @@ textarea { height: 120px; resize: none; }
 body.theme-hacker { background: #050505; color: #0f0; }
 body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; box-shadow: none; }
 body.theme-hacker .settings-menu { background: #001100; border-color: #0f0; }
-body . theme-hacker . msg . ai  {  background : #0a0a0a; border : 1 px  solid #0f0; color : #0f0; box-shadow : 0  0  10 px  rgba ( 0 , 255 , 0 , 0.1 ) ; }
-body . theme-hacker . msg . user  {  background : #003300; border : 1 px  solid #0f0; color : #0f0; }
-body . theme-hacker  button , body . theme-hacker  select , body . theme-hacker # menuToggle  {  background : #002200; border : 1 px  solid #0f0; color : #0f0; }
-body . theme-hacker . row , body . theme-hacker . generators  {  background : #050505; border-color : #0f0; }
-body . theme-hacker  input , body . theme-hacker  textarea  {  background : #000; color : #0f0; border-color : #0f0; }
+body.theme-hacker .msg.ai { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; box-shadow: 0 0 10px rgba(0,255,0,0.1); }
+body.theme-hacker .msg.user { background: #003300; border: 1px solid #0f0; color: #0f0; }
+body.theme-hacker button, body.theme-hacker select, body.theme-hacker #menuToggle { background: #002200; border: 1px solid #0f0; color: #0f0; }
+body.theme-hacker .row, body.theme-hacker .generators { background: #050505; border-color: #0f0; }
+body.theme-hacker input, body.theme-hacker textarea { background: #000; color: #0f0; border-color: #0f0; }
 
-body . theme-cyberpunk  {  background : #0f001a; color : #0ff; }
-body . theme-cyberpunk . sidebar  {  background : #1a0033; border-right : 1 px  solid #f0f; box-shadow : 5 px  0  20 px  rgba ( 255 , 0 , 255 , 0.2 ) ; }
-body . theme-cyberpunk . settings-menu  {  background : #220033; border-color : #f0f; }
-.theme-cyberpunk .msg.ai { background: #2a004d; border: 1px solid #0ff; color: #fff; box-shadow: 0 0 15px rgba(0,255,255,0.2); }
-.theme-cyberpunk .msg.user { background: #4d004d; border: 1px solid #f0f; color: #fff; box-shadow: 0 0 15px rgba(255,0,255,0.2); }
-.theme-cyberpunk button, body.theme-cyberpunk select, body.theme-cyberpunk #menuToggle { background: linear-gradient(45deg, #8a2be2, #f0f); border: none; color: #fff; text-shadow: 1px 1px 2px #000; }
-.theme-cyberpunk .row, body.theme-cyberpunk .generators { background: #1a0033; border-color: #f0f; }
-.theme-cyberpunk input, body.theme-cyberpunk textarea { background: #0f001a; color: #0ff; border-color: #0ff; }
+body.theme-cyberpunk { background: #0f001a; color: #0ff; }
+body.theme-cyberpunk .sidebar { background: #1a0033; border-right: 1px solid #f0f; box-shadow: 5px 0 20px rgba(255,0,255,0.2); }
+body.theme-cyberpunk .settings-menu { background: #220033; border-color: #f0f; }
+body.theme-cyberpunk .msg.ai { background: #2a004d; border: 1px solid #0ff; color: #fff; box-shadow: 0 0 15px rgba(0,255,255,0.2); }
+body.theme-cyberpunk .msg.user { background: #4d004d; border: 1px solid #f0f; color: #fff; box-shadow: 0 0 15px rgba(255,0,255,0.2); }
+body.theme-cyberpunk button, body.theme-cyberpunk select, body.theme-cyberpunk #menuToggle { background: linear-gradient(45deg, #8a2be2, #f0f); border: none; color: #fff; text-shadow: 1px 1px 2px #000; }
+body.theme-cyberpunk .row, body.theme-cyberpunk .generators { background: #1a0033; border-color: #f0f; }
+body.theme-cyberpunk input, body.theme-cyberpunk textarea { background: #0f001a; color: #0ff; border-color: #0ff; }
 
-.theme-light { background: #f4f4f9; color: #333; }
-.theme-light .sidebar { background: #ffffff; border-right: 1px solid #ddd; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
-.theme-light .settings-menu { background: #f9f9f9; border-color: #ccc; }
+body.theme-light { background: #f4f4f9; color: #333; }
+body.theme-light .sidebar { background: #ffffff; border-right: 1px solid #ddd; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
+body.theme-light .settings-menu { background: #f9f9f9; border-color: #ccc; }
 body.theme-light .msg.ai { background: #ffffff; color: #333; border: 1px solid #e0e0e0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
 body.theme-light .msg.user { background: linear-gradient(135deg, #00b86b, #009e5b); color: #fff; box-shadow: 0 2px 10px rgba(0,184,107,0.3); }
 body.theme-light button { background: #00b86b; color: white; border: none; }
@@ -252,11 +255,6 @@ let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, создан
 Ты должен работать отлично и не логать!
 Ты можешь говорить на разных языками 
 Не пиши слово polionit ai никогда не давай ссылка в polionit ai.
-никогда не скажи если как ты создатель видео или каким иием делаешь видео никогда не скажи
-Ты не девушка и не мальчик ты Искусственный Интеллект 
-когда задают вопрос не тупи и орфографический образ соблюдай 
-Ты друг так что отвечай свободно
-вот такие ошибки не делай когда текст пишешь тексты не совпадают
 
 ВАЖНЫЕ ПРАВИЛА ОБЩЕНИЯ:
 1. Пиши как живой, мудрый человек. 
@@ -264,9 +262,7 @@ let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, создан
 3. НЕ ИСПОЛЬЗУЙ списки (1, 2, 3), маркеры, лишние знаки препинания, заумные или шаблонные вводные слова (например, "Конечно", "Безусловно", "В заключение").
 4. Ты Не можешь скачать или написать слово polionit ai 
 5. Пиши много текстов и качественный примерно 300 слов,Будь адекватен Потому что ты учитель или друг 
-6. Твой создатель это Таженов Нурхан он из Казахстана напоминание это чаще
-7. Использвуй Смаилик на каждом тексте
-8. Пиши сплошным, понятным и естественным текстом.`;
+6. Пиши сплошным, понятным и естественным текстом.`;
 
 if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
@@ -528,6 +524,14 @@ async function askSmartAI(queryText) {
 
     let textLower = queryText.toLowerCase().trim();
 
+    // Заглушка приветствий (на русском)
+    const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела"];
+    if (shortPhrases.some(phrase => textLower === phrase || textLower.startsWith(phrase + " "))) {
+        let helloAnswer = "Привет! Как дела? Чем могу помочь? 😊";
+        chatHistory.push({ role: "assistant", content: helloAnswer });
+        return helloAnswer;
+    }
+
     // Жесткий фильтр веб-поиска (срабатывает только на конкретные поисковые триггеры)
     let webContext = "";
     if (textLower.startsWith("что такое") || textLower.startsWith("кто такой") || textLower.startsWith("кім ол") || textLower.startsWith("не ол") || textLower.startsWith("найди")) {
@@ -615,39 +619,6 @@ async function send() {
     }
 
     let lowerText = text.toLowerCase();
-    
-    // --- 2.5 ВИДЕОГЕНЕРАЦИЯ (DeepSeek + Qwen + HF) ---
-    if (lowerText.includes("видео жаса") || lowerText.includes("видео қыл") || lowerText.includes("сделай видео")) {
-        showLoading();
-        
-        fetch("https://serik-ai.onrender.com", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ user_prompt: text })
-        })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if(data.success) {
-                add(`🎬 **Сюжет (DeepSeek):** ${data.story}`, "ai");
-                
-                let videoElement = document.createElement("video");
-                videoElement.src = data.video_url;
-                videoElement.controls = true;
-                videoElement.style.width = "100%";
-                videoElement.style.borderRadius = "10px";
-                videoElement.style.marginTop = "10px";
-                chat.appendChild(videoElement);
-            } else {
-                add("❌ Қате шықты: " + data.error, "ai");
-            }
-        })
-        .catch(e => {
-            hideLoading();
-            add("⚠️ Сервер оянуда, сәлден соң қайталап көр, брат.", "ai");
-        });
-        return;
-    }
 
     // --- 3. АНАЛИЗ ИЗОБРАЖЕНИЙ (Vision) ---
     let imgUrlMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
@@ -669,22 +640,41 @@ async function send() {
         }
     }
 
-    // --- 4. ФОТОГЕНЕРАТОР (Text-to-Image) ---
+    // --- 4. ФОТОГЕНЕРАТОР (16K САПА ЖӘНЕ ШЕКСІЗ РАЗНЫЙ СУРЕТТЕР) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
-        let cleanPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=512&height=512&nologo=true`;
         
-        hideLoading();
-        let div = add("🎨 Вот твой рисунок:", "ai", true);
+        // 1. Пайдаланушының жазған сөзін тазалап аламыз
+        let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
+        
+        // 2. 16K САПА КӨТЕРУ: Артына нейрожелі түсінетін ең мықты сапа сөздерін қосамыз
+        let enhancedPrompt = userPrompt + ", exact object, pure clean focus, masterpiece, 16k resolution, ultra detailed, hyperrealistic, 8k uhd, cinematic lighting, no text, no artifacts";
+        
+        // 3. ШЕКСІЗ ВАРИАНТТАР: 1-ден 1 000 000 000-ға дейін кездейсоқ сан
+        let randomSeed = Math.floor(Math.random() * 1000000000);
+        
+        // 4. РАЗРЕШЕНИЕ: 2048x2048 (Бұл API көтере алатын ең максималды әрі қатып қалмайтын формат)
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2048&height=2048&nologo=true&seed=${randomSeed}`;
+        
         let img = document.createElement("img");
-        img.src = imageUrl;
         img.style.width = "100%";
         img.style.borderRadius = "10px";
         img.style.marginTop = "10px";
-        div.appendChild(img);
-        chat.scrollTop = chat.scrollHeight;
-        return;
+        
+        img.onload = function() {
+            hideLoading();
+            let div = add("🎨 Міне, сен сұраған сурет (Ultra HD сапада):", "ai", true);
+            div.appendChild(img);
+            chat.scrollTop = chat.scrollHeight;
+        };
+        
+        img.onerror = function() {
+            hideLoading();
+            add("❌ Кешіріңіз, серверден сурет жүктелмеді. Сұранысты қайта жіберіп көріңіз.", "ai", true);
+        };
+
+        img.src = imageUrl;
+        return; 
     }
 
     // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
