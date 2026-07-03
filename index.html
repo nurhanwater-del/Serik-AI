@@ -663,14 +663,14 @@ async function send() {
         
         img.onload = function() {
             hideLoading();
-            let div = add("🎨 Міне, сен сұраған сурет (Ultra HD сапада):", "ai", true);
+            let div = add("🎨 Вот ваши фото (Ultra HD качество):", "ai", true);
             div.appendChild(img);
             chat.scrollTop = chat.scrollHeight;
         };
         
         img.onerror = function() {
             hideLoading();
-            add("❌ Кешіріңіз, серверден сурет жүктелмеді. Сұранысты қайта жіберіп көріңіз.", "ai", true);
+            add("❌ Извините, изображение не удалось загрузить с сервера. Пожалуйста, попробуйте отправить запрос еще раз.", "ai", true);
         };
 
         img.src = imageUrl;
