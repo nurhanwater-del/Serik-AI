@@ -75,6 +75,11 @@ textarea { height: 120px; resize: none; }
 .msg.ai:hover .copy-btn { opacity: 1; }
 .copy-btn:hover { background: #00b86b; transform: scale(1.1); }
 
+/* Кнопка изменения */
+.edit-btn { position: absolute; top: 8px; left: -35px; background: rgba(0,0,0,0.3); border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: 0; transition: 0.3s; color: white; }
+.msg.user:hover .edit-btn { opacity: 1; }
+.edit-btn:hover { background: #00b86b; transform: scale(1.1); }
+
 /* Дисклеймер */
 .disclaimer { text-align: center; font-size: 11px; color: #777; width: 100%; font-family: sans-serif; letter-spacing: 0.5px; margin-top: 2px; }
 
@@ -156,6 +161,7 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
     input { padding: 10px; font-size: 15px; }
     button { padding: 10px 14px; font-size: 14px; }
     .disclaimer { font-size: 10px; margin-top: 4px; }
+    .edit-btn { opacity: 1; left: -30px; }
 }
 </style>
 </head>
@@ -201,7 +207,8 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
         <div class="input-group">
             <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Очистить чат">🗑️</button>
             <input id="input" placeholder="Введите ваш вопрос..." onkeydown="if(event.key==='Enter') send()">
-            <button onclick="send()">Отправить</button>
+            <button id="sendBtn" onclick="send()">Отправить</button>
+            <button id="stopBtn" onclick="stopGeneration()" style="display: none; background: #ff4d4d; min-width: 90px;">Стоп 🛑</button>
         </div>
         <div class="disclaimer">Serik ai это ИИ. ИИ может ошибаться.</div>
     </div>
@@ -209,6 +216,44 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
 
 <script>
 let chatHistory = [];
+let isGenerating = false;
+let currentTimer = null;
+let currentAbortController = null;
+
+function setGenerationState(generating) {
+    isGenerating = generating;
+    let input = document.getElementById("input");
+    let sendBtn = document.getElementById("sendBtn");
+    let stopBtn = document.getElementById("stopBtn");
+    
+    if (generating) {
+        input.disabled = true;
+        if (sendBtn) sendBtn.style.display = "none";
+        if (stopBtn) stopBtn.style.display = "block";
+    } else {
+        input.disabled = false;
+        if (sendBtn) sendBtn.style.display = "block";
+        if (stopBtn) stopBtn.style.display = "none";
+    }
+}
+
+function stopGeneration() {
+    if (!isGenerating) return;
+    if (currentTimer) {
+        clearInterval(currentTimer);
+        currentTimer = null;
+    }
+    if (currentAbortController) {
+        currentAbortController.abort();
+        currentAbortController = null;
+    }
+    hideLoading();
+    setGenerationState(false);
+    let activeAiMsg = chat.querySelector(".msg.ai:last-child span");
+    if (activeAiMsg && !activeAiMsg.innerText.includes("[Генерация остановлена]")) {
+        activeAiMsg.innerText += " 🛑 [Генерация остановлена]";
+    }
+}
 
 function clearChat() {
     chat.innerHTML = "";
@@ -255,16 +300,15 @@ let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, создан
 Ты должен работать отлично и не логать!
 Ты можешь говорить на разных языками 
 Не пиши слово polionit ai никогда не давай ссылка в polionit ai.
-Используются смаилик на каждом тексте
 
 ВАЖНЫЕ ПРАВИЛА ОБЩЕНИЯ:
 1. Пиши как живой, мудрый человек. 
 2. КАТЕГОРИЧЕСКИ ЗАПРЕЩАЕТСЯ использовать типичный стиль ChatGPT. 
 3. НЕ ИСПОЛЬЗУЙ списки (1, 2, 3), маркеры, лишние знаки препинания, заумные или шаблонные вводные слова (например, "Конечно", "Безусловно", "В заключение").
 4. Ты Не можешь скачать или написать слово polionit ai 
-5. Пиши много текстов и качественный ,Будь адекватен Потому что ты учитель или друг 
-6. Используются смаилик на каждом тексте 
-6. Пиши сплошным, понятным и естественным текстом.`;
+5. Пиши много текстов и качественный примерно 300 слов,Будь адекватен Потому что ты учитель или друг 
+6. Пиши сплошным, понятным и естественным текстом.
+7. ОБЯЗАТЕЛЬНО используй подходящие смайлики (эмодзи) в каждом своем ответе!`;
 
 if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
@@ -384,15 +428,31 @@ function add(text, type, instant = false){
                     chat.scrollTop = chat.scrollHeight;
                 } else {
                     clearInterval(timer);
+                    currentTimer = null;
+                    setGenerationState(false);
                     if (text.length < 500) speakText(text);
                 }
             }, 12);
+            currentTimer = timer;
         } else {
             textSpan.innerText = text;
+            setGenerationState(false);
             if (text.length < 500) speakText(text);
         }
     } else {
         textSpan.innerText = text;
+        
+        let editBtn = document.createElement("button");
+        editBtn.innerText = "✏️";
+        editBtn.className = "edit-btn";
+        editBtn.title = "Изменить вопрос";
+        editBtn.onclick = function() {
+            if (isGenerating) return;
+            document.getElementById("input").value = text;
+            document.getElementById("input").focus();
+        };
+        div.appendChild(editBtn);
+        
         chat.appendChild(div);
     }
 
@@ -497,13 +557,13 @@ async function searchWebFallback(queryText) {
     try {
         let cleanQuery = queryText.replace(/(пожалуйста|расскажи про|что такое|кто такой|найди|гугл|google|реферат|эссе|кратко|кім ол|не ол)/gi, "").trim();
         let searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
-        let res = await fetch(searchUrl);
+        let res = await fetch(searchUrl, { signal: currentAbortController ? currentAbortController.signal : undefined });
         let data = await res.json();
         
         if (data.query.search.length > 0) {
             let title = data.query.search[0].title;
             let contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=0&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-            let contentRes = await fetch(contentUrl);
+            let contentRes = await fetch(contentUrl, { signal: currentAbortController ? currentAbortController.signal : undefined });
             let contentData = await contentRes.json();
             let pages = contentData.query.pages;
             let extract = pages[Object.keys(pages)[0]].extract;
@@ -516,7 +576,10 @@ async function searchWebFallback(queryText) {
             }
         }
         return null;
-    } catch(e) { return null; }
+    } catch(e) { 
+        if (e.name === 'AbortError') throw e;
+        return null; 
+    }
 }
 
 // --- СМАРТ ИИ С ЗАЩИТОЙ ОТ ПЕРЕГРУЗОК (POST-МЕТОД) ---
@@ -543,6 +606,7 @@ async function askSmartAI(queryText) {
                 webContext = `\n\n[Found Web Search Information]:\n${searchData}`;
             }
         } catch (e) {
+            if (e.name === 'AbortError') throw e;
             console.log("Ошибка веб-поиска:", e);
         }
     }
@@ -565,7 +629,8 @@ async function askSmartAI(queryText) {
                     messages: apiMessages,
                     model: model,
                     private: true
-                })
+                }),
+                signal: currentAbortController ? currentAbortController.signal : undefined
             });
 
             let text = await res.text();
@@ -576,11 +641,12 @@ async function askSmartAI(queryText) {
                 return aiResponse;
             }
         } catch (e) {
+            if (e.name === 'AbortError') throw e;
             console.error(`Ошибка модели ${model}, переключаюсь на следующую...`, e);
         }
     }
 
-        if (webContext) {
+    if (webContext) {
         return `🌐 [Сервер перегружен, но найдено в Википедии]: ${webContext.replace('\n\n[Found Web Search Information]:\n', '')}`;
     }
 
@@ -591,7 +657,10 @@ async function askSmartAI(queryText) {
 async function send() {
     let input = document.getElementById("input");
     let text = input.value.trim();
-    if (!text) return;
+    if (!text || isGenerating) return;
+    
+    setGenerationState(true);
+    currentAbortController = new AbortController();
     
     add(text, "user");
     input.value = "";
@@ -606,7 +675,9 @@ async function send() {
                 add(`🧮 Ответ: ${mathResult}`, "ai");
             }, 700);
             return;
-        } catch(e) { }
+        } catch(e) { 
+            setGenerationState(false);
+        }
     }
 
     // --- 2. ЛОКАЛЬНАЯ БАЗА ЗНАНИЙ (Brain) ---
@@ -631,14 +702,22 @@ async function send() {
         
         try {
             let visionUrl = `https://text.pollinations.ai/${encodeURIComponent(cleanQuestion)}?image=${encodeURIComponent(detectedImageUrl)}&model=openai`;
-            let res = await fetch(visionUrl);
+            let res = await fetch(visionUrl, { signal: currentAbortController.signal });
             let responseText = await res.text();
             
             hideLoading();
             add(`👁️ [Анализ изображения]:\n\n${responseText.trim()}`, "ai");
             return;
         } catch(e) {
-            console.error("Ошибка Vision API:", e);
+            hideLoading();
+            if (e.name === 'AbortError') {
+                console.log("Анализ изображения отменен.");
+            } else {
+                console.error("Ошибка Vision API:", e);
+                add("❌ Извините, произошла ошибка при анализе изображения.", "ai", true);
+            }
+            setGenerationState(false);
+            return;
         }
     }
 
@@ -665,14 +744,14 @@ async function send() {
         
         img.onload = function() {
             hideLoading();
-            let div = add("🎨 Вот картинка, которую вы запрашивали.  (Ultra HD качество):", "ai", true);
+            let div = add("🎨 Вот картинка, которую ты просил (в качестве Ultra HD):", "ai", true);
             div.appendChild(img);
             chat.scrollTop = chat.scrollHeight;
         };
         
         img.onerror = function() {
             hideLoading();
-            add("❌ Извините, изображение не удалось загрузить с сервера. Пожалуйста, попробуйте еще раз. , "ai", true);
+            add("❌ Извините, не удалось загрузить картинку с сервера. Пожалуйста, отправьте запрос еще раз.", "ai", true);
         };
 
         img.src = imageUrl;
@@ -687,8 +766,13 @@ async function send() {
         add(finalAnswer, "ai");
     } catch (error) {
         hideLoading();
-        console.error("Ошибка отправки:", error);
-        add("Извините, произошла ошибка сервера. Пожалуйста, попробуйте повторить запрос чуть позже ⚠️", "ai");
+        if (error.name === 'AbortError') {
+            console.log("Генерация отменена пользователем.");
+        } else {
+            console.error("Ошибка отправки:", error);
+            add("❌ Извините, произошла ошибка сервера. Пожалуйста, попробуйте повторить запрос чуть позже.", "ai");
+        }
+        setGenerationState(false);
     }
 }
 </script>
