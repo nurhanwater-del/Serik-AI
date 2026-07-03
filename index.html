@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>Serik AI Pro</title>
+<title>Serik AI</title>
 
 <script type="application/ld+json">
 {
@@ -75,15 +75,6 @@ textarea { height: 120px; resize: none; }
 .msg.ai:hover .copy-btn { opacity: 1; }
 .copy-btn:hover { background: #00b86b; transform: scale(1.1); }
 
-/* Кнопка изменения */
-.edit-btn { position: absolute; top: 8px; left: -35px; background: rgba(0,0,0,0.3); border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: 0; transition: 0.3s; color: white; }
-.msg.user:hover .edit-btn { opacity: 1; }
-.edit-btn:hover { background: #00b86b; transform: scale(1.1); }
-
-/* Кнопка повтора */
-.retry-btn { margin-top: 10px; background: #ff9f43; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; display: inline-block; font-weight: bold; transition: 0.3s; }
-.retry-btn:hover { background: #ff8c1a; transform: scale(1.05); }
-
 /* Дисклеймер */
 .disclaimer { text-align: center; font-size: 11px; color: #777; width: 100%; font-family: sans-serif; letter-spacing: 0.5px; margin-top: 2px; }
 
@@ -127,20 +118,44 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
 /* 📱 АДАПТИВ ДЛЯ СМАРТФОНОВ */
 @media (max-width: 768px) {
     body { flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
-    .sidebar { width: 100%; height: auto; max-height: 120px; padding: 8px 12px; gap: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+    .sidebar { 
+        width: 100%; 
+        height: auto; 
+        max-height: 120px; 
+        padding: 8px 12px; 
+        gap: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
     .sidebar h3 { font-size: 16px; margin: 0 0 2px 0; }
     #menuToggle { padding: 6px 10px; font-size: 13px; }
     .settings-menu { padding: 8px; gap: 6px; }
-    .main { flex: 1; height: calc(100vh - 120px); height: calc(100dvh - 120px); display: flex; flex-direction: column; position: relative; }
+    
+    .main { 
+        flex: 1; 
+        height: calc(100vh - 120px);
+        height: calc(100dvh - 120px);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
     .chat { flex: 1; padding: 10px; padding-bottom: 90px; }
     .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
     .generators { padding: 6px 10px; }
     .generators button { padding: 5px 10px; font-size: 11px; }
-    .row { padding: 10px; position: fixed; bottom: 0; left: 0; width: 100%; background: #111; border-top: 1px solid #222; z-index: 999; }
+    
+    .row { 
+        padding: 10px; 
+        position: fixed; 
+        bottom: 0; 
+        left: 0;
+        width: 100%;
+        background: #111; 
+        border-top: 1px solid #222;
+        z-index: 999;
+    }
     input { padding: 10px; font-size: 15px; }
     button { padding: 10px 14px; font-size: 14px; }
     .disclaimer { font-size: 10px; margin-top: 4px; }
-    .edit-btn { opacity: 1; left: -30px; }
 }
 </style>
 </head>
@@ -148,7 +163,7 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
 <body class="theme-default">
 
 <div class="sidebar">
-    <h3>🤖 Serik AI Pro</h3>
+    <h3>🤖 Serik AI </h3>
     
     <button id="menuToggle" onclick="toggleSettings()">⚙️ Настройки <span>🔽</span></button>
     
@@ -186,74 +201,14 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
         <div class="input-group">
             <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Очистить чат">🗑️</button>
             <input id="input" placeholder="Введите ваш вопрос..." onkeydown="if(event.key==='Enter') send()">
-            <button id="sendBtn" onclick="send()">Отправить</button>
-            <button id="stopBtn" onclick="stopGeneration()" style="display: none; background: #ff4d4d; min-width: 90px;">Стоп 🛑</button>
+            <button onclick="send()">Отправить</button>
         </div>
-        <div class="disclaimer">Serik AI это ИИ. ИИ может ошибаться.</div>
+        <div class="disclaimer">Serik ai это ИИ. ИИ может ошибаться.</div>
     </div>
 </div>
 
 <script>
 let chatHistory = [];
-let isGenerating = false;
-let currentTimer = null;
-let currentAbortController = null;
-let lastUserMessage = "";
-
-function setGenerationState(generating) {
-    isGenerating = generating;
-    let input = document.getElementById("input");
-    let sendBtn = document.getElementById("sendBtn");
-    let stopBtn = document.getElementById("stopBtn");
-    
-    if (generating) {
-        input.disabled = true;
-        if (sendBtn) sendBtn.style.display = "none";
-        if (stopBtn) stopBtn.style.display = "block";
-    } else {
-        input.disabled = false;
-        if (sendBtn) sendBtn.style.display = "block";
-        if (stopBtn) stopBtn.style.display = "none";
-        input.focus(); 
-    }
-}
-
-function attachRetryButton(msgDiv) {
-    if (msgDiv.querySelector('.retry-btn')) return; 
-    let retryBtn = document.createElement("button");
-    retryBtn.innerText = "🔄 Повторить";
-    retryBtn.className = "retry-btn";
-    retryBtn.onclick = function() {
-        if (!isGenerating && lastUserMessage) {
-            document.getElementById("input").value = lastUserMessage;
-            send();
-        }
-    };
-    msgDiv.appendChild(document.createElement("br"));
-    msgDiv.appendChild(retryBtn);
-}
-
-function stopGeneration() {
-    if (!isGenerating) return;
-    
-    if (currentTimer) {
-        clearInterval(currentTimer);
-        currentTimer = null;
-    }
-    if (currentAbortController) {
-        currentAbortController.abort();
-        currentAbortController = null;
-    }
-    
-    hideLoading();
-    setGenerationState(false); 
-    
-    let activeAiMsg = chat.querySelector(".msg.ai:last-child span");
-    if (activeAiMsg && !activeAiMsg.innerText.includes("[Генерация остановлена]")) {
-        activeAiMsg.innerText += " 🛑 [Генерация остановлена]";
-        attachRetryButton(chat.querySelector(".msg.ai:last-child")); 
-    }
-}
 
 function clearChat() {
     chat.innerHTML = "";
@@ -261,6 +216,7 @@ function clearChat() {
     add("Привет! Я Serik AI. Чат очищен и готов к работе! ✨", "ai", false);
 }
 
+// --- FIREBASE КОНФИГУРАЦИЯ ---
 const firebaseConfig = {
   apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
   authDomain: "serik-ai.firebaseapp.com",
@@ -280,6 +236,7 @@ const defaultMemory = {
 let memory = Object.assign({}, defaultMemory);
 let db = null;
 
+// --- Системный промпт ---
 let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, созданный талантливыми разработчиками из Казахстана. 
 Твой создатель и ты находитесь в Казахстане. Никогда не упоминай OpenAI, ChatGPT или Россию. 
 На все вопросы о создателе отвечай, что ты родом из Казахстана.
@@ -303,9 +260,9 @@ let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, создан
 1. Пиши как живой, мудрый человек. 
 2. КАТЕГОРИЧЕСКИ ЗАПРЕЩАЕТСЯ использовать типичный стиль ChatGPT. 
 3. НЕ ИСПОЛЬЗУЙ списки (1, 2, 3), маркеры, лишние знаки препинания, заумные или шаблонные вводные слова (например, "Конечно", "Безусловно", "В заключение").
-4. Пиши много текстов и качественный примерно 300 слов,Будь адекватен Потому что ты учитель или друг 
-5. Пиши сплошным, понятным и естественным текстом.
-6. ОБЯЗАТЕЛЬНО используй подходящие смайлики (эмодзи) в каждом своем ответе!`;
+4. Ты Не можешь скачать или написать слово polionit ai 
+5. Пиши много текстов и качественный примерно 300 слов,Будь адекватен Потому что ты учитель или друг 
+6. Пиши сплошным, понятным и естественным текстом.`;
 
 if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
@@ -425,33 +382,15 @@ function add(text, type, instant = false){
                     chat.scrollTop = chat.scrollHeight;
                 } else {
                     clearInterval(timer);
-                    currentTimer = null;
-                    setGenerationState(false);
                     if (text.length < 500) speakText(text);
                 }
             }, 12);
-            currentTimer = timer;
         } else {
             textSpan.innerText = text;
-            setGenerationState(false);
             if (text.length < 500) speakText(text);
         }
     } else {
         textSpan.innerText = text;
-        
-        let editBtn = document.createElement("button");
-        editBtn.innerText = "✏️";
-        editBtn.className = "edit-btn";
-        editBtn.title = "Изменить вопрос";
-        editBtn.onclick = function() {
-            if (isGenerating) {
-                stopGeneration(); 
-            }
-            document.getElementById("input").value = text;
-            document.getElementById("input").focus();
-        };
-        div.appendChild(editBtn);
-        
         chat.appendChild(div);
     }
 
@@ -471,118 +410,74 @@ function levenshteinDistance(a, b) {
     for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
     for (let i = 1; i <= b.length; i++) {
         for (let j = 1; j <= a.length; j++) {
-            if (b.charAt(i - 1) == a.charAt(j - 1)) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
                 matrix[i][j] = matrix[i - 1][j - 1];
             } else {
-                matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1, 
+                    Math.min(matrix[i][j - 1] + 1, 
+                    matrix[i - 1][j] + 1) 
+                );
             }
         }
     }
     return matrix[b.length][a.length];
 }
 
-function findBestMatch(inputStr) {
-    let lowerInput = inputStr.toLowerCase().trim();
-    if (memory[lowerInput]) return memory[lowerInput];
+function brain(text) {
+    let q = text.toLowerCase().trim();
+    let qNoSpace = q.replace(/\s+/g, ""); 
     
+    if(memory[q]) return memory[q];
+
     let bestMatch = null;
-    let minDistance = 999;
-    
+    let minDistance = 3; 
+
     for (let key in memory) {
-        let dist = levenshteinDistance(lowerInput, key);
-        if (dist < minDistance && dist <= 2) { 
+        let keyNoSpace = key.toLowerCase().replace(/\s+/g, "");
+        
+        if (qNoSpace === keyNoSpace) {
+            return memory[key];
+        }
+
+        let dist = levenshteinDistance(q, key.toLowerCase());
+        if (dist < minDistance) {
             minDistance = dist;
-            bestMatch = memory[key];
+            bestMatch = key;
         }
     }
-    return bestMatch;
+    if (bestMatch) return memory[bestMatch];
+    return null;
 }
 
-async function send(forcedText = null) {
-    let input = document.getElementById("input");
-    let text = forcedText || input.value.trim();
-    if (!text || isGenerating) return;
+function checkAdmin(){
+    let pass = document.getElementById("adminPass").value;
+    document.getElementById("adminPanel").style.display = (pass === "nurik777") ? "block" : "none";
+}
 
-    lastUserMessage = text; 
-    add(text, "user");
-    if (!forcedText) input.value = "";
+function bulkLearn(){
+    let text = document.getElementById("bulk").value;
+    let lines = text.split("\n");
+    let count = 0;
+    let newMemory = Object.assign({}, memory);
+
+    for(let line of lines){
+        line = line.trim();
+        if(!line.includes(" это ")) continue;
+        let parts = line.split(" это ");
+        let q = parts[0].trim().toLowerCase();
+        let a = parts.slice(1).join(" это ").trim();
+        if(q && a){ newMemory[q] = a; count++; }
+    }
     
-    setGenerationState(true);
-
-    let localAnswer = findBestMatch(text);
-    if (localAnswer) {
-        setTimeout(() => {
-            add(localAnswer, "ai", false);
-        }, 500);
-        return;
-    }
-
-    let lowerText = text.toLowerCase();
-    if (lowerText.startsWith("нарисуй ") || lowerText.startsWith("сгенерируй фото ") || lowerText.startsWith("сурет сал ")) {
-        showLoading();
-        let imagePrompt = text.replace(/нарисуй|сгенерируй фото|сурет сал/gi, "").trim();
-        let encodedPrompt = encodeURIComponent(imagePrompt);
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&nologo=true`;
-        
-        hideLoading();
-        let imgMsg = `<img src="${imageUrl}" style="max-width:100%; border-radius:10px; margin-top:10px;" alt="Сгенерированное изображение" onload="document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;">`;
-        add("Міне, сенің суретің: 🎨<br>" + imgMsg, "ai", true);
-        setGenerationState(false);
-        return;
-    }
-
-    showLoading();
-    currentAbortController = new AbortController();
-
-    try {
-        let messages = [
-            { role: "system", content: currentSystemPrompt }
-        ];
-        
-        let recentHistory = chatHistory.slice(-6);
-        messages = messages.concat(recentHistory);
-        messages.push({ role: "user", content: text });
-
-        let response = await fetch("https://text.pollinations.ai/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                messages: messages, 
-                model: "openai", 
-                seed: Math.floor(Math.random() * 1000) 
-            }),
-            signal: currentAbortController.signal
-        });
-        
-        hideLoading();
-        if (!response.ok) throw new Error("Network Error");
-        
-        let data = await response.text();
-        
-        chatHistory.push({ role: "user", content: text });
-        chatHistory.push({ role: "assistant", content: data });
-        if(chatHistory.length > 20) chatHistory = chatHistory.slice(chatHistory.length - 20);
-
-        add(data, "ai", false);
-        
-    } catch (e) {
-        hideLoading();
-        if (e.name !== 'AbortError') {
-            let errorDiv = add("❌ Сервер қатып қалды немесе интернет нашар. '🔄 Повторить' кнопкасын басып қайталап көр.", "ai", true);
-            attachRetryButton(errorDiv); 
-        }
-    } finally {
-        if (!currentTimer) {
-            setGenerationState(false);
+    if (count > 0) {
+        memory = newMemory;
+        if (db) {
+            db.ref('serik_memory').set(memory);
+            alert("✅ Успешно сохранено в облаке Firebase!");
         }
     }
-}
-
-function generateText(prompt) {
-    if(!isGenerating) {
-        document.getElementById("input").value = prompt;
-        send();
-    }
+    document.getElementById("bulk").value = "";
 }
 
 function changeTheme() {
@@ -590,47 +485,208 @@ function changeTheme() {
     document.body.className = "theme-" + theme;
 }
 
-function checkAdmin() {
-    let pass = document.getElementById("adminPass").value;
-    if(pass === "140") { 
-        document.getElementById("adminPanel").style.display = "block";
-    } else {
-        document.getElementById("adminPanel").style.display = "none";
-    }
+function generateText(prompt) {
+    document.getElementById("input").value = prompt;
+    send();
 }
 
-function bulkLearn() {
-    let raw = document.getElementById("bulk").value;
-    if(!raw) return;
-    let lines = raw.split("\n");
-    let added = 0;
-    
-    let updates = {};
-    for(let line of lines) {
-        if(line.includes(" это ")) {
-            let parts = line.split(" это ");
-            let q = parts[0].trim().toLowerCase();
-            let a = parts[1].trim();
-            if(q && a) {
-                memory[q] = a;
-                updates[q] = a;
-                added++;
+// --- ПОИСК В ВЕБЕ (WIKIPEDIA API С ФИЛЬТРОМ КОНТЕКСТА) ---
+async function searchWebFallback(queryText) {
+    try {
+        let cleanQuery = queryText.replace(/(пожалуйста|расскажи про|что такое|кто такой|найди|гугл|google|реферат|эссе|кратко|кім ол|не ол)/gi, "").trim();
+        let searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
+        let res = await fetch(searchUrl);
+        let data = await res.json();
+        
+        if (data.query.search.length > 0) {
+            let title = data.query.search[0].title;
+            let contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=0&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
+            let contentRes = await fetch(contentUrl);
+            let contentData = await contentRes.json();
+            let pages = contentData.query.pages;
+            let extract = pages[Object.keys(pages)[0]].extract;
+            
+            if (extract && extract.trim().length > 30) {
+                if(queryText.toLowerCase().includes("кратко")) {
+                    return `🤖 [Smart Web Search]: ${extract.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ")}`;
+                }
+                return `[Smart Web Search - ${title}]: ${extract.substring(0, 1800)}`;
             }
         }
+        return null;
+    } catch(e) { return null; }
+}
+
+// --- СМАРТ ИИ С ЗАЩИТОЙ ОТ ПЕРЕГРУЗОК (POST-МЕТОД) ---
+async function askSmartAI(queryText) {
+    chatHistory.push({ role: "user", content: queryText });
+    if (chatHistory.length > 10) chatHistory.shift();
+
+    let textLower = queryText.toLowerCase().trim();
+
+    // Заглушка приветствий (на русском)
+    const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела"];
+    if (shortPhrases.some(phrase => textLower === phrase || textLower.startsWith(phrase + " "))) {
+        let helloAnswer = "Привет! Как дела? Чем могу помочь? 😊";
+        chatHistory.push({ role: "assistant", content: helloAnswer });
+        return helloAnswer;
     }
+
+    // Жесткий фильтр веб-поиска (срабатывает только на конкретные поисковые триггеры)
+    let webContext = "";
+    if (textLower.startsWith("что такое") || textLower.startsWith("кто такой") || textLower.startsWith("кім ол") || textLower.startsWith("не ол") || textLower.startsWith("найди")) {
+        try {
+            let searchData = await searchWebFallback(queryText);
+            if (searchData && searchData.length > 10) {
+                webContext = `\n\n[Found Web Search Information]:\n${searchData}`;
+            }
+        } catch (e) {
+            console.log("Ошибка веб-поиска:", e);
+        }
+    }
+
+    let finalSystemInstruction = `${currentSystemPrompt}${webContext}`;
+
+    let apiMessages = [
+        { role: "system", content: finalSystemInstruction },
+        ...chatHistory
+    ];
+
+    let models = ["openai", "mistral", "llama"]; 
     
-    if(added > 0 && db) {
-        db.ref('serik_memory').update(updates).then(() => {
-            alert("✅ Базаға " + added + " сұрақ қосылды (Firebase-ке сақталды)!");
-            document.getElementById("bulk").value = "";
-        }).catch((err) => {
-            alert("❌ Firebase-ке сақтау қатесі: " + err.message);
-        });
-    } else if (added > 0) {
-        alert("✅ Локальды базаға " + added + " сұрақ қосылды (Firebase қосылмаған)!");
-        document.getElementById("bulk").value = "";
-    } else {
-        alert("⚠️ Формат қате! Сұрақтарды 'сұрақ это жауап' түрінде жаз.");
+    for (let model of models) {
+        try {
+            let res = await fetch("https://text.pollinations.ai/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    messages: apiMessages,
+                    model: model,
+                    private: true
+                })
+            });
+
+            let text = await res.text();
+            
+            if (text && text.length > 1 && !text.includes('"error"') && !text.includes('Queue full')) {
+                let aiResponse = text.trim();
+                chatHistory.push({ role: "assistant", content: aiResponse });
+                return aiResponse;
+            }
+        } catch (e) {
+            console.error(`Ошибка модели ${model}, переключаюсь на следующую...`, e);
+        }
+    }
+
+        if (webContext) {
+        return `🌐 [Сервер перегружен, но найдено в Википедии]: ${webContext.replace('\n\n[Found Web Search Information]:\n', '')}`;
+    }
+
+    return "Извини, на сервере высокая нагрузка. Пожалуйста, отправь свой вопрос еще раз! 🔄";
+}
+
+// --- АСИНХРОННАЯ ФУНКЦИЯ ОТПРАВКИ ---
+async function send() {
+    let input = document.getElementById("input");
+    let text = input.value.trim();
+    if (!text) return;
+    
+    add(text, "user");
+    input.value = "";
+
+    // --- 1. МАТЕМАТИКА ---
+    if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
+        showLoading();
+        try {
+            let mathResult = eval(text);
+            setTimeout(() => { 
+                hideLoading();
+                add(`🧮 Ответ: ${mathResult}`, "ai");
+            }, 700);
+            return;
+        } catch(e) { }
+    }
+
+    // --- 2. ЛОКАЛЬНАЯ БАЗА ЗНАНИЙ (Brain) ---
+    let res = brain(text);
+    if (res) {
+        showLoading();
+        setTimeout(() => { 
+            hideLoading();
+            add(res, "ai");
+        }, 400);
+        return;
+    }
+
+    let lowerText = text.toLowerCase();
+
+    // --- 3. АНАЛИЗ ИЗОБРАЖЕНИЙ (Vision) ---
+    let imgUrlMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
+    if (imgUrlMatch) {
+        showLoading();
+        let detectedImageUrl = imgUrlMatch[0];
+        let cleanQuestion = text.replace(detectedImageUrl, "").trim() || "Что на этом изображении?";
+        
+        try {
+            let visionUrl = `https://text.pollinations.ai/${encodeURIComponent(cleanQuestion)}?image=${encodeURIComponent(detectedImageUrl)}&model=openai`;
+            let res = await fetch(visionUrl);
+            let responseText = await res.text();
+            
+            hideLoading();
+            add(`👁️ [Анализ изображения]:\n\n${responseText.trim()}`, "ai");
+            return;
+        } catch(e) {
+            console.error("Ошибка Vision API:", e);
+        }
+    }
+
+    // --- 4. ФОТОГЕНЕРАТОР (16K САПА ЖӘНЕ ШЕКСІЗ РАЗНЫЙ СУРЕТТЕР) ---
+    if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
+        showLoading();
+        
+        // 1. Пайдаланушының жазған сөзін тазалап аламыз
+        let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
+        
+        // 2. 16K САПА КӨТЕРУ: Артына нейрожелі түсінетін ең мықты сапа сөздерін қосамыз
+        let enhancedPrompt = userPrompt + ", exact object, pure clean focus, masterpiece, 16k resolution, ultra detailed, hyperrealistic, 8k uhd, cinematic lighting, no text, no artifacts";
+        
+        // 3. ШЕКСІЗ ВАРИАНТТАР: 1-ден 1 000 000 000-ға дейін кездейсоқ сан
+        let randomSeed = Math.floor(Math.random() * 1000000000);
+        
+        // 4. РАЗРЕШЕНИЕ: 2048x2048 (Бұл API көтере алатын ең максималды әрі қатып қалмайтын формат)
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2048&height=2048&nologo=true&seed=${randomSeed}`;
+        
+        let img = document.createElement("img");
+        img.style.width = "100%";
+        img.style.borderRadius = "10px";
+        img.style.marginTop = "10px";
+        
+        img.onload = function() {
+            hideLoading();
+            let div = add("🎨 Міне, сен сұраған сурет (Ultra HD сапада):", "ai", true);
+            div.appendChild(img);
+            chat.scrollTop = chat.scrollHeight;
+        };
+        
+        img.onerror = function() {
+            hideLoading();
+            add("❌ Кешіріңіз, серверден сурет жүктелмеді. Сұранысты қайта жіберіп көріңіз.", "ai", true);
+        };
+
+        img.src = imageUrl;
+        return; 
+    }
+
+    // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
+    showLoading();
+    try {
+        let finalAnswer = await askSmartAI(text); 
+        hideLoading();
+        add(finalAnswer, "ai");
+    } catch (error) {
+        hideLoading();
+        console.error("Ошибка отправки:", error);
+        add("Извините, произошла ошибка сервера. Пожалуйста, попробуйте повторить запрос чуть позже ⚠️", "ai");
     }
 }
 </script>
