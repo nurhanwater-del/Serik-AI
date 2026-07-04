@@ -715,7 +715,7 @@ async function send() {
                     img.onload = () => { chat.scrollTop = chat.scrollHeight; };
                     img.src = imageUrl;
                     
-                    let div = add(`🔍 Міне, интернеттен табылған нағыз ${searchQuery} фотосы:`, "ai", true);
+                    let div = add(`🔍 Вот ваше ${searchQuery}:`, "ai", true);
                     div.appendChild(img);
                 } else {
                     // Егер интернеттен мүлдем жоқ болса
@@ -743,7 +743,7 @@ async function send() {
             
             img.onload = function() {
                 hideLoading();
-                let msg = isCarFallback ? `⚠️ Интернеттен дәл бұл фото табылмады, бірақ өзім ${promptText} салып бердім:` : "🎨 Міне, сен сұраған сурет:";
+                let msg = isCarFallback ? `⚠️ Ошибка сети ${promptText} салып бердім:` : "🎨 Вот ваше фото:";
                 let div = add(msg, "ai", true);
                 div.appendChild(img);
                 chat.scrollTop = chat.scrollHeight;
