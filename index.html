@@ -640,46 +640,51 @@ async function send() {
         }
     }
 
-                        // --- 4. ФОТОГЕНЕРАТОР (БАРЛЫҒЫ ТІКЕЛЕЙ ИНТЕРНЕТТЕН ІЗДЕЛЕДІ) ---
+           //Фотогенератор             
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
-        showLoading();
-        
-        // Тек "нарисуй", "сурет сал", "сгенерируй" сөздерін қиып алып тастаймыз
-        let searchQuery = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
+    showLoading();
+    
+    let searchQuery = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
 
-        // Егер адам түк жазбаса (мысалы, тек "нарисуй" деп жібере салса)
-        if (!searchQuery) {
-            hideLoading();
-            add("❌ Ненің суретін табу керек екенін жазыңыз.", "ai", true);
-            return;
-        }
-
-        // БАРЛЫҚ СӨЗДІ ТІКЕЛЕЙ, ҚАЛАЙ БАР СОЛАЙ ИНТЕРНЕТТЕН ІЗДЕУ
-        fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(searchQuery)}&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&format=json&origin=*`)
-            .then(res => res.json())
-            .then(data => {
-                hideLoading();
-                if (data.query && data.query.pages) {
-                    let pages = Object.values(data.query.pages);
-                    let imgUrl = pages[0].imageinfo[0].url;
-                    
-                    let img = document.createElement("img");
-                    img.style.width = "100%";
-                    img.src = imgUrl;
-                    
-                    let div = add("📸 Интернеттен табылды:", "ai", true);
-                    div.appendChild(img);
-                } else {
-                    add(`❌ Интернеттен бұл сұрау бойынша ("${searchQuery}") фото табылмады.`, "ai", true);
-                }
-            })
-            .catch(err => {
-                hideLoading();
-                add("❌ Қате кетті, сурет жүктелмеді.", "ai", true);
-            });
-            
+    if (!searchQuery) {
+        hideLoading();
+        add("❌ Ненің суретін табу керек екенін жазыңыз.", "ai", true);
         return;
     }
+
+    // Unsplash API қолдану әлдеқайда тиімді (тегін әрі сапалы)
+    // Ескерту: өз CLIENT_ID-іңді Unsplash Developer сайтынан ал
+    const clientId = "СЕНІҢ_UNSPLASH_CLIENT_ID"; 
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=1&client_id=${clientId}`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            hideLoading();
+            if (data.results && data.results.length > 0) {
+                let imgUrl = data.results[0].urls.regular;
+                
+                let div = add("📸 Интернеттен табылды:", "ai", true);
+                let img = document.createElement("img");
+                img.style.width = "100%";
+                img.style.borderRadius = "8px";
+                img.style.marginTop = "10px";
+                img.src = imgUrl;
+                
+                div.appendChild(img);
+            } else {
+                add(`❌ "${searchQuery}" сұрауы бойынша фото табылмады.`, "ai", true);
+            }
+        })
+        .catch(err => {
+            hideLoading();
+            console.error(err);
+            add("❌ Суретті жүктеу кезінде қателік орын алды.", "ai", true);
+        });
+        
+    return;
+}
+
 
     // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
     showLoading();
