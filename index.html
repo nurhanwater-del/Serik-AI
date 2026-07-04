@@ -647,14 +647,14 @@ async function send() {
         // 1. Пайдаланушының жазған сөзін тазалап аламыз
         let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
         
-        // 2. 16K САПА КӨТЕРУ: Артына нейрожелі түсінетін ең мықты сапа сөздерін қосамыз
-        let enhancedPrompt = userPrompt + ", exact object, pure clean focus, masterpiece, 16k resolution, ultra detailed, hyperrealistic, 8k uhd, cinematic lighting, no text, no artifacts";
+        // 2. 16K САПА КӨТЕРУ: Артына нейрожелі түсінетін ең мықты сапа сөздерін қосамыз (Реализмге ауыстырылды)
+        let enhancedPrompt = userPrompt + ", photorealistic, real life photography, highly detailed, shot on DSLR camera, 8k resolution, natural lighting, real background, no 3d render, no toy, no cgi, no plastic";
         
         // 3. ШЕКСІЗ ВАРИАНТТАР: 1-ден 1 000 000 000-ға дейін кездейсоқ сан
         let randomSeed = Math.floor(Math.random() * 1000000000);
         
-        // 4. РАЗРЕШЕНИЕ: 2048x2048 (Бұл API көтере алатын ең максималды әрі қатып қалмайтын формат)
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2048&height=2048&nologo=true&seed=${randomSeed}`;
+        // 4. РАЗРЕШЕНИЕ: 1080x1080 (Дұрыс пропорция, фон бұзылмайды)
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1080&height=1080&nologo=true&seed=${randomSeed}`;
         
         let img = document.createElement("img");
         img.style.width = "100%";
@@ -663,14 +663,14 @@ async function send() {
         
         img.onload = function() {
             hideLoading();
-            let div = add("🎨 Вот ,ваше фото (качество 2040-180р:", "ai", true);
+            let div = add("🎨 Міне, сен сұраған сурет (Ultra HD сапада):", "ai", true);
             div.appendChild(img);
             chat.scrollTop = chat.scrollHeight;
         };
         
         img.onerror = function() {
             hideLoading();
-            add("❌ Извините сервер перегружен,Пожалуйста относитесьспониманием.", "ai", true);
+            add("❌ Кешіріңіз, серверден сурет жүктелмеді. Сұранысты қайта жіберіп көріңіз.", "ai", true);
         };
 
         img.src = imageUrl;
