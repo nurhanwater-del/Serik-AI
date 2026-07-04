@@ -640,40 +640,98 @@ async function send() {
         }
     }
 
-            // --- 4. ФОТОГЕНЕРАТОР (ЖАҢАРТЫЛҒАН, МАКСИМАЛДЫ САПА) ---
+                // --- 4. ФОТОГЕНЕРАТОР (МАШИНАНЫ ИНТЕРНЕТТЕН ІЗДЕЙДІ, ҚАЛҒАНЫН ИИ ӨЗІ САЛАДЫ) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
         
         let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
         
-        // Промптты максималды шынайы интернет-фото деңгейіне көтердік
-        let enhancedPrompt = `A real, authentic photograph from the internet of ${userPrompt}, high-end automotive photography, 8k resolution, shot on iPhone 17 Pro Max, 48MP, 85mm lens, hyper-realistic stock photo, extreme details, realistic lighting, vivid colors, true to life, purely photorealistic, masterpiece`;
-        
-        let randomSeed = Math.floor(Math.random() * 999999999) + Date.now();
-        
-        // Өлшем 1024x1024 қалады (бұл машина қисық шықпас үшін ең қауіпсіз әрі сапалы формат)
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${randomSeed}&model=flux`;
-        
-        let img = document.createElement("img");
-        img.style.width = "100%";
-        img.style.borderRadius = "10px";
-        img.style.marginTop = "10px";
-        
-        img.onload = function() {
-            hideLoading();
-            let div = add("📸 Міне, интернеттегідей ең жоғары сападағы шынайы сурет:", "ai", true);
-            div.appendChild(img);
-            chat.scrollTop = chat.scrollHeight;
-        };
-        
-        img.onerror = function() {
-            hideLoading();
-            add("❌ Кешіріңіз, серверден сурет жүктелмеді. Сұранысты қайта жіберіп көріңіз.", "ai", true);
-        };
+        // Машинаға қатысты сөздер бар-жоғын тексереміз
+        let isCar = /машина|көлік|авто|car|джип|bmw|мерс|мерседес|ауди|тойота|камри|лексус|порше/i.test(userPrompt.toLowerCase());
 
-        img.src = imageUrl;
-        return; 
+        if (isCar) {
+            // 1. МАШИНА БОЛСА: ИНТЕРНЕТТЕН НАҒЫЗ ФОТО ІЗДЕЙМІЗ (Википедияның ашық базасы арқылы)
+            async function fetchRealCarPhoto(query) {
+                try {
+                    let searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+                    let res = await fetch(searchUrl);
+                    let data = await res.json();
+                    
+                    if(data.query.search.length > 0) {
+                        let title = data.query.search[0].title;
+                        // Мақаланың басты суретін жоғары сапада (1000px) аламыз
+                        let imgUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=pageimages&titles=${encodeURIComponent(title)}&pithumbsize=1000&format=json&origin=*`;
+                        let imgRes = await fetch(imgUrl);
+                        let imgData = await imgRes.json();
+                        let pages = imgData.query.pages;
+                        let pageId = Object.keys(pages)[0];
+                        
+                        if(pages[pageId].thumbnail && pages[pageId].thumbnail.source) {
+                            return pages[pageId].thumbnail.source;
+                        }
+                    }
+                    return null;
+                } catch(e) { return null; }
+            }
+
+            fetchRealCarPhoto(userPrompt).then(realImageUrl => {
+                if(realImageUrl) {
+                    hideLoading();
+                    let img = document.createElement("img");
+                    img.style.width = "100%";
+                    img.style.borderRadius = "10px";
+                    img.style.marginTop = "10px";
+                    img.onload = () => { chat.scrollTop = chat.scrollHeight; };
+                    img.src = realImageUrl;
+                    
+                    let div = add("🔍 Міне, интернеттен табылған нағыз көліктің фотосы:", "ai", true);
+                    div.appendChild(img);
+                } else {
+                    // Егер интернеттен нақты бұл машина табылмаса, запасной вариант ретінде ИИ реалистичный қылып салып береді
+                    generateAIImage(userPrompt, true);
+                }
+            });
+            return; // Код осында тоқтайды, өйткені интернеттен іздеп жатыр
+            
+        } else {
+            // 2. БАСҚА ТАҚЫРЫП БОЛСА: ИИ ӨЗІ САЛАДЫ
+            generateAIImage(userPrompt, false);
+            return;
+        }
+
+        // ИИ арқылы сурет салатын көмекші функция (қалған тақырыптар үшін)
+        function generateAIImage(promptText, isFallbackCar) {
+            // Егер интернеттен табылмаған машина болса реалистичный промпт, ал басқа тақырып болса арт промпт
+            let enhancedPrompt = isFallbackCar 
+                ? `A real photograph of ${promptText}, high-end automotive photography, 8k resolution, highly detailed, purely photorealistic, true to life`
+                : `Masterpiece, brilliant high-quality creation of ${promptText}, ultra-detailed, 8k resolution, perfect proportions, beautiful artwork, stunning visuals`;
+            
+            let randomSeed = Math.floor(Math.random() * 999999999) + Date.now();
+            let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${randomSeed}&model=flux`;
+            
+            let img = document.createElement("img");
+            img.style.width = "100%";
+            img.style.borderRadius = "10px";
+            img.style.marginTop = "10px";
+            
+            img.onload = function() {
+                hideLoading();
+                let msgText = isFallbackCar 
+                    ? "⚠️ Интернеттен фото табылмады, бірақ мен өзім дәл сондай шынайы етіп салып бердім:" 
+                    : "🎨 Міне, сен сұраған жоғары сападағы сурет:";
+                let div = add(msgText, "ai", true);
+                div.appendChild(img);
+                chat.scrollTop = chat.scrollHeight;
+            };
+            
+            img.onerror = function() {
+                hideLoading();
+                add("❌ Кешіріңіз, серверден сурет жүктелмеді.", "ai", true);
+            };
+            img.src = imageUrl;
+        }
     }
+
 
     // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
     showLoading();
