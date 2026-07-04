@@ -640,55 +640,122 @@ async function send() {
         }
     }
 
-                    // --- 4. ФОТОГЕНЕРАТОР (САПАСЫ МЫҚТЫ ӘРІ ҚАЙТАЛАНБАЙТЫН МАШИНАЛАР) ---
+                        // --- 4. ФОТОГЕНЕРАТОР (ИНТЕРНЕТТЕН НАҚТЫ МОДЕЛЬДІ ІЗДЕУ ЖӘНЕ СӨЗДІК) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
         
         let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
-        if (userPrompt === "") userPrompt = "cool random car"; // Егер жай "сурет сал" десе, кездейсоқ көлік салады
+        if (userPrompt === "") userPrompt = "машина"; 
         
-        // Машинаға қатысты сөздерді тексереміз
-        let isCar = /машина|көлік|авто|car|джип|bmw|мерс|мерседес|ауди|тойота|камри|лексус|порше/i.test(userPrompt.toLowerCase());
+        // 📌 МАШИНА СӨЗДІГІ (Интернет түсінетіндей етіп аударамыз)
+        // Бұл жерге өзің қалаған машиналарды қоса берсең болады!
+        const carDictionary = {
+            "камри 70": "Toyota Camry XV70",
+            "камри 75": "Toyota Camry XV70",
+            "камри 55": "Toyota Camry XV50",
+            "камри 50": "Toyota Camry XV50",
+            "камри 40": "Toyota Camry XV40",
+            "камри 30": "Toyota Camry XV30",
+            "мерс кабан": "Mercedes-Benz W140",
+            "мерс лупатый": "Mercedes-Benz W210",
+            "мерс банан": "Mercedes-Benz CLS",
+            "бмв е39": "BMW E39",
+            "бмв е60": "BMW E60",
+            "бмв е34": "BMW E34",
+            "крузак 200": "Toyota Land Cruiser 200",
+            "крузак 300": "Toyota Land Cruiser 300",
+            "прадо": "Toyota Land Cruiser Prado",
+            "гелик": "Mercedes-Benz G-Class",
+            "приора": "Lada Priora",
+            "ваз 2114": "Lada 2114"
+        };
 
-        let enhancedPrompt = "";
+        // Пайдаланушы жазған сөзді сөздіктен іздейміз
+        let searchQuery = userPrompt;
+        for (let key in carDictionary) {
+            if (userPrompt.toLowerCase().includes(key)) {
+                searchQuery = carDictionary[key]; // Егер табылса, ресми атына ауыстырамыз
+                break;
+            }
+        }
+
+        // Машина сөздерін тексеру
+        let isCar = /машина|көлік|авто|car|джип|bmw|мерс|мерседес|ауди|тойота|камри|лексус|порше|хундай|киа|лада|крузак|гелик|приора|ваз/i.test(userPrompt.toLowerCase());
 
         if (isCar) {
-            // Машинаны әр жолы әртүрлі етіп, бірақ интернеттегідей шынайы сапамен салу үшін:
-            enhancedPrompt = `A real photograph of ${userPrompt}, unique model, completely different angle, high-end automotive photography, 8k resolution, shot on iPhone 17 Pro Max, 85mm lens, extreme details, vivid colors, purely photorealistic, true to life`;
+            // 1. ИНТЕРНЕТТЕН ІЗДЕУ (СӨЗДІКТЕГІ АТАУ БОЙЫНША)
+            async function fetchRealCarFromInternet(query) {
+                try {
+                    let url = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=10&prop=imageinfo&iiprop=url&format=json&origin=*`;
+                    let res = await fetch(url);
+                    let data = await res.json();
+
+                    if (data.query && data.query.pages) {
+                        let pages = Object.values(data.query.pages);
+                        let validImages = pages.filter(p => p.imageinfo && p.imageinfo[0].url && p.imageinfo[0].url.match(/\.(jpeg|jpg|png)$/i));
+                        
+                        if (validImages.length > 0) {
+                            let randomImg = validImages[Math.floor(Math.random() * validImages.length)];
+                            return randomImg.imageinfo[0].url;
+                        }
+                    }
+                    return null;
+                } catch(e) {
+                    return null;
+                }
+            }
+
+            fetchRealCarFromInternet(searchQuery).then(imageUrl => {
+                if (imageUrl) {
+                    hideLoading();
+                    let img = document.createElement("img");
+                    img.style.width = "100%";
+                    img.style.borderRadius = "10px";
+                    img.style.marginTop = "10px";
+                    img.onload = () => { chat.scrollTop = chat.scrollHeight; };
+                    img.src = imageUrl;
+                    
+                    let div = add(`🔍 Міне, интернеттен табылған нағыз ${searchQuery} фотосы:`, "ai", true);
+                    div.appendChild(img);
+                } else {
+                    // Егер интернеттен мүлдем жоқ болса
+                    generateAIImage(searchQuery, true);
+                }
+            });
+            return; 
+
         } else {
-            // Басқа тақырыптар үшін:
-            enhancedPrompt = `Masterpiece, brilliant high-quality creation of ${userPrompt}, ultra-detailed, 8k resolution, perfect proportions, stunning visuals`;
+            // 2. ЕГЕР БАСҚА НӘРСЕ БОЛСА: ИИ ӨЗІ САЛАДЫ
+            generateAIImage(userPrompt, false);
+            return;
         }
-        
-        // Әр сұраған сайын суреттің 100% жаңа болуын қамтамасыз ететін код
-        let randomSeed = Math.floor(Math.random() * 9999999999) + Date.now();
-        
-        // Өлшемді 1024x1024 қалдырдық (геометрия бұзылмас үшін)
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${randomSeed}&model=flux`;
-        
-        let img = document.createElement("img");
-        img.style.width = "100%";
-        img.style.borderRadius = "10px";
-        img.style.marginTop = "10px";
-        
-        img.onload = function() {
-            hideLoading();
-            let msgText = isCar ? "📸 Міне, сен сұраған көліктің нағыз фотосы:" : "🎨 Міне, сен сұраған сурет:";
-            let div = add(msgText, "ai", true);
-            div.appendChild(img);
-            chat.scrollTop = chat.scrollHeight;
-        };
-        
-        img.onerror = function() {
-            hideLoading();
-            add("❌ Кешіріңіз, серверден сурет жүктелмеді. Қайта көріңіз.", "ai", true);
-        };
 
-        img.src = imageUrl;
-        return; 
+        // ИИ арқылы сурет салатын функция
+        function generateAIImage(promptText, isCarFallback) {
+            let enhancedPrompt = `Masterpiece, brilliant high-quality creation of ${promptText}, ultra-detailed, 8k resolution, perfect proportions, stunning visuals`;
+            let randomSeed = Math.floor(Math.random() * 9999999999) + Date.now();
+            let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${randomSeed}&model=flux`;
+            
+            let img = document.createElement("img");
+            img.style.width = "100%";
+            img.style.borderRadius = "10px";
+            img.style.marginTop = "10px";
+            
+            img.onload = function() {
+                hideLoading();
+                let msg = isCarFallback ? `⚠️ Интернеттен дәл бұл фото табылмады, бірақ өзім ${promptText} салып бердім:` : "🎨 Міне, сен сұраған сурет:";
+                let div = add(msg, "ai", true);
+                div.appendChild(img);
+                chat.scrollTop = chat.scrollHeight;
+            };
+            
+            img.onerror = function() {
+                hideLoading();
+                add("❌ Кешіріңіз, серверден сурет жүктелмеді.", "ai", true);
+            };
+            img.src = imageUrl;
+        }
     }
-
-
 
     // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
     showLoading();
