@@ -639,53 +639,43 @@ async function send() {
             console.error("Ошибка Vision API:", e);
         }
     }
-              // Фотогенератор функциясыыыы
-           if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
-    showLoading();
-    
-    let searchQuery = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
 
-    if (!searchQuery) {
-        hideLoading();
-        add("❌ Ненің суретін іздеу керек?", "ai", true);
-        return;
-    }
-
-    // Рандомды бет (1-ден 50-ге дейін) - әр іздеген сайын әр түрлі сурет шығады
-    let randomPage = Math.floor(Math.random() * 50) + 1;
-    
-    // Unsplash API - суреттердің әр түрлі болуы үшін &order_by=random параметрін қостық
-    const clientId = "СЕНІҢ_CLIENT_ID"; 
-    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&page=${randomPage}&per_page=1&order_by=random&client_id=${clientId}`;
-
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            hideLoading();
-            // Егер нәтиже болса, әрқашан жаңа сурет шығады
-            if (data.results && data.results.length > 0) {
-                let imgUrl = data.results[0].urls.regular;
-                
-                let div = add(`📸 ${searchQuery} бойынша жаңа фото:`, "ai", true);
-                let img = document.createElement("img");
-                img.style.width = "100%";
-                img.style.borderRadius = "12px";
-                img.style.marginTop = "10px";
-                img.src = imgUrl + "&random=" + new Date().getTime(); // Browser cache-ті алдау үшін
-                
-                div.appendChild(img);
-            } else {
-                add(`❌ "${searchQuery}" бойынша ештеңе табылмады.`, "ai", true);
-            }
-        })
-        .catch(err => {
-            hideLoading();
-            add("❌ Қате кетті, басқа сөзбен көріп көріңіз.", "ai", true);
-        });
+    // --- 4. ФОТОГЕНЕРАТОР (16K САПА ЖӘНЕ ШЕКСІЗ РАЗНЫЙ СУРЕТТЕР) ---
+    if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
+        showLoading();
         
-    return;
-}
+        // 1. Пайдаланушының жазған сөзін тазалап аламыз
+        let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
+        
+        // 2. 16K САПА КӨТЕРУ: Артына нейрожелі түсінетін ең мықты сапа сөздерін қосамыз
+        let enhancedPrompt = userPrompt + ", exact object, pure clean focus, masterpiece, 16k resolution, ultra detailed, hyperrealistic, 8k uhd, cinematic lighting, no text, no artifacts";
+        
+        // 3. ШЕКСІЗ ВАРИАНТТАР: 1-ден 1 000 000 000-ға дейін кездейсоқ сан
+        let randomSeed = Math.floor(Math.random() * 1000000000);
+        
+        // 4. РАЗРЕШЕНИЕ: 2048x2048 (Бұл API көтере алатын ең максималды әрі қатып қалмайтын формат)
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2048&height=2048&nologo=true&seed=${randomSeed}`;
+        
+        let img = document.createElement("img");
+        img.style.width = "100%";
+        img.style.borderRadius = "10px";
+        img.style.marginTop = "10px";
+        
+        img.onload = function() {
+            hideLoading();
+            let div = add("🎨 Вот ваше фото(Ultra HD качество):", "ai", true);
+            div.appendChild(img);
+            chat.scrollTop = chat.scrollHeight;
+        };
+        
+        img.onerror = function() {
+            hideLoading();
+            add("❌ Пожалуйста, попробуйте повторить запрос чуть позже ⚠️.", "ai", true);
+        };
 
+        img.src = imageUrl;
+        return; 
+    }
 
     // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
     showLoading();
@@ -696,7 +686,7 @@ async function send() {
     } catch (error) {
         hideLoading();
         console.error("Ошибка отправки:", error);
-        add("Извините, произошла ошибка сервера. Пожалуйста, попробуйте повторить запрос чуть позже ⚠️", "ai");
+        add(" Пожалуйста, попробуйте повторить запрос чуть позже ⚠️", "ai");
     }
 }
 </script>
