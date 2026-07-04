@@ -683,15 +683,15 @@ async function send() {
                         let img = document.createElement("img");
                         img.style.width = "100%";
                         img.src = imgUrl;
-                        let div = add("📸 Интернеттен табылды:", "ai", true);
+                        let div = add("📸 Вот ваше фото:", "ai", true);
                         div.appendChild(img);
                     } else {
-                        add(`❌ Интернеттен бұл көліктің (${searchQuery}) фотосы табылмады.`, "ai", true);
+                        add(`❌ В вашей(${searchQuery}) фоте ошибка вышло❗️`, "ai", true);
                     }
                 })
                 .catch(err => {
                     hideLoading();
-                    add("❌ Қате кетті, сурет жүктелмеді.", "ai", true);
+                    add("❌ В вашей фоте ошибка вышло.", "ai", true);
                 });
         } else {
             // БАСҚА ЗАТТАР: 16К (2440p) САПАДА
@@ -702,7 +702,7 @@ async function send() {
             let img = document.createElement("img");
             img.style.width = "100%";
             img.src = imageUrl;
-            let div = add("🎨 16K сападағы суретіңіз:", "ai", true);
+            let div = add("🎨 Вот ваше фото:", "ai", true);
             div.appendChild(img);
         }
         return;
