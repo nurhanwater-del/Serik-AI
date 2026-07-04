@@ -643,37 +643,35 @@ async function send() {
                         // --- 4. ФОТОГЕНЕРАТОР (МАШИНА - ТЕК ИНТЕРНЕТТЕН, БАСҚАСЫ - 16К ИИ) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
-        // Тек "нарисуй" сөздерін алып тастаймыз
         let cleanText = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
         
-        // 1. Тек нақты маркаларды ғана іздейміз ("машина" деген сөзді алып тастадым, әйел немесе станок шығып кетпес үшін)
-        let carMatch = cleanText.match(/(bmw|мерс|мерседес|ауди|тойота|камри|лексус|порше|хундай|киа|лада|крузак|гелик|приора|ваз)(?:\s+([a-z0-9]+))?/i);
-        let isCar = carMatch !== null;
+        // 1. "Машина" сөзін немесе кез келген марканы (Jetour, порш бәрін) іздейміз
+        let carRegex = /машина|көлік|авто|car|джип|тачка|bmw|мерс|мерседес|ауди|тойота|камри|лексус|порш|порше|хундай|киа|лада|крузак|гелик|приора|ваз|jetour/i;
+        let isCar = carRegex.test(cleanText);
 
         if (isCar) {
-            let carName = carMatch[0].trim().toLowerCase();
-            
-            // 2. Википедия дұрыс сурет табуы үшін сленгтерді ресми ағылшын атына ауыстырамыз
-            let searchQuery = carName
-                .replace(/камри/g, "Toyota Camry")
-                .replace(/мерс|мерседес/g, "Mercedes-Benz")
-                .replace(/гелик/g, "Mercedes G-Class")
-                .replace(/крузак/g, "Toyota Land Cruiser")
-                .replace(/приора/g, "Lada Priora");
+            // 2. Википедия станок шығармас үшін "машина" деген жалпы сөздерді тексттен қиып алып тастаймыз!
+            // Енді "машина Jetour X70" дегеннен тек "Jetour X70" қалады.
+            let searchQuery = cleanText.replace(/(машина|көлік|авто|car|джип|тачка)/gi, "").trim();
 
-            // 3. Ракурсты тауып алу және оны да ағылшыншаға аудару
-            let viewMatch = cleanText.match(/спереди|сзади|салон|лев|прав|алдынан|артынан|іші/i);
-            if (viewMatch) {
-                let view = viewMatch[0].toLowerCase();
-                if (view.includes("салон") || view.includes("іші")) {
-                    searchQuery += " interior";
-                } else if (view.includes("сзади") || view.includes("артынан")) {
-                    searchQuery += " rear";
-                } else if (view.includes("спереди") || view.includes("алдынан")) {
-                    searchQuery += " front";
-                }
+            // 3. Біздің сленгті түсінсін деп кейбір көліктерді дұрыстаймыз (ал Jetour сияқтылар қаз-қалпында кете береді)
+            searchQuery = searchQuery
+                .replace(/камри/gi, "Toyota Camry")
+                .replace(/мерс|мерседес/gi, "Mercedes-Benz")
+                .replace(/гелик/gi, "Mercedes G-Class")
+                .replace(/крузак/gi, "Toyota Land Cruiser")
+                .replace(/приора/gi, "Lada Priora")
+                .replace(/порш(е)?/gi, "Porsche");
+
+            // 4. Ракурстарды ағылшыншаға аударамыз, сонда интернет нақтырақ фотолар табады
+            if (/салон|іші/i.test(searchQuery)) {
+                searchQuery = searchQuery.replace(/салон|іші/gi, "").trim() + " interior";
+            } else if (/сзади|артынан/i.test(searchQuery)) {
+                searchQuery = searchQuery.replace(/сзади|артынан/gi, "").trim() + " rear";
+            } else if (/спереди|алдынан/i.test(searchQuery)) {
+                searchQuery = searchQuery.replace(/спереди|алдынан/gi, "").trim() + " front";
             }
-            
+
             // ТЕК ИНТЕРНЕТТЕН ІЗДЕУ 
             fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(searchQuery)}&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&format=json&origin=*`)
                 .then(res => res.json())
@@ -688,7 +686,7 @@ async function send() {
                         let div = add("📸 Интернеттен табылды:", "ai", true);
                         div.appendChild(img);
                     } else {
-                        add(`❌ Интернеттен бұл көліктің фотосы табылмады.`, "ai", true);
+                        add(`❌ Интернеттен бұл көліктің (${searchQuery}) фотосы табылмады.`, "ai", true);
                     }
                 })
                 .catch(err => {
