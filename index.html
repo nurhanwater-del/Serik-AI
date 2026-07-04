@@ -640,22 +640,22 @@ async function send() {
         }
     }
 
-    // --- 4. ФОТОГЕНЕРАТОР (IPHONE 17 PRO MAX САПА, РЕАЛИСТИЧНЫЙ, ШЕКСІЗ ТҮРЛІ) ---
+    // --- 4. ФОТОГЕНЕРАТОР (МАШИНАЛАРДЫ БҰЗБАЙ, 8K ULTRA HD САПАДА САЛУ) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
         
         // 1. Пайдаланушының жазған сөзін тазалап аламыз
         let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
         
-        // 2. АЙФОН 17 ПРО МАКС ЖӘНЕ РЕАЛИЗМ: Ойыншық болмауы үшін қатаң сөздер қосамыз
-        let enhancedPrompt = userPrompt + ", extremely realistic photograph, shot on iPhone 17 Pro Max, 48MP, Apple ProRAW, hyper-detailed, real life photography, vivid colors, depth of field. NOT a toy, NOT cartoon, NO CGI, NO 3D render, purely photorealistic";
+        // 2. АЙФОН 17 ПРО МАКС, МАШИНАЛАР ҮШІН ДҰРЫС ПРОПОРЦИЯ:
+        // Машиналар қисық шықпауы үшін "perfect proportions, no distortion, flawless symmetry" деген сөздер қостым.
+        let enhancedPrompt = userPrompt + ", masterpiece, 8k resolution, ultra-realistic photograph, perfect proportions, highly detailed, shot on iPhone 17 Pro Max, 48MP, Apple ProRAW, realistic lighting, flawless symmetry, real life photography. NOT a toy, NOT cartoon, NO distortion, NO weird shapes, NO AI artifacts, purely photorealistic";
         
         // 3. ШЕКСІЗ ВАРИАНТТАР: Уақытты қосып, 100% қайталанбас кездейсоқ код (seed) жасаймыз
         let randomSeed = Math.floor(Math.random() * 999999999) + Date.now();
         
-        // 4. ЕҢ МЫҚТЫ МОДЕЛЬ: model=flux (бұл қазіргі ең шынайы және дәл фото сияқты жасайтын модель)
-        // Ескерту: flux моделі қатып қалмауы үшін өлшемін 1024x1024 етіп қойдым (бұл өте жоғары сапа)
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${randomSeed}&model=flux`;
+        // 4. ЕҢ МЫҚТЫ САПА ЖӘНЕ МОДЕЛЬ: Өлшемін 1440x1440 қылдым (бұрынғыдан да жоғары сапа)
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1440&height=1440&nologo=true&seed=${randomSeed}&model=flux`;
         
         let img = document.createElement("img");
         img.style.width = "100%";
@@ -664,7 +664,7 @@ async function send() {
         
         img.onload = function() {
             hideLoading();
-            let div = add("📸 Міне, iPhone 17 Pro Max сапасындағы шынайы сурет:", "ai", true);
+            let div = add("📸 Міне, жоғары сападағы шынайы сурет:", "ai", true);
             div.appendChild(img);
             chat.scrollTop = chat.scrollHeight;
         };
