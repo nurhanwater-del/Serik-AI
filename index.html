@@ -640,22 +640,18 @@ async function send() {
         }
     }
 
-        // --- 4. ФОТОГЕНЕРАТОР (ЖАҢАРТЫЛҒАН, ҚАТЕЛЕРСІЗ ЖӘНЕ ЖОҒАРЫ САПАДА) ---
+            // --- 4. ФОТОГЕНЕРАТОР (ЖАҢАРТЫЛҒАН, МАКСИМАЛДЫ САПА) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
         
-        // 1. Пайдаланушының жазған сөзін тазалап аламыз
         let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
         
-        // 2. АЙФОН 17 ПРО МАКС САПАСЫ:
-        // "NOT" деген сөздерді алып тастадық. Оның орнына позитивті, нақты нұсқаулар бердік.
-        let enhancedPrompt = `Breathtaking professional photography of ${userPrompt}, empty background if nature, masterpiece, 8k resolution, highly detailed, shot on iPhone 17 Pro Max, 48MP, Apple ProRAW, realistic lighting, perfect perspective, flawless proportions, purely photorealistic, true to life`;
+        // Промптты максималды шынайы интернет-фото деңгейіне көтердік
+        let enhancedPrompt = `A real, authentic photograph from the internet of ${userPrompt}, high-end automotive photography, 8k resolution, shot on iPhone 17 Pro Max, 48MP, 85mm lens, hyper-realistic stock photo, extreme details, realistic lighting, vivid colors, true to life, purely photorealistic, masterpiece`;
         
-        // 3. ШЕКСІЗ ВАРИАНТТАР (КЕЗДЕЙСОҚ КОД)
         let randomSeed = Math.floor(Math.random() * 999999999) + Date.now();
         
-        // 4. ДҰРЫС ӨЛШЕМ (RESOLUTION):
-        // Машиналар мен адамдар қисық шықпауы үшін ең тұрақты өлшем - 1024x1024.
+        // Өлшем 1024x1024 қалады (бұл машина қисық шықпас үшін ең қауіпсіз әрі сапалы формат)
         let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${randomSeed}&model=flux`;
         
         let img = document.createElement("img");
@@ -665,7 +661,7 @@ async function send() {
         
         img.onload = function() {
             hideLoading();
-            let div = add("📸 Вот ваше фото:", "ai", true);
+            let div = add("📸 Міне, интернеттегідей ең жоғары сападағы шынайы сурет:", "ai", true);
             div.appendChild(img);
             chat.scrollTop = chat.scrollHeight;
         };
@@ -678,7 +674,6 @@ async function send() {
         img.src = imageUrl;
         return; 
     }
-
 
     // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
     showLoading();
