@@ -640,42 +640,74 @@ async function send() {
         }
     }
 
-    // --- 4. ФОТОГЕНЕРАТОР (16K САПА ЖӘНЕ ШЕКСІЗ РАЗНЫЙ СУРЕТТЕР) ---
+    // --- 4. ФОТОГЕНЕРАТОР (МАШИНА - ТЕК ИНТЕРНЕТТЕН, БАСҚАСЫ - 16К ИИ) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
+        let cleanText = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
         
-        // 1. Пайдаланушының жазған сөзін тазалап аламыз
-        let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
-        
-        // 2. 16K САПА КӨТЕРУ: Артына нейрожелі түсінетін ең мықты сапа сөздерін қосамыз
-        let enhancedPrompt = userPrompt + ", exact object, pure clean focus, masterpiece, 16k resolution, ultra detailed, hyperrealistic, 8k uhd, cinematic lighting, no text, no artifacts";
-        
-        // 3. ШЕКСІЗ ВАРИАНТТАР: 1-ден 1 000 000 000-ға дейін кездейсоқ сан
-        let randomSeed = Math.floor(Math.random() * 1000000000);
-        
-        // 4. РАЗРЕШЕНИЕ: 2048x2048 (Бұл API көтере алатын ең максималды әрі қатып қалмайтын формат)
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2048&height=2048&nologo=true&seed=${randomSeed}`;
-        
-        let img = document.createElement("img");
-        img.style.width = "100%";
-        img.style.borderRadius = "10px";
-        img.style.marginTop = "10px";
-        
-        img.onload = function() {
-            hideLoading();
-            let div = add("🎨 Вот ваше фото(Ultra HD качество):", "ai", true);
-            div.appendChild(img);
-            chat.scrollTop = chat.scrollHeight;
-        };
-        
-        img.onerror = function() {
-            hideLoading();
-            add("❌ Пожалуйста, попробуйте повторить запрос чуть позже ⚠️.", "ai", true);
-        };
+        // 1. "Машина" сөзін немесе кез келген марканы (Jetour, порш бәрін) іздейміз
+        let carRegex = /машина|көлік|авто|car|джип|тачка|bmw|мерс|мерседес|ауди|тойота|камри|лексус|порш|порше|хундай|киа|лада|крузак|гелик|приора|ваз|jetour/i;
+        let isCar = carRegex.test(cleanText);
 
-        img.src = imageUrl;
-        return; 
+        if (isCar) {
+            // 2. Википедия станок шығармас үшін "машина" деген жалпы сөздерді тексттен қиып алып тастаймыз!
+            // Енді "машина Jetour X70" дегеннен тек "Jetour X70" қалады.
+            let searchQuery = cleanText.replace(/(машина|көлік|авто|car|джип|тачка)/gi, "").trim();
+
+            // 3. Біздің сленгті түсінсін деп кейбір көліктерді дұрыстаймыз (ал Jetour сияқтылар қаз-қалпында кете береді)
+            searchQuery = searchQuery
+                .replace(/камри/gi, "Toyota Camry")
+                .replace(/мерс|мерседес/gi, "Mercedes-Benz")
+                .replace(/гелик/gi, "Mercedes G-Class")
+                .replace(/крузак/gi, "Toyota Land Cruiser")
+                .replace(/приора/gi, "Lada Priora")
+                .replace(/порш(е)?/gi, "Porsche");
+
+            // 4. Ракурстарды ағылшыншаға аударамыз, сонда интернет нақтырақ фотолар табады
+            if (/салон|іші/i.test(searchQuery)) {
+                searchQuery = searchQuery.replace(/салон|іші/gi, "").trim() + " interior";
+            } else if (/сзади|артынан/i.test(searchQuery)) {
+                searchQuery = searchQuery.replace(/сзади|артынан/gi, "").trim() + " rear";
+            } else if (/спереди|алдынан/i.test(searchQuery)) {
+                searchQuery = searchQuery.replace(/спереди|алдынан/gi, "").trim() + " front";
+            }
+
+            // ТЕК ИНТЕРНЕТТЕН ІЗДЕУ 
+            fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(searchQuery)}&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&format=json&origin=*`)
+                .then(res => res.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.query && data.query.pages) {
+                        let pages = Object.values(data.query.pages);
+                        let imgUrl = pages[0].imageinfo[0].url;
+                        let img = document.createElement("img");
+                        img.style.width = "100%";
+                        img.src = imgUrl;
+                        let div = add("📸 Интернеттен табылды:", "ai", true);
+                        div.appendChild(img);
+                    } else {
+                        add(`❌ Интернеттен бұл көліктің (${searchQuery}) фотосы табылмады.`, "ai", true);
+                    }
+                })
+                .catch(err => {
+                    hideLoading();
+                    add("❌ Қате кетті, сурет жүктелмеді.", "ai", true);
+                });
+        } else {
+            // БАСҚА ЗАТТАР: 16К (2440p) САПАДА
+            let enhancedPrompt = `Ultra-detailed 16k resolution, masterpiece, ${cleanText}, cinematic lighting, photorealistic, extreme quality`;
+            let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2440&height=2440&nologo=true&seed=${Math.random()}`;
+            
+            hideLoading();
+            let img = document.createElement("img");
+            img.style.width = "100%";
+            img.src = imageUrl;
+            let div = add("🎨 16K сападағы суретіңіз:", "ai", true);
+            div.appendChild(img);
+        }
+        return;
     }
+
 
     // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
     showLoading();
