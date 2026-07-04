@@ -640,21 +640,22 @@ async function send() {
         }
     }
 
-    // --- 4. ФОТОГЕНЕРАТОР (16K САПА ЖӘНЕ ШЕКСІЗ РАЗНЫЙ СУРЕТТЕР) ---
+    // --- 4. ФОТОГЕНЕРАТОР (IPHONE 17 PRO MAX САПА, РЕАЛИСТИЧНЫЙ, ШЕКСІЗ ТҮРЛІ) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
         
         // 1. Пайдаланушының жазған сөзін тазалап аламыз
         let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
         
-        // 2. 16K САПА КӨТЕРУ: Артына нейрожелі түсінетін ең мықты сапа сөздерін қосамыз (Реализмге ауыстырылды)
-        let enhancedPrompt = userPrompt + ", photorealistic, real life photography, highly detailed, shot on DSLR camera, 8k resolution, natural lighting, real background, no 3d render, no toy, no cgi, no plastic";
+        // 2. АЙФОН 17 ПРО МАКС ЖӘНЕ РЕАЛИЗМ: Ойыншық болмауы үшін қатаң сөздер қосамыз
+        let enhancedPrompt = userPrompt + ", extremely realistic photograph, shot on iPhone 17 Pro Max, 48MP, Apple ProRAW, hyper-detailed, real life photography, vivid colors, depth of field. NOT a toy, NOT cartoon, NO CGI, NO 3D render, purely photorealistic";
         
-        // 3. ШЕКСІЗ ВАРИАНТТАР: 1-ден 1 000 000 000-ға дейін кездейсоқ сан
-        let randomSeed = Math.floor(Math.random() * 1000000000);
+        // 3. ШЕКСІЗ ВАРИАНТТАР: Уақытты қосып, 100% қайталанбас кездейсоқ код (seed) жасаймыз
+        let randomSeed = Math.floor(Math.random() * 999999999) + Date.now();
         
-        // 4. РАЗРЕШЕНИЕ: 1080x1080 (Дұрыс пропорция, фон бұзылмайды)
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1080&height=1080&nologo=true&seed=${randomSeed}`;
+        // 4. ЕҢ МЫҚТЫ МОДЕЛЬ: model=flux (бұл қазіргі ең шынайы және дәл фото сияқты жасайтын модель)
+        // Ескерту: flux моделі қатып қалмауы үшін өлшемін 1024x1024 етіп қойдым (бұл өте жоғары сапа)
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${randomSeed}&model=flux`;
         
         let img = document.createElement("img");
         img.style.width = "100%";
@@ -663,7 +664,7 @@ async function send() {
         
         img.onload = function() {
             hideLoading();
-            let div = add("🎨 Міне, сен сұраған сурет (Ultra HD сапада):", "ai", true);
+            let div = add("📸 Міне, iPhone 17 Pro Max сапасындағы шынайы сурет:", "ai", true);
             div.appendChild(img);
             chat.scrollTop = chat.scrollHeight;
         };
