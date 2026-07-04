@@ -640,37 +640,37 @@ async function send() {
         }
     }
 
-                        // --- 4. ФОТОГЕНЕРАТОР (ТІКЕЛЕЙ ИНТЕРНЕТТЕН, ЕҢ ЖОҒАРЫ САПАДА) ---
+                        // --- 4. ФОТОГЕНЕРАТОР (БАРЛЫҒЫ ТІКЕЛЕЙ ИНТЕРНЕТТЕН ІЗДЕЛЕДІ) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
         
+        // Тек "нарисуй", "сурет сал", "сгенерируй" сөздерін қиып алып тастаймыз
         let searchQuery = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
 
+        // Егер адам түк жазбаса (мысалы, тек "нарисуй" деп жібере салса)
         if (!searchQuery) {
             hideLoading();
             add("❌ Ненің суретін табу керек екенін жазыңыз.", "ai", true);
             return;
         }
 
-        // gsrlimit=1, iiprop=url|size, iiurlwidth=1024 - суретті ең үлкен әрі сапалы етіп жүктейді
-        fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(searchQuery)}&gsrnamespace=6&gsrlimit=1&prop=imageinfo&iiprop=url&iiurlwidth=1200&format=json&origin=*`)
+        // БАРЛЫҚ СӨЗДІ ТІКЕЛЕЙ, ҚАЛАЙ БАР СОЛАЙ ИНТЕРНЕТТЕН ІЗДЕУ
+        fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(searchQuery)}&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&format=json&origin=*`)
             .then(res => res.json())
             .then(data => {
                 hideLoading();
                 if (data.query && data.query.pages) {
-                    let page = Object.values(data.query.pages)[0];
-                    // Егер бар болса, үлкен өлшемдегі суретті аламыз
-                    let imgUrl = page.imageinfo[0].thumburl || page.imageinfo[0].url;
+                    let pages = Object.values(data.query.pages);
+                    let imgUrl = pages[0].imageinfo[0].url;
                     
                     let img = document.createElement("img");
                     img.style.width = "100%";
-                    img.style.borderRadius = "10px"; // Аздап дизайн қосқан дұрыс
                     img.src = imgUrl;
                     
-                    let div = add("📸 Ең сапалы фото:", "ai", true);
+                    let div = add("📸 Интернеттен табылды:", "ai", true);
                     div.appendChild(img);
                 } else {
-                    add(`❌ "${searchQuery}" бойынша сапалы фото табылмады.`, "ai", true);
+                    add(`❌ Интернеттен бұл сұрау бойынша ("${searchQuery}") фото табылмады.`, "ai", true);
                 }
             })
             .catch(err => {
