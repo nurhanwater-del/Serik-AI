@@ -665,7 +665,7 @@ async function send() {
         
         img.onload = function() {
             hideLoading();
-            let div = add("📸 Вот ваш фото:", "ai", true);
+            let div = add("📸 Вот ваше фото:", "ai", true);
             div.appendChild(img);
             chat.scrollTop = chat.scrollHeight;
         };
