@@ -643,21 +643,35 @@ async function send() {
                         // --- 4. ФОТОГЕНЕРАТОР (МАШИНА - ТЕК ИНТЕРНЕТТЕН, БАСҚАСЫ - 16К ИИ) ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
-        let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
+        // Тек "нарисуй" сөздерін алып тастаймыз
+        let cleanText = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
         
-        // 1. Машинаның маркасы мен моделін (мысалы: "камри 35", "мерс w222") тауып алу
-        // Осы жердегі (?:\s+([a-z0-9]+))? коды машинаның атынан кейін тұрған сандар мен ағылшын әріптерін (модельді) жұлып алады
-        let carMatch = userPrompt.match(/(bmw|мерс|мерседес|ауди|тойота|камри|лексус|порше|хундай|киа|лада|крузак|гелик|приора|ваз|машина|көлік|авто|car|джип)(?:\s+([a-z0-9]+))?/i);
+        // 1. Тек нақты маркаларды ғана іздейміз ("машина" деген сөзді алып тастадым, әйел немесе станок шығып кетпес үшін)
+        let carMatch = cleanText.match(/(bmw|мерс|мерседес|ауди|тойота|камри|лексус|порше|хундай|киа|лада|крузак|гелик|приора|ваз)(?:\s+([a-z0-9]+))?/i);
         let isCar = carMatch !== null;
 
         if (isCar) {
-            // 2. Ракурсты тауып алу
-            let viewMatch = userPrompt.match(/спереди|сзади|салон|лев|прав|алдынан|артынан|іші/i);
+            let carName = carMatch[0].trim().toLowerCase();
             
-            // searchQuery енді "камри 35" сияқты толық сақталады
-            let searchQuery = carMatch[0].trim(); 
+            // 2. Википедия дұрыс сурет табуы үшін сленгтерді ресми ағылшын атына ауыстырамыз
+            let searchQuery = carName
+                .replace(/камри/g, "Toyota Camry")
+                .replace(/мерс|мерседес/g, "Mercedes-Benz")
+                .replace(/гелик/g, "Mercedes G-Class")
+                .replace(/крузак/g, "Toyota Land Cruiser")
+                .replace(/приора/g, "Lada Priora");
+
+            // 3. Ракурсты тауып алу және оны да ағылшыншаға аудару
+            let viewMatch = cleanText.match(/спереди|сзади|салон|лев|прав|алдынан|артынан|іші/i);
             if (viewMatch) {
-                searchQuery += " " + viewMatch[0]; 
+                let view = viewMatch[0].toLowerCase();
+                if (view.includes("салон") || view.includes("іші")) {
+                    searchQuery += " interior";
+                } else if (view.includes("сзади") || view.includes("артынан")) {
+                    searchQuery += " rear";
+                } else if (view.includes("спереди") || view.includes("алдынан")) {
+                    searchQuery += " front";
+                }
             }
             
             // ТЕК ИНТЕРНЕТТЕН ІЗДЕУ 
@@ -674,7 +688,7 @@ async function send() {
                         let div = add("📸 Интернеттен табылды:", "ai", true);
                         div.appendChild(img);
                     } else {
-                        add(`❌ Интернеттен бұл машинаның (${searchQuery}) фотосы табылмады.`, "ai", true);
+                        add(`❌ Интернеттен бұл көліктің фотосы табылмады.`, "ai", true);
                     }
                 })
                 .catch(err => {
@@ -683,7 +697,7 @@ async function send() {
                 });
         } else {
             // БАСҚА ЗАТТАР: 16К (2440p) САПАДА
-            let enhancedPrompt = `Ultra-detailed 16k resolution, masterpiece, ${userPrompt}, cinematic lighting, photorealistic, extreme quality`;
+            let enhancedPrompt = `Ultra-detailed 16k resolution, masterpiece, ${cleanText}, cinematic lighting, photorealistic, extreme quality`;
             let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2440&height=2440&nologo=true&seed=${Math.random()}`;
             
             hideLoading();
