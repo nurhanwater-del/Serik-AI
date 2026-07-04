@@ -639,47 +639,48 @@ async function send() {
             console.error("Ошибка Vision API:", e);
         }
     }
-
-           //Фотогенератор             
-    if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
+              // Фотогенератор функциясыыыы
+           if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
     showLoading();
     
     let searchQuery = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
 
     if (!searchQuery) {
         hideLoading();
-        add("❌ Ненің суретін табу керек екенін жазыңыз.", "ai", true);
+        add("❌ Ненің суретін іздеу керек?", "ai", true);
         return;
     }
 
-    // Unsplash API қолдану әлдеқайда тиімді (тегін әрі сапалы)
-    // Ескерту: өз CLIENT_ID-іңді Unsplash Developer сайтынан ал
-    const clientId = "СЕНІҢ_UNSPLASH_CLIENT_ID"; 
-    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=1&client_id=${clientId}`;
+    // Рандомды бет (1-ден 50-ге дейін) - әр іздеген сайын әр түрлі сурет шығады
+    let randomPage = Math.floor(Math.random() * 50) + 1;
+    
+    // Unsplash API - суреттердің әр түрлі болуы үшін &order_by=random параметрін қостық
+    const clientId = "СЕНІҢ_CLIENT_ID"; 
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&page=${randomPage}&per_page=1&order_by=random&client_id=${clientId}`;
 
     fetch(url)
         .then(res => res.json())
         .then(data => {
             hideLoading();
+            // Егер нәтиже болса, әрқашан жаңа сурет шығады
             if (data.results && data.results.length > 0) {
                 let imgUrl = data.results[0].urls.regular;
                 
-                let div = add("📸 Интернеттен табылды:", "ai", true);
+                let div = add(`📸 ${searchQuery} бойынша жаңа фото:`, "ai", true);
                 let img = document.createElement("img");
                 img.style.width = "100%";
-                img.style.borderRadius = "8px";
+                img.style.borderRadius = "12px";
                 img.style.marginTop = "10px";
-                img.src = imgUrl;
+                img.src = imgUrl + "&random=" + new Date().getTime(); // Browser cache-ті алдау үшін
                 
                 div.appendChild(img);
             } else {
-                add(`❌ "${searchQuery}" сұрауы бойынша фото табылмады.`, "ai", true);
+                add(`❌ "${searchQuery}" бойынша ештеңе табылмады.`, "ai", true);
             }
         })
         .catch(err => {
             hideLoading();
-            console.error(err);
-            add("❌ Суретті жүктеу кезінде қателік орын алды.", "ai", true);
+            add("❌ Қате кетті, басқа сөзбен көріп көріңіз.", "ai", true);
         });
         
     return;
