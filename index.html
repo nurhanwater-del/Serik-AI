@@ -658,74 +658,99 @@ async function send() {
         }
     }
 
-    // --- 4. ФОТОГЕНЕРАТОР (МАШИНА - ТЕК ИНТЕРНЕТТЕН, БАСҚАСЫ - 16К ИИ) ---
-    if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
-        showLoading();
-        let cleanText = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
-        
-        // 1. "Машина" сөзін немесе кез келген марканы (Jetour, порш бәрін) іздейміз
-        let carRegex = /машина|көлік|авто|car|джип|тачка|bmw|мерс|мерседес|ауди|тойота|камри|лексус|порш|порше|хундай|киа|лада|крузак|гелик|приора|ваз|jetour/i;
-        let isCar = carRegex.test(cleanText);
+    // --- КҮШЕЙТІЛГЕН ФОТОГЕНЕРАЦИЯ ---
+if (
+    lowerText.includes("нарисуй") ||
+    lowerText.includes("сурет сал") ||
+    lowerText.includes("сгенерируй")
+) {
 
-        if (isCar) {
-            // 2. Википедия станок шығармас үшін "машина" деген жалпы сөздерді тексттен қиып алып тастаймыз!
-            // Енді "машина Jetour X70" дегеннен тек "Jetour X70" қалады.
-            let searchQuery = cleanText.replace(/(машина|көлік|авто|car|джип|тачка)/gi, "").trim();
+    showLoading();
 
-            // 3. Біздің сленгті түсінсін деп кейбір көліктерді дұрыстаймыз (ал Jetour сияқтылар қаз-қалпында кете береді)
-            searchQuery = searchQuery
-                .replace(/камри/gi, "Toyota Camry")
-                .replace(/мерс|мерседес/gi, "Mercedes-Benz")
-                .replace(/гелик/gi, "Mercedes G-Class")
-                .replace(/крузак/gi, "Toyota Land Cruiser")
-                .replace(/приора/gi, "Lada Priora")
-                .replace(/порш(е)?/gi, "Porsche");
+    let userPrompt = text
+        .replace(/нарисуй|сурет сал|сгенерируй/gi, "")
+        .trim();
 
-            // 4. Ракурстарды ағылшыншаға аударамыз, сонда интернет нақтырақ фотолар табады
-            if (/салон|іші/i.test(searchQuery)) {
-                searchQuery = searchQuery.replace(/салон|іші/gi, "").trim() + " interior";
-            } else if (/сзади|артынан/i.test(searchQuery)) {
-                searchQuery = searchQuery.replace(/сзади|артынан/gi, "").trim() + " rear";
-            } else if (/спереди|алдынан/i.test(searchQuery)) {
-                searchQuery = searchQuery.replace(/спереди|алдынан/gi, "").trim() + " front";
-            }
+    let prompt = `
+${userPrompt},
+masterpiece,
+best quality,
+ultra realistic,
+photorealistic,
+hyper realistic,
+professional photography,
+award winning photo,
+cinematic composition,
+cinematic lighting,
+golden hour,
+volumetric lighting,
+global illumination,
+HDR,
+RAW photo,
+Sony A7R V,
+Canon EOS R5,
+Nikon Z9,
+85mm lens,
+35mm lens,
+depth of field,
+ultra detailed,
+extremely detailed,
+sharp focus,
+natural colors,
+realistic skin,
+realistic reflections,
+realistic shadows,
+perfect anatomy,
+perfect composition,
+high dynamic range,
+8K,
+16K,
+ultra HD,
+insanely detailed,
+professional color grading,
+no watermark,
+no logo,
+no text,
+no blurry,
+no low quality,
+no artifacts,
+no deformed,
+no bad anatomy
+`.replace(/\n/g," ");
 
-            // ТЕК ИНТЕРНЕТТЕН ІЗДЕУ 
-            fetch(`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(searchQuery)}&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&format=json&origin=*`)
-                .then(res => res.json())
-                .then(data => {
-                    hideLoading();
-                    if (data.query && data.query.pages) {
-                        let pages = Object.values(data.query.pages);
-                        let imgUrl = pages[0].imageinfo[0].url;
-                        let img = document.createElement("img");
-                        img.style.width = "100%";
-                        img.src = imgUrl;
-                        let div = add("📸 Вот ваше фото:", "ai", true);
-                        div.appendChild(img);
-                    } else {
-                        add(`❌ В вашей(${searchQuery}) фоте ошибка вышло❗️`, "ai", true);
-                    }
-                })
-                .catch(err => {
-                    hideLoading();
-                    add("❌ В вашей фоте ошибка вышло.", "ai", true);
-                });
-        } else {
-            // БАСҚА ЗАТТАР: 16К (2440p) САПАДА
-            let enhancedPrompt = `Ultra-detailed 16k resolution, masterpiece, ${cleanText}, cinematic lighting, photorealistic, extreme quality`;
-            let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2440&height=2440&nologo=true&seed=${Math.random()}`;
-            
-            hideLoading();
-            let img = document.createElement("img");
-            img.style.width = "100%";
-            img.src = imageUrl;
-            let div = add("🎨 Вот ваше фото:", "ai", true);
-            div.appendChild(img);
-        }
-        return;
-    }
+    let seed = Math.floor(Math.random()*999999999);
 
+    let imageUrl =
+`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=2048&height=2048&seed=${seed}&enhance=true&nologo=true&safe=false`;
+
+    let img = document.createElement("img");
+    img.src = imageUrl;
+
+    img.style.width = "100%";
+    img.style.borderRadius = "12px";
+    img.style.marginTop = "10px";
+
+    img.onload = function () {
+
+        hideLoading();
+
+        let div = add("🎨 Дайын сурет:", "ai", true);
+
+        div.appendChild(img);
+
+        chat.scrollTop = chat.scrollHeight;
+    };
+
+    img.onerror = function () {
+
+        hideLoading();
+
+        add("❌ Сурет генерацияланбады. Қайталап көр.", "ai", true);
+
+    };
+
+    return;
+      }
 
     // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
     showLoading();
