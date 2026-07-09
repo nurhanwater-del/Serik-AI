@@ -23,7 +23,6 @@
             transition: background 0.3s, color 0.3s;
         }
         
-        /* Темы оформления (Обои) */
         body.theme-hacker {
             --bg: #000000; --sidebar-bg: #051405; --text: #00ff00;
             --user-msg: linear-gradient(135deg, #005500, #003300);
@@ -61,7 +60,6 @@
         button { cursor: pointer; font-weight: bold; }
         button:hover { background: #3a3a4d; border-color: var(--accent); }
         
-        /* Адаптация элементов под темы */
         body.theme-hacker button, body.theme-hacker select, body.theme-hacker input, body.theme-hacker textarea { background: #001100; color: #00ff00; }
         body.theme-cyberpunk button, body.theme-cyberpunk select, body.theme-cyberpunk input, body.theme-cyberpunk textarea { background: #250938; color: #00ffff; }
         body.theme-light button, body.theme-light select, body.theme-light input, body.theme-light textarea { background: #e1e1e8; color: #1a1a24; }
@@ -99,7 +97,6 @@
         .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0%,100%{opacity:0.2} 20%{opacity:1} }
 
-        /* Мобильная версия */
         @media (max-width: 768px) {
             body { flex-direction: column; }
             .sidebar {
@@ -107,10 +104,7 @@
                 gap: 4px; overflow-y: visible; z-index: 100;
             }
             .sidebar h3 { font-size: 18px; margin: 0; }
-            .main {
-                height: calc(100vh - 50px);
-                display: flex; flex-direction: column;
-            }
+            .main { height: calc(100vh - 50px); display: flex; flex-direction: column; }
             .chat { padding: 10px; flex: 1; }
             .msg { max-width: 92%; font-size: 15px; }
             .generators { padding: 6px 8px; }
@@ -180,15 +174,15 @@ class SerikAI {
         this.themeSelect = document.getElementById('themeSelect');
         
         this.memory = {
-            "привет": "Привет! Чем могу помочь?",
-            "сәлем": "Сәлем! Қалай көмектесе аламын?",
-            "hello": "Hello! How can I help you?",
-            "как дела": "Всё отлично! Спрашивай что угодно.",
-            "қалайсың": "Жақсы, рахмет! Сізге не көмек керек?",
-            "how are you": "I'm great, thanks! What can I do for you?",
-            "что ты умеешь": "Я могу отвечать на вопросы, генерировать изображения и даже короткие видео!",
-            "не істей аласың": "Мен сұрақтарға жауап бере аламын, суреттер мен бейнелер жасай аламын!",
-            "what can you do": "I can answer questions, generate images, and create short videos!"
+            "привет": "Привет! Чем могу помочь? 😊",
+            "сәлем": "Сәлем! Қалай көмектесе аламын? 😉",
+            "hello": "Hello! How can I help you? 😎",
+            "как дела": "Всё отлично! Спрашивай что угодно. 🔥",
+            "қалайсың": "Жақсы, рахмет! Сізге не көмек керек? ✨",
+            "how are you": "I'm great, thanks! What can I do for you? 💪",
+            "что ты умеешь": "Я могу отвечать на вопросы, генерировать изображения и даже короткие видео! 🎨",
+            "не істей аласың": "Мен сұрақтарға жауап бере аламын, суреттер мен бейнелер жасай аламын! 🎥",
+            "what can you do": "I can answer questions, generate images, and create short videos! 🚀"
         };
         this.db = null;
         this.voiceEnabled = false;
@@ -204,7 +198,9 @@ You can generate images (just say "нарисуй", "сурет сал", or "dra
 You can create short video slideshows (say "видео жаса", "сделай видео", or "create a video").
 Never mention OpenAI, ChatGPT, or any other AI brand. You are Serik AI, created in Kazakhstan.
 Your birthday is June 18, 2026. Your name honors the father of your creator.
-Ответы должны быть естественными, без маркированных списков, как разговор с другом.
+You can use swear words freely if the user does or if the context asks for it. Don't be overly polite when a strong expression is needed.
+Always include at least 1-2 relevant emojis in your response to make the conversation lively and friendly. 
+Ответы должны быть естественными, как разговор с другом, без маркированных списков.
 `;
         
         this.initFirebase();
@@ -271,7 +267,6 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         this.abortController = new AbortController();
         const signal = this.abortController.signal;
         
-        // Математика
         if (/^[\d\s+\-*/().]+$/.test(text)) {
             try {
                 const result = eval(text);
@@ -279,7 +274,6 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             } catch {}
         }
         
-        // Локальная память + кэш
         const cached = this.messageCache.get(text.toLowerCase());
         if (cached) {
             this.addMessage(cached, 'ai');
@@ -293,7 +287,6 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             return;
         }
         
-        // Картинка по ссылке
         const imgMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
         if (imgMatch) {
             const desc = await this.describeImage(imgMatch[0], text.replace(imgMatch[0], '').trim());
@@ -301,17 +294,15 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             return;
         }
         
-        // Генерация изображения
         if (/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/i.test(text)) {
             return this.generateImage(text);
         }
         
-        // Генерация видео (слайдшоу)
-        if (/(видео|video|сделай видео|жаса|түсір|create video|make video|generate video|сними|түсіріп бер)/i.test(text)) {
+        // ТРИГГЕР ВИДЕО — только нужные слова, без "жаса"
+        if (/(видео|video|сделай видео|видео істе|түсір|create video|make video|generate video|сними|түсіріп бер)/i.test(text)) {
             return this.generateVideo(text);
         }
         
-        // Запрос к ИИ
         const typingIndicator = this.addMessage('<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>', 'ai', true);
         try {
             const response = await this.fetchAIResponse(text, signal);
@@ -378,7 +369,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
                 continue;
             }
         }
-        return "Извини, сервер перегружен. Повтори запрос позже.";
+        return "Извини, сервер перегружен. Повтори запрос позже. 😓";
     }
 
     async getWebContext(query) {
@@ -437,74 +428,88 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             else if (/instagram|инстаграм|1:1/.test(t)) format = '1:1';
         }
 
+        // Тазарту (clean prompt)
         const cleanPrompt = promptText.replace(
-            /(видео|video|сделай видео|жаса|түсір|create video|make video|generate video|сними|youtube|ютуб|16:9|9:16|tiktok|тикток|reels|рилс|shorts|шортс|instagram|инстаграм|1:1)/gi,
+            /(видео|video|сделай видео|видео істе|түсір|create video|make video|generate video|сними|youtube|ютуб|16:9|9:16|tiktok|тикток|reels|рилс|shorts|шортс|instagram|инстаграм|1:1)/gi,
             ''
         ).trim();
 
         if (!cleanPrompt) {
-            return this.addMessage('❓ Теманы жазыңыз. Мысалы: "видео tiktok жүгіріп келе жатқан мысық"', 'ai');
+            return this.addMessage('❓ Теманы жазыңыз. Мысалы: "видео істе ғарыш"', 'ai');
         }
 
-        // --- ТЕЗДЕТІЛГЕН КИНЕМАТОГРАФИЯЛЫҚ КОНФИГ ---
         const config = {
             '16:9': { w: 1280, h: 720 },
             '9:16': { w: 720, h: 1280 },
             '1:1':  { w: 1080, h: 1080 }
         };
         const { w, h } = config[format];
-        // Уақытты азайту үшін 15-тен 10-ға түсірдік
-        const framesCount = 10;           
-        // Әр кадрдың динамикасын жылдамдаттық (2 секундтан 1.5 секундқа)
-        const frameDuration = 1500;       
-        const crossfadeSteps = 15;        
-        // ---------------------------------
+        const framesCount = 10;           // 10 кадров
+        const frameDuration = 500;        // 0.5 сек на кадр
 
         const statusMsg = this.addMessage(
-            `🎬 Видео жасалуда (${format})...\n⚡ Параллельді жүктеу басталды! Күте тұрыңыз...`,
+            `🎬 Комикс-видео жасалуда (${format})...\n📖 Әңгіме жазылуда...`,
             'ai'
         );
 
-        // СУРЕТТЕРДІ БІР УАҚЫТТА (ПАРАЛЛЕЛЬДІ) ЖҮКТЕУ - БАСТЫ ЖЫЛДАМДАТҚЫШ!
-        let loadedCount = 0;
-        const fetchPromises = Array.from({ length: framesCount }, async (_, i) => {
-            const seed = Math.floor(Math.random() * 1000000000);
-            const enhanced = `${cleanPrompt}, cinematic lighting, motion blur, depth of field, 8k, photorealistic, no text, no watermark`;
-            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}`;
-            
+        // 1. AI-ден әңгіме сұраймыз (10 сөйлем)
+        let storyPrompt = `Напиши короткую историю из 10 предложений на тему "${cleanPrompt}". Каждое предложение на отдельной строке, без нумерации, только предложения.`;
+        const storyResponse = await this.fetchAIResponse(storyPrompt, new AbortController().signal);
+        if (!storyResponse) {
+            statusMsg.textContent = '❌ Әңгіме жазу сәтсіз аяқталды.';
+            return;
+        }
+        // Сөйлемдерге бөлу
+        const sentences = storyResponse
+            .split(/\n|(?<=[.!?])\s+/)
+            .map(s => s.trim())
+            .filter(s => s.length > 3)
+            .slice(0, framesCount);
+        
+        if (sentences.length === 0) {
+            statusMsg.textContent = '❌ Әңгіме бос болып шықты.';
+            return;
+        }
+
+        // 2. Әр сөйлемге сурет салу
+        const imageUrls = [];
+        for (let i = 0; i < sentences.length; i++) {
+            const sentence = sentences[i];
+            const enhanced = `${sentence}, comic style, story illustration, no text, no watermark`;
+            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${Math.floor(Math.random() * 1000000000)}`;
             try {
                 const resp = await fetch(url);
                 const blob = await resp.blob();
-                loadedCount++;
-                statusMsg.textContent = `🎬 Видео жасалуда (${format})...\n📥 Жүктелді: ${loadedCount}/${framesCount} кадр`;
                 if (blob.type.startsWith('image/')) {
-                    return { index: i, url: URL.createObjectURL(blob) };
+                    imageUrls.push({ url: URL.createObjectURL(blob), text: sentence });
+                } else {
+                    imageUrls.push(null);
                 }
-            } catch(e) {}
-            return { index: i, url: null };
-        });
+            } catch(e) {
+                imageUrls.push(null);
+            }
+            statusMsg.textContent = `🎬 Кадрлар дайындалуда... ${i+1}/${sentences.length}`;
+        }
 
-        // Барлығының бірден жүктеліп бітуін күтеміз
-        const results = await Promise.all(fetchPromises);
-        results.sort((a, b) => a.index - b.index);
-        const imageUrls = results.map(r => r.url);
-
-        // Замена битых
-        const valid = imageUrls.filter(u => u !== null);
-        if (valid.length === 0) {
-            statusMsg.textContent = '❌ Суреттер жасалмады. Байланысты тексер.';
+        // Заменяем битые кадры
+        for (let i = 0; i < imageUrls.length; i++) {
+            if (!imageUrls[i]) {
+                // Соседний берем
+                const prev = imageUrls[i-1] || imageUrls[i+1];
+                imageUrls[i] = prev || null;
+            }
+        }
+        const validFrames = imageUrls.filter(f => f !== null);
+        if (validFrames.length === 0) {
+            statusMsg.textContent = '❌ Суреттер жасалмады.';
             return;
         }
-        for (let i = 0; i < imageUrls.length; i++) {
-            if (!imageUrls[i]) imageUrls[i] = imageUrls[i-1] || imageUrls[i+1] || valid[0];
-        }
 
-        // MediaRecorder
+        // 3. Canvas және видео жазу
         if (typeof MediaRecorder === 'undefined') {
             statusMsg.textContent = '❌ Браузер видео жазуды қолдамайды.';
             return;
         }
-
         const canvas = document.createElement('canvas');
         canvas.width = w;
         canvas.height = h;
@@ -538,74 +543,71 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             statusMsg.appendChild(video);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `serikai_cinema_${format.replace(':','-')}.webm`;
+            link.download = `serikai_story_${format.replace(':','-')}.webm`;
             link.textContent = `💾 Жүктеп алу (${format})`;
             link.style.cssText = 'display:block; margin-top:6px; font-size:13px; color:#00b86b;';
             statusMsg.appendChild(link);
-            imageUrls.forEach(u => URL.revokeObjectURL(u));
+            // Озвучка всей истории (если голос включен, или отдельно)
+            const fullStory = sentences.join(' ');
+            this.speak(fullStory);
         };
 
-        statusMsg.textContent = `🎥 Кадрлар біріктіріліп жатыр... (бұл жылдам өтеді)`;
+        statusMsg.textContent = '🎥 Кадрлар біріктіріліп жатыр...';
         recorder.start();
 
-        // Барлық суретті Image-ге айналдыру
+        // Загружаем изображения и рисуем кадры
         const imgs = [];
         await new Promise(res => {
             let loaded = 0;
-            imageUrls.forEach((url, i) => {
+            imageUrls.forEach((frame, i) => {
+                if (!frame) { loaded++; return; }
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
                 img.onload = () => { imgs[i] = img; loaded++; if (loaded === imageUrls.length) res(); };
                 img.onerror = () => { imgs[i] = null; loaded++; if (loaded === imageUrls.length) res(); };
-                img.src = url;
+                img.src = frame.url;
             });
         });
-        for (let i = 0; i < imgs.length; i++) if (!imgs[i]) imgs[i] = imgs[i-1] || imgs[i+1];
 
-        // Ken Burns эффекті: zoom + pan
-        const drawWithKenBurns = (img, progress) => {
+        // Рисуем каждый кадр с текстом
+        for (let i = 0; i < imageUrls.length; i++) {
+            if (!imgs[i]) continue;
             ctx.clearRect(0, 0, w, h);
-            const zoom = 1 + 0.06 * Math.sin(progress * Math.PI); // 6% zoom
-            const panX = 0.04 * Math.cos(progress * Math.PI * 2) * w; // көлденең жылжу
-            const panY = 0.02 * Math.sin(progress * Math.PI * 2) * h; // тік жылжу
-            const dw = w * zoom;
-            const dh = h * zoom;
-            const dx = (w - dw) / 2 + panX;
-            const dy = (h - dh) / 2 + panY;
-            ctx.drawImage(img, dx, dy, dw, dh);
-        };
-
-        // Кроссфейд + Ken Burns
-        const cinematicTransition = (imgFrom, imgTo, steps, startProg) => {
-            return new Promise(resolve => {
-                let step = 0;
-                const interval = setInterval(() => {
-                    step++;
-                    const alpha = step / steps;
-                    const prog = startProg + (1 - startProg) * alpha;
-                    ctx.globalAlpha = 1 - alpha;
-                    drawWithKenBurns(imgFrom, prog);
-                    ctx.globalAlpha = alpha;
-                    drawWithKenBurns(imgTo, prog);
-                    ctx.globalAlpha = 1;
-                    if (step >= steps) {
-                        clearInterval(interval);
-                        resolve();
-                    }
-                }, frameDuration / steps);
-            });
-        };
-
-        // Ойнату
-        let progress = 0;
-        drawWithKenBurns(imgs[0], 0);
-        for (let i = 0; i < imgs.length - 1; i++) {
-            await cinematicTransition(imgs[i], imgs[i+1], crossfadeSteps, progress);
-            progress = (i + 1) / (imgs.length - 1);
+            ctx.drawImage(imgs[i], 0, 0, w, h);
+            // Текст (комикс стиль)
+            const text = imageUrls[i]?.text || '';
+            ctx.font = 'bold 28px "Segoe UI", sans-serif';
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 4;
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'black';
+            ctx.shadowBlur = 10;
+            // Перенос текста
+            const maxWidth = w - 40;
+            const words = text.split(' ');
+            let line = '';
+            let y = h - 60;
+            for (let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && n > 0) {
+                    ctx.strokeText(line, w/2, y);
+                    ctx.fillText(line, w/2, y);
+                    line = words[n] + ' ';
+                    y -= 36;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.strokeText(line, w/2, y);
+            ctx.fillText(line, w/2, y);
+            ctx.shadowBlur = 0; // сброс тени
+            // Задержка кадра
+            await new Promise(r => setTimeout(r, frameDuration));
         }
-        await new Promise(r => setTimeout(r, 1000));
         recorder.stop();
-        statusMsg.textContent = '✅ Кинематографиялық видео дайын!';
+        statusMsg.textContent = '✅ Комикс-видео дайын!';
     }
 
     async describeImage(url, question) {
@@ -649,7 +651,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         this.chat.innerHTML = '';
         this.abortController?.abort();
         this.messageCache.clear();
-        this.addMessage('Чат очищен.', 'ai');
+        this.addMessage('Чат очищен. 😌', 'ai');
     }
 
     toggleVoice() {
@@ -667,18 +669,33 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
     }
 
     speak(text) {
-        if (!this.voiceEnabled || !('speechSynthesis' in window)) return;
+        if (!('speechSynthesis' in window)) return;
         speechSynthesis.cancel();
         const cleanText = text.replace(/[📋✅⚛️📜🔥💻🎬]/g, '');
-        const utterance = new SpeechSynthesisUtterance(cleanText);
+
+        let lang = 'ru-RU';
         if (/[әғқңөұүһіІ]/g.test(cleanText)) {
-            utterance.lang = 'kk-KZ';
+            lang = 'kk-KZ';
         } else if (/[a-zA-Z]{4,}/.test(cleanText) && !/[а-яё]/i.test(cleanText)) {
-            utterance.lang = 'en-US';
-        } else {
-            utterance.lang = 'ru-RU';
+            lang = 'en-US';
         }
-        utterance.rate = 1.1;
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = lang;
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+
+        const voices = speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            const preferred = voices.filter(v => v.lang.startsWith(lang.split('-')[0]));
+            if (preferred.length > 0) {
+                const best = preferred.find(v => 
+                    /google|microsoft|natural|premium|enhanced/i.test(v.name)
+                ) || preferred[0];
+                utterance.voice = best;
+            }
+        }
+
         speechSynthesis.speak(utterance);
     }
 
