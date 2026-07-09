@@ -23,7 +23,6 @@
             transition: background 0.3s, color 0.3s;
         }
         
-        /* Темы оформления (Обои) */
         body.theme-hacker {
             --bg: #000000; --sidebar-bg: #051405; --text: #00ff00;
             --user-msg: linear-gradient(135deg, #005500, #003300);
@@ -61,7 +60,6 @@
         button { cursor: pointer; font-weight: bold; }
         button:hover { background: #3a3a4d; border-color: var(--accent); }
         
-        /* Адаптация элементов под темы */
         body.theme-hacker button, body.theme-hacker select, body.theme-hacker input, body.theme-hacker textarea { background: #001100; color: #00ff00; }
         body.theme-cyberpunk button, body.theme-cyberpunk select, body.theme-cyberpunk input, body.theme-cyberpunk textarea { background: #250938; color: #00ffff; }
         body.theme-light button, body.theme-light select, body.theme-light input, body.theme-light textarea { background: #e1e1e8; color: #1a1a24; }
@@ -99,7 +97,6 @@
         .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0%,100%{opacity:0.2} 20%{opacity:1} }
 
-        /* Мобильная версия */
         @media (max-width: 768px) {
             body { flex-direction: column; }
             .sidebar {
@@ -107,10 +104,7 @@
                 gap: 4px; overflow-y: visible; z-index: 100;
             }
             .sidebar h3 { font-size: 18px; margin: 0; }
-            .main {
-                height: calc(100vh - 50px);
-                display: flex; flex-direction: column;
-            }
+            .main { height: calc(100vh - 50px); display: flex; flex-direction: column; }
             .chat { padding: 10px; flex: 1; }
             .msg { max-width: 92%; font-size: 15px; }
             .generators { padding: 6px 8px; }
@@ -229,12 +223,8 @@ class SerikAI {
         this.systemPrompt = `You are Serik AI, a multilingual assistant from Kazakhstan. 
 You speak and understand Russian, Kazakh, and English. 
 Always respond in the same language the user used in their last message.
-If the user writes in Kazakh, answer in Kazakh. If in Russian, answer in Russian. If in English, answer in English.
-You can generate images (just say "нарисуй", "сурет сал", or "draw"). 
-You can create short video slideshows (say "видео жаса", "сделай видео", or "create a video").
-Never mention OpenAI, ChatGPT, or any other AI brand. You are Serik AI, created in Kazakhstan.
-Your birthday is June 18, 2026. Your name honors the father of your creator.
-Ответы должны быть естественными, без маркированных списков, как разговор с другом.
+Never mention OpenAI or ChatGPT. You are Serik AI, created in Kazakhstan.
+Your birthday is June 18, 2026.
 `;
         
         this.initFirebase();
@@ -257,19 +247,12 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
                 const data = snapshot.val();
                 if (data) Object.assign(this.memory, data);
             });
-        } catch (e) {
-            console.warn('Firebase не загружен, работаем локально');
-        }
+        } catch (e) { console.warn('Firebase офлайн mode'); }
     }
 
     initEventListeners() {
         this.sendBtn.addEventListener('click', () => this.send());
-        this.input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.send();
-            }
-        });
+        this.input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.send(); } });
         this.clearBtn.addEventListener('click', () => this.clearChat());
         this.voiceBtn.addEventListener('click', () => this.toggleVoice());
         this.themeSelect.addEventListener('change', () => this.changeTheme());
@@ -277,10 +260,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         this.bulkLearnBtn.addEventListener('click', () => this.bulkLearn());
         
         document.querySelectorAll('.generators button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.input.value = btn.dataset.prompt;
-                this.send();
-            });
+            btn.addEventListener('click', () => { this.input.value = btn.dataset.prompt; this.send(); });
         });
         
         document.getElementById('menuToggle').addEventListener('click', () => {
@@ -295,66 +275,37 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         this.input.value = '';
         this.addMessage(text, 'user');
         
-        if (this.abortController) {
-            this.abortController.abort();
-        }
+        if (this.abortController) this.abortController.abort();
         this.abortController = new AbortController();
         const signal = this.abortController.signal;
         
-        // Математика
         if (/^[\d\s+\-*/().]+$/.test(text)) {
-            try {
-                const result = eval(text);
-                return this.addMessage(`🧮 ${result}`, 'ai');
-            } catch {}
+            try { return this.addMessage(`🧮 ${eval(text)}`, 'ai'); } catch {}
         }
         
-        // Локальная память + кэш
         const cached = this.messageCache.get(text.toLowerCase());
-        if (cached) {
-            this.addMessage(cached, 'ai');
-            return;
-        }
+        if (cached) return this.addMessage(cached, 'ai');
         
         const localAnswer = this.searchMemory(text);
-        if (localAnswer) {
-            this.messageCache.set(text.toLowerCase(), localAnswer);
-            this.addMessage(localAnswer, 'ai');
-            return;
-        }
+        if (localAnswer) { this.messageCache.set(text.toLowerCase(), localAnswer); return this.addMessage(localAnswer, 'ai'); }
         
-        // Картинка по ссылке
         const imgMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
         if (imgMatch) {
             const desc = await this.describeImage(imgMatch[0], text.replace(imgMatch[0], '').trim());
-            this.addMessage(desc || 'Не удалось проанализировать изображение', 'ai');
-            return;
+            return this.addMessage(desc || 'Кате', 'ai');
         }
         
-        // Генерация изображения
-        if (/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/i.test(text)) {
-            return this.generateImage(text);
-        }
+        if (/(нарисуй|сурет сал|сгенерируй|draw|image|picture)/i.test(text)) return this.generateImage(text);
+        if (/(видео|video|жаса|түсір|make|сними)/i.test(text)) return this.generateVideo(text);
         
-        // Генерация видео (слайдшоу)
-        if (/(видео|video|сделай видео|жаса|түсір|create video|make video|generate video|сними|түсіріп бер)/i.test(text)) {
-            return this.generateVideo(text);
-        }
-        
-        // Запрос к ИИ
         const typingIndicator = this.addMessage('<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>', 'ai', true);
         try {
             const response = await this.fetchAIResponse(text, signal);
             typingIndicator.remove();
-            if (response) {
-                this.messageCache.set(text.toLowerCase(), response);
-                this.addMessage(response, 'ai');
-            }
+            if (response) { this.messageCache.set(text.toLowerCase(), response); this.addMessage(response, 'ai'); }
         } catch (err) {
             typingIndicator.remove();
-            if (err.name !== 'AbortError') {
-                this.addMessage('⚠️ Ошибка соединения. Попробуйте ещё раз.', 'ai');
-            }
+            if (err.name !== 'AbortError') this.addMessage('⚠️ Ошибка соединения.', 'ai');
         }
     }
 
@@ -362,9 +313,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         const q = text.toLowerCase().trim();
         if (this.memory[q]) return this.memory[q];
         for (let key in this.memory) {
-            if (key.startsWith(q.substring(0, 3)) && this.similarity(q, key) > 0.8) {
-                return this.memory[key];
-            }
+            if (key.startsWith(q.substring(0, 3)) && this.similarity(q, key) > 0.8) return this.memory[key];
         }
         return null;
     }
@@ -382,12 +331,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
     }
 
     async fetchAIResponse(prompt, signal) {
-        const webContext = await this.getWebContext(prompt);
-        const messages = [
-            { role: "system", content: this.systemPrompt + (webContext ? `\nContext from Wikipedia:\n${webContext}` : '') },
-            { role: "user", content: prompt }
-        ];
-        
+        const messages = [{ role: "system", content: this.systemPrompt }, { role: "user", content: prompt }];
         const models = ["openai", "mistral", "llama"];
         for (let model of models) {
             if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
@@ -400,63 +344,29 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
                 });
                 if (!res.ok) continue;
                 const text = await res.text();
-                if (text && !text.includes('"error"') && !text.includes('Queue full')) {
-                    return text.trim();
-                }
-            } catch (e) {
-                if (e.name === 'AbortError') throw e;
-                continue;
-            }
+                if (text && !text.includes('"error"')) return text.trim();
+            } catch (e) { if (e.name === 'AbortError') throw e; }
         }
-        return "Извини, server перегружен. Повтори запрос позже.";
-    }
-
-    async getWebContext(query) {
-        if (!/(что такое|кто такой|кім ол|не ол|найди|what is|who is|search for)/i.test(query)) return null;
-        try {
-            const clean = query.replace(/(пожалуйста|расскажи про|что такое|кто такой|кім ол|не ол|what is|who is)/gi, '').trim();
-            const searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(clean)}&format=json&origin=*`;
-            const res = await fetch(searchUrl);
-            const data = await res.json();
-            if (data.query?.search.length > 0) {
-                const title = data.query.search[0].title;
-                const contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-                const cRes = await fetch(contentUrl);
-                const cData = await cRes.json();
-                const pages = cData.query.pages;
-                return pages[Object.keys(pages)[0]].extract?.substring(0, 1500);
-            }
-        } catch {}
-        return null;
+        return "Сервер бос емес, сәлден соң қайталаңыз.";
     }
 
     async generateImage(promptText) {
-        const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
-        const enhanced = `${userPrompt}, masterpiece, 8k, hyperrealistic, no text`;
+        const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|image|picture)/gi, '').trim();
         const seed = Math.floor(Math.random() * 1000000000); 
-        const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
-        
-        const msgDiv = this.addMessage('🎨 Генерирую изображение...', 'ai');
+        const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(userPrompt + ', 8k, realistic') ?? 'cyberpunk'}?width=1024&height=1024&nologo=true&seed=${seed}`;
+        const msgDiv = this.addMessage('🎨 Сурет салынуда...', 'ai');
         try {
             const response = await fetch(imgUrl);
             const blob = await response.blob();
             if (blob.type.startsWith('image/')) {
                 const img = document.createElement('img');
                 img.src = URL.createObjectURL(blob);
-                img.style.width = '100%';
-                img.style.borderRadius = '10px';
-                img.style.marginTop = '10px';
-                msgDiv.innerHTML = ''; 
-                msgDiv.appendChild(img);
-            } else {
-                msgDiv.textContent = '❌ Не удалось создать изображение. Попробуйте другой запрос.';
-            }
-        } catch {
-            msgDiv.textContent = '❌ Ошибка загрузки изображения.';
-        }
+                img.style.width = '100%'; img.style.borderRadius = '10px'; img.style.marginTop = '10px';
+                msgDiv.innerHTML = ''; msgDiv.appendChild(img);
+            } else { msgDiv.textContent = '❌ Қате.'; }
+        } catch { msgDiv.textContent = '❌ Қате жүктеу.'; }
     }
 
-    // Керемет ИИ Музыка Синтезаторы (Web Audio API)
     startProceduralMusic(type, audioCtx, destination) {
         if (type === 'none') return null;
         const masterGain = audioCtx.createGain();
@@ -467,56 +377,35 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         let intervals = [];
         if (type === 'ambient') {
             const freqs = [110, 138.61, 164.81, 220];
-            freqs.forEach((f, index) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+            freqs.forEach((f, idx) => {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(f, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 2 + index);
-                osc.connect(gain);
-                gain.connect(masterGain);
-                osc.start();
-                const intv = setInterval(() => {
-                    const now = audioCtx.currentTime;
-                    gain.gain.linearRampToValueAtTime(0.01 + Math.random()*0.04, now + 1.5);
-                }, 2000);
+                gain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 2 + idx);
+                osc.connect(gain); gain.connect(masterGain); osc.start();
+                const intv = setInterval(() => { gain.gain.linearRampToValueAtTime(0.01 + Math.random()*0.03, audioCtx.currentTime + 1.5); }, 2000);
                 intervals.push({osc, gain, intv});
             });
         } else if (type === 'cyberpunk') {
-            const osc = audioCtx.createOscillator();
-            const filter = audioCtx.createBiquadFilter();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(55, audioCtx.currentTime);
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(180, audioCtx.currentTime);
+            const osc = audioCtx.createOscillator(); const filter = audioCtx.createBiquadFilter(); const gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(55, audioCtx.currentTime);
+            filter.type = 'lowpass'; filter.frequency.setValueAtTime(180, audioCtx.currentTime);
             gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-            osc.connect(filter);
-            filter.connect(gain);
-            gain.connect(masterGain);
-            osc.start();
+            osc.connect(filter); filter.connect(gain); gain.connect(masterGain); osc.start();
             const intv = setInterval(() => {
-                const now = audioCtx.currentTime;
-                const notes = [55, 55, 65.41, 73.42, 55, 82.41];
-                osc.frequency.setValueAtTime(notes[Math.floor(Math.random() * notes.length)], now);
-                filter.frequency.linearRampToValueAtTime(120 + Math.random()*350, now + 0.25);
+                const notes = [55, 55, 65.41, 73.42, 82.41];
+                osc.frequency.setValueAtTime(notes[Math.floor(Math.random() * notes.length)], audioCtx.currentTime);
+                filter.frequency.linearRampToValueAtTime(120 + Math.random()*300, audioCtx.currentTime + 0.2);
             }, 400);
             intervals.push({osc, gain, filter, intv});
         } else if (type === 'lofi') {
             const notes = [261.63, 329.63, 392.00, 523.25];
             const intv = setInterval(() => {
-                const now = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(notes[Math.floor(Math.random()*notes.length)], now);
-                gain.gain.setValueAtTime(0.04, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
-                osc.connect(gain);
-                gain.connect(masterGain);
-                osc.start();
-                setTimeout(() => { try { osc.stop(); osc.disconnect(); }catch(e){} }, 1600);
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(notes[Math.floor(Math.random()*notes.length)], audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.4);
+                osc.connect(gain); gain.connect(masterGain); osc.start();
+                setTimeout(() => { try { osc.stop(); osc.disconnect(); } catch(e){} }, 1500);
             }, 900);
             intervals.push({intv});
         }
@@ -534,137 +423,101 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
 
     async generateVideo(promptText) {
         let format = '16:9';
-        const fm = promptText.match(/(youtube|ютуб|16:9|9:16|tiktok|тикток|reels|рилс|shorts|шортс|instagram|инстаграм|1:1)/i);
+        const fm = promptText.match(/(16:9|9:16|1:1|youtube|tiktok|reels|shorts|instagram)/i);
         if (fm) {
             const t = fm[1].toLowerCase();
-            if (/youtube|ютуб|16:9/.test(t)) format = '16:9';
-            else if (/tiktok|тикток|reels|рилс|shorts|шортс|9:16/.test(t)) format = '9:16';
-            else if (/instagram|инстаграм|1:1/.test(t)) format = '1:1';
+            if (/youtube|16:9/.test(t)) format = '16:9';
+            else if (/tiktok|reels|shorts|9:16/.test(t)) format = '9:16';
+            else if (/instagram|1:1/.test(t)) format = '1:1';
         }
 
-        const cleanPrompt = promptText.replace(
-            /(видео|video|сделай видео|жаса|түсір|create video|make video|generate video|сними|youtube|ютуб|16:9|9:16|tiktok|тикток|reels|рилс|shorts|шортс|instagram|инстаграм|1:1)/gi,
-            ''
-        ).trim();
+        const cleanPrompt = promptText.replace(/(видео|video|жаса|түсір|make|сними|16:9|9:16|1:1|youtube|tiktok|reels|shorts|instagram)/gi, '').trim();
+        if (!cleanPrompt) return this.addMessage('❓ Промпт бос. Тақырып жазыңыз.', 'ai');
 
-        if (!cleanPrompt) {
-            return this.addMessage('❓ Не жасау керек? Мысалы: "видео тикток ғарыштағы мысық"', 'ai');
-        }
-
-        // Баптауларды оқу
         const filterType = document.getElementById('videoFilterSelect').value;
         const musicType = document.getElementById('videoMusicSelect').value;
         const totalFramesInput = parseInt(document.getElementById('videoFramesSelect').value);
         const speedType = document.getElementById('videoSpeedSelect').value;
         const addSubtitles = document.getElementById('videoTextCheckbox').checked;
 
-        const config = {
-            '16:9': { w: 1280, h: 720 },
-            '9:16': { w: 720, h: 1280 },
-            '1:1':  { w: 1080, h: 1080 }
-        };
+        const config = { '16:9': { w: 1280, h: 720 }, '9:16': { w: 720, h: 1280 }, '1:1': { w: 1080, h: 1080 } };
         const { w, h } = config[format];
         
-        const framesPerPhase = Math.floor(totalFramesInput / 3);
+        const framesPerPhase = Math.max(2, Math.floor(totalFramesInput / 3));
         const totalFrames = framesPerPhase * 3;
 
-        let frameDuration = 1800;
-        let crossfadeSteps = 30;
-        if (speedType === 'fast') { frameDuration = 1000; crossfadeSteps = 15; }
-        else if (speedType === 'slow') { frameDuration = 3000; crossfadeSteps = 45; }
+        let frameMs = 1800; 
+        if (speedType === 'fast') frameMs = 1000;
+        else if (speedType === 'slow') frameMs = 3000;
 
-        const statusMsg = this.addMessage(
-            `🎬 Видео өңделуде (${format})...\n⏳ Кадрлар жиналуда...`,
-            'ai'
-        );
+        const statusMsg = this.addMessage(`🎬 Видео құрастырылуда (${format})...\n⏳ Суреттер жүктелуде (Жылдам режим)...`, 'ai');
 
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
+        const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
         const ctx = canvas.getContext('2d');
 
         const phases = [
-            { name: 'алыс', prompt: `${cleanPrompt}, wide shot, full body, in the distance, cinematic` },
-            { name: 'орта', prompt: `${cleanPrompt}, medium shot, waist up, approaching, cinematic` },
-            { name: 'жақын', prompt: `${cleanPrompt}, close up portrait, detailed face, foreground, cinematic` }
+            { name: 'алыс', prompt: `${cleanPrompt}, wide shot, cinematic` },
+            { name: 'орта', prompt: `${cleanPrompt}, medium shot, cinematic` },
+            { name: 'жақын', prompt: `${cleanPrompt}, close up, cinematic` }
         ];
 
-        // Кадрларды жүктеу және Нақты уақытта Көрсету (Live Preview)
-        const imageUrls = [];
-        let counter = 0;
+        // КҮШЕЙТІЛГЕН ТҰСЫ: Барлық суреттерді параллельді (бір уақытта) өте тез жүктеу
+        const fetchTasks = [];
         for (let phase of phases) {
             for (let i = 0; i < framesPerPhase; i++) {
                 const seed = Math.floor(Math.random() * 1000000000);
-                const enhanced = `${phase.prompt}, motion blur, depth of field, 8k, photorealistic, no text, no watermark`;
-                const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}`;
-                try {
-                    const resp = await fetch(url);
-                    const blob = await resp.blob();
-                    if (blob.type.startsWith('image/')) {
-                        const bUrl = URL.createObjectURL(blob);
-                        imageUrls.push(bUrl);
-
-                        // LIVE PREVIEW: Экранға бірден шығару
-                        const imgPre = new Image();
-                        imgPre.crossOrigin = 'anonymous';
-                        await new Promise((resImg) => {
-                            imgPre.onload = () => {
-                                ctx.clearRect(0, 0, w, h);
-                                ctx.drawImage(imgPre, 0, 0, w, h);
-                                ctx.fillStyle = 'rgba(0,0,0,0.6)';
-                                ctx.fillRect(0, h - 50, w, 50);
-                                ctx.fillStyle = '#00b86b';
-                                ctx.font = 'bold 16px sans-serif';
-                                ctx.fillText(`🎬 Live Preview [${phase.name} план]: ${counter+1}/${totalFrames}`, 20, h - 20);
-                                resImg();
-                            };
-                            imgPre.onerror = () => resImg();
-                            imgPre.src = bUrl;
-                        });
-                    } else {
-                        imageUrls.push(null);
-                    }
-                } catch(e) {
-                    imageUrls.push(null);
-                }
-                counter++;
-                statusMsg.textContent = `🎬 ${format} | ${phase.name} план...\n📊 ${counter}/${totalFrames}`;
+                const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(phase.prompt + ', 8k, masterpiece, no text')}?width=${w}&height=${h}&nologo=true&seed=${seed}`;
+                fetchTasks.push((async (index) => {
+                    try {
+                        const resp = await fetch(url); const blob = await resp.blob();
+                        if (blob.type.startsWith('image/')) {
+                            const bUrl = URL.createObjectURL(blob);
+                            // Live Preview үшін экранға лезде шығару
+                            const imgTemp = new Image(); imgTemp.crossOrigin = 'anonymous';
+                            await new Promise(r => {
+                                imgTemp.onload = () => {
+                                    ctx.drawImage(imgTemp, 0, 0, w, h);
+                                    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, h-40, w, 40);
+                                    ctx.fillStyle = '#00b86b'; ctx.font = '16px sans-serif';
+                                    ctx.fillText(`⚡ Жылдам жүктеу: ${index+1}/${totalFrames}`, 20, h-15);
+                                    r();
+                                };
+                                imgTemp.onerror = r; imgTemp.src = bUrl;
+                            });
+                            return { index, url: bUrl };
+                        }
+                    } catch(e){}
+                    return { index, url: null };
+                })(fetchTasks.length));
             }
         }
 
+        const fetchResults = await Promise.all(fetchTasks);
+        fetchResults.sort((a, b) => a.index - b.index);
+        const imageUrls = fetchResults.map(r => r.url);
+
         const valid = imageUrls.filter(u => u !== null);
-        if (valid.length === 0) {
-            statusMsg.textContent = '❌ Суреттер жасалмады.';
-            return;
-        }
-        for (let i = 0; i < imageUrls.length; i++) {
-            if (!imageUrls[i]) imageUrls[i] = imageUrls[i-1] || imageUrls[i+1] || valid[0];
-        }
+        if (valid.length === 0) { statusMsg.textContent = '❌ Суреттер жасалмады.'; return; }
+        for (let i = 0; i < imageUrls.length; i++) if (!imageUrls[i]) imageUrls[i] = valid[0];
 
-        // Image элементтерін дайындау
+        // Сурет объектілерін құру
         const imgs = [];
-        await new Promise(res => {
-            let loaded = 0;
-            imageUrls.forEach((url, i) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => { imgs[i] = img; loaded++; if (loaded === imageUrls.length) res(); };
-                img.onerror = () => { imgs[i] = null; loaded++; if (loaded === imageUrls.length) res(); };
-                img.src = url;
-            });
-        });
-        for (let i = 0; i < imgs.length; i++) if (!imgs[i]) imgs[i] = imgs[i-1] || imgs[i+1];
+        await Promise.all(imageUrls.map((url, i) => new Promise(res => {
+            const img = new Image(); img.crossOrigin = 'anonymous';
+            img.onload = () => { imgs[i] = img; res(); };
+            img.onerror = () => { imgs[i] = imgs[0]; res(); };
+            img.src = url;
+        })));
 
-        // МУЗЫКА ЖӘНЕ РЕКОРДЕРДІ ІСКЕ ҚОСУ (Енді таза өңделіп жазылады)
-        let audioTrack = null;
-        let musicController = null;
+        // Дыбысты іске қосу
+        let audioTrack = null; let musicController = null;
         if (musicType !== 'none') {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const dest = audioCtx.createMediaStreamDestination();
                 musicController = this.startProceduralMusic(musicType, audioCtx, dest);
                 if (dest.stream.getAudioTracks().length > 0) audioTrack = dest.stream.getAudioTracks()[0];
-            } catch(e) { console.error(e); }
+            } catch(e){}
         }
 
         const videoStream = canvas.captureStream(30);
@@ -677,12 +530,9 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
 
         let recorder;
-        try {
-            recorder = new MediaRecorder(combinedStream, { mimeType: mime, videoBitsPerSecond: 6000000 });
-        } catch(e) {
-            statusMsg.textContent = '❌ Рекордер қатесі.';
-            if (musicController) musicController.stop();
-            return;
+        try { recorder = new MediaRecorder(combinedStream, { mimeType: mime, videoBitsPerSecond: 8000000 }); } catch(e) {
+            statusMsg.textContent = '❌ Рекордер іске қосылмады.';
+            if (musicController) musicController.stop(); return;
         }
 
         const chunks = [];
@@ -690,105 +540,103 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         recorder.onstop = () => {
             if (musicController) musicController.stop();
             const blob = new Blob(chunks, { type: mime });
-            const url = URL.createObjectURL(blob);
-            statusMsg.innerHTML = '';
-            const video = document.createElement('video');
-            video.src = url;
-            video.controls = true;
-            video.autoplay = true;
-            video.loop = true;
-            video.style.width = '100%';
-            video.style.borderRadius = '10px';
+            const url = URL.createObjectURL(blob); statusMsg.innerHTML = '';
+            const video = document.createElement('video'); video.src = url; video.controls = true; video.autoplay = true; video.loop = true; video.style.width = '100%'; video.style.borderRadius = '10px';
             statusMsg.appendChild(video);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `serikai_cinema_${format.replace(':','-')}.webm`;
-            link.textContent = `💾 Жүктеп алу (${format})`;
-            link.style.cssText = 'display:block; margin-top:6px; font-size:13px; color:#00b86b;';
+            const link = document.createElement('a'); link.href = url; link.download = `serik_ai_fast.webm`; link.textContent = `💾 Жүктеп алу (${format})`; link.style.cssText = 'display:block; margin-top:6px; color:#00b86b; font-weight:bold;';
             statusMsg.appendChild(link);
             imageUrls.forEach(u => URL.revokeObjectURL(u));
         };
 
         recorder.start();
-        statusMsg.textContent = `⚡ Жоғары сапада жазылуда...`;
+        statusMsg.textContent = `⚡ Рендеринг және Жазу жүріп жатыр...`;
 
-        // Фильтрлер, Кроссфейд және Субтитр салу функциясы
-        const drawKenBurns = (img, progress, textOverlay = '') => {
-            ctx.clearRect(0, 0, w, h);
-            
-            // Түс түзету (Color Grading)
-            if (filterType === 'cyberpunk') ctx.filter = 'contrast(130%) saturate(160%) hue-rotate(-10deg)';
-            else if (filterType === 'vintage') ctx.filter = 'sepia(60%) contrast(95%) brightness(90%)';
-            else if (filterType === 'noir') ctx.filter = 'grayscale(100%) contrast(140%)';
+        const applyFiltersAndVignette = (progress) => {
+            if (filterType === 'cyberpunk') ctx.filter = 'contrast(135%) saturate(165%) hue-rotate(-10deg)';
+            else if (filterType === 'vintage') ctx.filter = 'sepia(65%) contrast(95%) brightness(92%)';
+            else if (filterType === 'noir') ctx.filter = 'grayscale(100%) contrast(145%)';
             else ctx.filter = 'none';
 
-            const zoom = 1 + 0.03 * Math.sin(progress * Math.PI); 
-            const panX = 0.015 * Math.cos(progress * Math.PI * 2) * w;
-            const panY = 0.015 * Math.sin(progress * Math.PI * 2) * h;
-            const dw = w * zoom;
-            const dh = h * zoom;
-            const dx = (w - dw) / 2 + panX;
-            const dy = (h - dh) / 2 + panY;
-            ctx.drawImage(img, dx, dy, dw, dh);
-            ctx.filter = 'none'; // Мәтін үшін фильтрді өшіру
-            
-            // Кинематографиялық қараңғылау (Vignette)
-            const vignette = ctx.createRadialGradient(w/2, h/2, Math.min(w, h)*0.4, w/2, h/2, Math.max(w, h)*0.7);
-            vignette.addColorStop(0, 'rgba(0,0,0,0)');
-            vignette.addColorStop(1, 'rgba(0,0,0,0.65)');
-            ctx.fillStyle = vignette;
-            ctx.fillRect(0, 0, w, h);
-
-            // Субтитрлер (Мәтін)
-            if (textOverlay) {
-                ctx.save();
-                ctx.font = 'bold ' + Math.floor(h * 0.045) + 'px sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 4;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                ctx.strokeText(textOverlay, w / 2, h - 35);
-                ctx.fillText(textOverlay, w / 2, h - 35);
-                ctx.restore();
-            }
+            const vignette = ctx.createRadialGradient(w/2, h/2, Math.min(w, h)*0.4, w/2, h/2, Math.max(w, h)*0.75);
+            vignette.addColorStop(0, 'rgba(0,0,0,0)'); vignette.addColorStop(1, 'rgba(0,0,0,0.6)');
+            ctx.fillStyle = vignette; ctx.fillRect(0, 0, w, h);
+            ctx.filter = 'none';
         };
 
-        const blend = (imgFrom, imgTo, steps, startProg, subFrom, subTo) => {
-            return new Promise(resolve => {
-                let step = 0;
-                const interval = setInterval(() => {
-                    step++;
-                    const alpha = step / steps;
-                    const prog = startProg + (1 - startProg) * alpha;
-                    ctx.globalAlpha = 1 - alpha;
-                    drawKenBurns(imgFrom, prog, subFrom);
-                    ctx.globalAlpha = alpha;
-                    drawKenBurns(imgTo, prog, subTo);
-                    ctx.globalAlpha = 1;
-                    if (step >= steps) {
-                        clearInterval(interval);
-                        resolve();
-                    }
-                }, frameDuration / steps);
+        const drawText = (text) => {
+            if (!text || !addSubtitles) return;
+            ctx.save(); ctx.font = `bold ${Math.floor(h * 0.045)}px sans-serif`;
+            ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#000000'; ctx.lineWidth = 4;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+            ctx.strokeText(text, w / 2, h - 35); ctx.fillText(text, w / 2, h - 35);
+            ctx.restore();
+        };
+
+        const getSubText = (idx) => {
+            if (idx < framesPerPhase) return `${cleanPrompt} — Алыс план`;
+            if (idx < framesPerPhase * 2) return `${cleanPrompt} — Орта план`;
+            return `${cleanPrompt} — Жақын план`;
+        };
+
+        // КҮШЕЙТІЛГЕН ТҰСЫ: Браузер деңгейіндегі requestAnimationFrame арқылы Ultra-Fast рендеринг
+        const crossfadeMs = 300; 
+        for (let i = 0; i < imgs.length; i++) {
+            const currentImg = imgs[i];
+            const nextImg = imgs[i + 1] || imgs[i];
+            const currentText = getSubText(i);
+            const nextText = getSubText(i + 1 || i);
+
+            // 1. Негізгі кадрдың тұру уақыты (Static Display + Ken Burns)
+            let start = performance.now();
+            await new Promise(res => {
+                const loop = (now) => {
+                    const elapsed = now - start;
+                    const totalDisplay = frameMs - crossfadeMs;
+                    const ratio = Math.min(elapsed / totalDisplay, 1);
+                    const zoom = 1 + 0.03 * Math.sin(ratio * Math.PI);
+                    
+                    ctx.clearRect(0, 0, w, h);
+                    ctx.drawImage(currentImg, (w - w*zoom)/2, (h - h*zoom)/2, w*zoom, h*zoom);
+                    applyFiltersAndVignette();
+                    drawText(currentText);
+
+                    if (elapsed < totalDisplay) requestAnimationFrame(loop);
+                    else res();
+                };
+                requestAnimationFrame(loop);
             });
-        };
 
-        // Анимацияны ойнату
-        let progress = 0;
-        const getSub = (idx) => {
-            if (!addSubtitles) return '';
-            if (idx < framesPerPhase) return `${cleanPrompt} (Алыс план)`;
-            if (idx < framesPerPhase * 2) return `${cleanPrompt} (Орта план)`;
-            return `${cleanPrompt} (Жақын план)`;
-        };
+            // 2. Екі суреттің арасындағы жұмсақ өту (Crossfade Transition)
+            if (i < imgs.length - 1) {
+                start = performance.now();
+                await new Promise(res => {
+                    const loop = (now) => {
+                        const elapsed = now - start;
+                        const alpha = Math.min(elapsed / crossfadeMs, 1);
+                        
+                        ctx.clearRect(0, 0, w, h);
+                        
+                        // Алдыңғы сурет өшеді
+                        ctx.globalAlpha = 1 - alpha;
+                        ctx.drawImage(currentImg, 0, 0, w, h);
+                        
+                        // Жаңа сурет пайда болады
+                        ctx.globalAlpha = alpha;
+                        ctx.drawImage(nextImg, 0, 0, w, h);
+                        
+                        ctx.globalAlpha = 1;
+                        applyFiltersAndVignette();
+                        drawText(alpha < 0.5 ? currentText : nextText);
 
-        drawKenBurns(imgs[0], 0, getSub(0));
-        for (let i = 0; i < imgs.length - 1; i++) {
-            await blend(imgs[i], imgs[i+1], crossfadeSteps, progress, getSub(i), getSub(i+1));
-            progress = (i + 1) / (imgs.length - 1);
+                        if (elapsed < crossfadeMs) requestAnimationFrame(loop);
+                        else res();
+                    };
+                    requestAnimationFrame(loop);
+                });
+            }
         }
-        await new Promise(r => setTimeout(r, 1200));
+
+        await new Promise(r => setTimeout(r, 800));
         recorder.stop();
         statusMsg.textContent = '✅ Кинематографиялық видео дайын!';
     }
@@ -802,104 +650,47 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
     }
 
     addMessage(text, sender, isHTML = false) {
-        const div = document.createElement('div');
-        div.className = `msg ${sender}`;
-        if (isHTML) {
-            div.innerHTML = text;
-        } else {
-            div.textContent = text;
-        }
+        const div = document.createElement('div'); div.className = `msg ${sender}`;
+        if (isHTML) div.innerHTML = text; else div.textContent = text;
         if (sender === 'ai') {
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'copy-btn';
-            copyBtn.textContent = '📋';
-            copyBtn.onclick = () => {
-                navigator.clipboard.writeText(text);
-                copyBtn.textContent = '✅';
-                setTimeout(() => copyBtn.textContent = '📋', 1500);
-            };
-            div.appendChild(copyBtn);
-            this.lastAIMessage = div;
+            const copyBtn = document.createElement('button'); copyBtn.className = 'copy-btn'; copyBtn.textContent = '📋';
+            copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.textContent = '✅'; setTimeout(() => copyBtn.textContent = '📋', 1500); };
+            div.appendChild(copyBtn); this.lastAIMessage = div;
         }
-        this.chat.appendChild(div);
-        this.chat.scrollTop = this.chat.scrollHeight;
-
-        if (sender === 'ai' && this.voiceEnabled && !isHTML && text.length < 500) {
-            this.speak(text);
-        }
+        this.chat.appendChild(div); this.chat.scrollTop = this.chat.scrollHeight;
+        if (sender === 'ai' && this.voiceEnabled && !isHTML && text.length < 500) this.speak(text);
         return div;
     }
 
-    clearChat() {
-        this.chat.innerHTML = '';
-        this.abortController?.abort();
-        this.messageCache.clear();
-        this.addMessage('Чат очищен.', 'ai');
-    }
-
-    toggleVoice() {
-        this.voiceEnabled = !this.voiceEnabled;
-        this.voiceBtn.textContent = this.voiceEnabled ? '🔊 Голос: ВКЛ' : '🔇 Голос: ВЫКЛ';
-        if (!this.voiceEnabled) {
-            speechSynthesis.cancel();
-        } else {
-            if ('speechSynthesis' in window) {
-                const dummy = new SpeechSynthesisUtterance('');
-                dummy.volume = 0;
-                speechSynthesis.speak(dummy);
-            }
-        }
-    }
-
+    clearChat() { this.chat.innerHTML = ''; this.abortController?.abort(); this.messageCache.clear(); this.addMessage('Чат очищен.', 'ai'); }
+    toggleVoice() { this.voiceEnabled = !this.voiceEnabled; this.voiceBtn.textContent = this.voiceEnabled ? '🔊 Голос: ВКЛ' : '🔇 Голос: ВЫКЛ'; if (!this.voiceEnabled) speechSynthesis.cancel(); }
     speak(text) {
         if (!this.voiceEnabled || !('speechSynthesis' in window)) return;
-        speechSynthesis.cancel();
-        const cleanText = text.replace(/[📋✅⚛️📜🔥💻🎬]/g, '');
+        speechSynthesis.cancel(); const cleanText = text.replace(/[📋✅⚛️📜🔥💻🎬]/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        if (/[әғқңөұүһіІ]/g.test(cleanText)) {
-            utterance.lang = 'kk-KZ';
-        } else if (/[a-zA-Z]{4,}/.test(cleanText) && !/[а-яё]/i.test(cleanText)) {
-            utterance.lang = 'en-US';
-        } else {
-            utterance.lang = 'ru-RU';
-        }
-        utterance.rate = 1.1;
-        speechSynthesis.speak(utterance);
+        if (/[әғқңөұүһіІ]/g.test(cleanText)) utterance.lang = 'kk-KZ';
+        else if (/[a-zA-Z]{4,}/.test(cleanText) && !/[а-яё]/i.test(cleanText)) utterance.lang = 'en-US';
+        else utterance.lang = 'ru-RU';
+        utterance.rate = 1.1; speechSynthesis.speak(utterance);
     }
 
-    changeTheme() {
-        document.body.className = `theme-${this.themeSelect.value}`;
-    }
-
-    checkAdmin() {
-        this.adminPanel.style.display = this.adminPass.value === 'nurik777' ? 'block' : 'none';
-    }
-
+    changeTheme() { document.body.className = `theme-${this.themeSelect.value}`; }
+    checkAdmin() { this.adminPanel.style.display = this.adminPass.value === 'nurik777' ? 'block' : 'none'; }
     bulkLearn() {
-        const lines = this.bulkTextarea.value.split('\n');
-        let count = 0;
+        const lines = this.bulkTextarea.value.split('\n'); let count = 0;
         for (let line of lines) {
             const parts = line.split(' это ');
             if (parts.length >= 2) {
-                const q = parts[0].trim().toLowerCase();
-                const a = parts.slice(1).join(' это ').trim();
-                if (q && a) {
-                    this.memory[q] = a;
-                    count++;
-                }
+                const q = parts[0].trim().toLowerCase(); const a = parts.slice(1).join(' это ').trim();
+                if (q && a) { this.memory[q] = a; count++; }
             }
         }
-        if (count > 0 && this.db) {
-            this.db.ref('serik_memory').set(this.memory);
-            alert(`✅ Сохранено ${count} записей в облако`);
-        }
+        if (count > 0 && this.db) { this.db.ref('serik_memory').set(this.memory); alert(`✅ Жүктелді: ${count}`); }
         this.bulkTextarea.value = '';
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new SerikAI();
-});
+document.addEventListener('DOMContentLoaded', () => { window.app = new SerikAI(); });
 </script>
 </body>
 </html>
