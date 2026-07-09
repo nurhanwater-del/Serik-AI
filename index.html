@@ -3,31 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Serik AI Pro — Мультиязычный</title>
+    <title>Serik AI — Мультиязычный assistant</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         :root {
+            --radius: 14px; --transition: 0.2s ease;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        body {
             --bg: #0f0f14; --sidebar-bg: #1a1a24; --text: #fff;
             --user-msg: linear-gradient(135deg, #00b86b, #008f53);
             --ai-msg: linear-gradient(135deg, #2b2b3a, #20202d);
             --border: #333; --accent: #00b86b;
-            --radius: 14px; --transition: 0.2s ease;
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
+
             font-family: 'Segoe UI', Roboto, sans-serif;
             background: var(--bg); color: var(--text);
             display: flex; height: 100vh; overflow: hidden;
-            transition: background 0.3s;
+            transition: background 0.3s, color 0.3s;
         }
+        
+        /* Темы оформления (Обои) */
+        body.theme-hacker {
+            --bg: #000000; --sidebar-bg: #051405; --text: #00ff00;
+            --user-msg: linear-gradient(135deg, #005500, #003300);
+            --ai-msg: linear-gradient(135deg, #0c1f0c, #051405);
+            --border: #00ff00; --accent: #00ff00;
+        }
+        body.theme-cyberpunk {
+            --bg: #12041c; --sidebar-bg: #1b022b; --text: #00ffff;
+            --user-msg: linear-gradient(135deg, #ff007f, #99004c);
+            --ai-msg: linear-gradient(135deg, #250938, #12041c);
+            --border: #ff007f; --accent: #00ffff;
+        }
+        body.theme-light {
+            --bg: #f4f4f9; --sidebar-bg: #ffffff; --text: #1a1a24;
+            --user-msg: linear-gradient(135deg, #00b86b, #008f53);
+            --ai-msg: linear-gradient(135deg, #e1e1e8, #f0f0f5);
+            --border: #ccc; --accent: #00b86b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         .sidebar {
             width: 280px; background: var(--sidebar-bg); padding: 20px;
             overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
             box-shadow: 2px 0 15px rgba(0,0,0,0.5); z-index: 10;
+            transition: background 0.3s;
         }
         .sidebar h3 { font-size: 22px; color: var(--accent); text-align: center; }
+        
         button, select, input, textarea {
             background: #2b2b3a; border: 1px solid var(--border);
             color: white; padding: 10px; border-radius: 8px;
@@ -35,6 +60,13 @@
         }
         button { cursor: pointer; font-weight: bold; }
         button:hover { background: #3a3a4d; border-color: var(--accent); }
+        
+        /* Адаптация элементов под темы */
+        body.theme-hacker button, body.theme-hacker select, body.theme-hacker input, body.theme-hacker textarea { background: #001100; color: #00ff00; }
+        body.theme-cyberpunk button, body.theme-cyberpunk select, body.theme-cyberpunk input, body.theme-cyberpunk textarea { background: #250938; color: #00ffff; }
+        body.theme-light button, body.theme-light select, body.theme-light input, body.theme-light textarea { background: #e1e1e8; color: #1a1a24; }
+        body.theme-light .msg.ai { color: #1a1a24; }
+
         .main { flex: 1; display: flex; flex-direction: column; height: 100vh; }
         .chat {
             flex: 1; overflow-y: auto; padding: 20px;
@@ -47,12 +79,13 @@
             position: relative; transition: transform 0.2s;
         }
         .msg:hover { transform: translateY(-1px); }
-        .user { background: var(--user-msg); margin-left: auto; border-bottom-right-radius: 4px; }
+        .user { background: var(--user-msg); color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
         .ai { background: var(--ai-msg); margin-right: auto; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
-        .row { background: #111; border-top: 1px solid #222; padding: 12px; }
+        
+        .row { background: var(--sidebar-bg); border-top: 1px solid var(--border); padding: 12px; transition: background 0.3s; }
         .input-group { display: flex; gap: 8px; }
         #input { flex: 1; }
-        .generators { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; background: #1a1a24; }
+        .generators { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; background: var(--sidebar-bg); transition: background 0.3s; }
         .generators button { white-space: nowrap; padding: 6px 12px; font-size: 12px; border-radius: 20px; }
         .disclaimer { text-align: center; font-size: 11px; color: #777; margin-top: 6px; }
         .copy-btn {
@@ -66,7 +99,7 @@
         .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0%,100%{opacity:0.2} 20%{opacity:1} }
 
-        /* Мобильді нұсқа */
+        /* Мобильная версия */
         @media (max-width: 768px) {
             body { flex-direction: column; }
             .sidebar {
@@ -88,14 +121,14 @@
                 padding-bottom: calc(8px + var(--safe-bottom));
                 border-top: 1px solid #222;
             }
-            input, textarea { font-size: 16px !important; } /* iOS үшін маңызды */
+            input, textarea { font-size: 16px !important; }
         }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <h3>🤖 Serik AI Pro</h3>
+    <h3>🤖 Serik AI</h3>
     <button id="menuToggle">⚙️ Настройки</button>
     <div id="settingsMenu" style="display:none; flex-direction:column; gap:8px;">
         <select id="themeSelect">
@@ -176,7 +209,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         
         this.initFirebase();
         this.initEventListeners();
-        this.addMessage("Привет! Я Serik AI Pro. Понимаю русский, қазақша, English. Готов помочь! ✨", 'ai');
+        this.addMessage("Привет! Я Serik AI. Понимаю русский, қазақша, English. Готов помочь! ✨", 'ai');
     }
 
     initFirebase() {
@@ -395,14 +428,14 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
 
     async generateVideo(promptText) {
         const cleanPrompt = promptText.replace(/(видео|video|сделай видео|жаса|create video|make video|generate video)/gi, '').trim();
-        if (!cleanPrompt) return this.addMessage('Уточните, что должно быть в видео. / Не жасау керек? / What should be in the video?', 'ai');
+        if (!cleanPrompt) return this.addMessage('Уточните, что должно быть на видео.', 'ai');
 
         const framesCount = 5;
         const frameDuration = 2000;
         const width = 512;
         const height = 512;
 
-        const statusMsg = this.addMessage(`🎬 Видео жасалуда... 0/${framesCount}`, 'ai');
+        const statusMsg = this.addMessage(`🎬 Создание видео... 0/${framesCount}`, 'ai');
 
         const imageUrls = [];
         for (let i = 0; i < framesCount; i++) {
@@ -420,15 +453,14 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             } catch(e) {
                 imageUrls.push(null);
             }
-            statusMsg.textContent = `🎬 Видео жасалуда... ${i+1}/${framesCount}`;
+            statusMsg.textContent = `🎬 Создание видео... ${i+1}/${framesCount}`;
         }
 
         if (imageUrls.filter(u => u).length === 0) {
-            statusMsg.textContent = '❌ Суреттер жасалмады. Қайталап көріңіз.';
+            statusMsg.textContent = '❌ Ошибка генерации изображений. Попробуйте еще раз.';
             return;
         }
 
-        // MediaRecorder тексеру
         if (typeof MediaRecorder === 'undefined') {
             statusMsg.textContent = '❌ Ваш браузер не поддерживает запись видео. Попробуйте Chrome или обновленный Safari.';
             return;
@@ -444,7 +476,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         if (!MediaRecorder.isTypeSupported(mimeType)) {
             mimeType = 'video/webm; codecs=vp8';
             if (!MediaRecorder.isTypeSupported(mimeType)) {
-                mimeType = 'video/webm'; // fallback
+                mimeType = 'video/webm';
             }
         }
         
@@ -452,7 +484,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         try {
             recorder = new MediaRecorder(stream, { mimeType: mimeType });
         } catch(e) {
-            statusMsg.textContent = '❌ Не удалось создать рекордер. / Рекордер жасау мүмкін болмады.';
+            statusMsg.textContent = '❌ Не удалось запустить запись видео.';
             return;
         }
 
@@ -476,7 +508,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             const link = document.createElement('a');
             link.href = url;
             link.download = 'serikai_video.webm';
-            link.textContent = '💾 Жүктеп алу / Скачать / Download';
+            link.textContent = '💾 Скачать видео';
             link.style.display = 'block';
             link.style.marginTop = '5px';
             link.style.fontSize = '12px';
@@ -505,7 +537,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
                 ctx.fillRect(0, 0, width, height);
                 ctx.fillStyle = '#fff';
                 ctx.font = '20px sans-serif';
-                ctx.fillText('Кадр жүктелмеді', 50, height/2);
+                ctx.fillText('Ошибка загрузки кадра', 50, height/2);
                 frameIndex++;
                 setTimeout(drawNext, frameDuration);
             };
@@ -545,7 +577,6 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         this.chat.appendChild(div);
         this.chat.scrollTop = this.chat.scrollHeight;
 
-        // Автоматически озвучиваем ответ (если разрешено)
         if (sender === 'ai' && this.voiceEnabled && !isHTML && text.length < 500) {
             this.speak(text);
         }
@@ -556,7 +587,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         this.chat.innerHTML = '';
         this.abortController?.abort();
         this.messageCache.clear();
-        this.addMessage('Чат очищен. / Чат тазаланды. / Chat cleared.', 'ai');
+        this.addMessage('Чат очищен.', 'ai');
     }
 
     toggleVoice() {
@@ -565,7 +596,6 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         if (!this.voiceEnabled) {
             speechSynthesis.cancel();
         } else {
-            // Пробуждаем speechSynthesis (iOS требует действие пользователя)
             if ('speechSynthesis' in window) {
                 const dummy = new SpeechSynthesisUtterance('');
                 dummy.volume = 0;
