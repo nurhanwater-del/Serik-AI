@@ -401,30 +401,37 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
     }
 
     async generateImage(promptText) {
-        const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
-        const enhanced = `${userPrompt}, masterpiece, 8k, hyperrealistic, no text`;
-        const seed = Math.floor(Math.random() * 1000000000);
-        const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
+    // Пайдаланушының мәтінінен "сурет сал", "нарисуй" сияқты артық сөздерді тазалау
+    const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
+    
+    // Сурет сапасын арттыратын қосымша тегтер қосу
+    const enhanced = `${userPrompt}, masterpiece, 8k, hyperrealistic, no text`;
+    const seed = Math.floor(Math.random() * 1000000000); // Әр жолы әртүрлі сурет шығуы үшін рандомды сан
+    const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
+    
+    // Чатқа жүктеліп жатқаны туралы хабарлама шығару
+    const msgDiv = this.addMessage('🎨 Генерирую изображение...', 'ai');
+    try {
+        const response = await fetch(imgUrl);
+        const blob = await response.blob();
         
-        const msgDiv = this.addMessage('🎨 Генерирую изображение...', 'ai');
-        try {
-            const response = await fetch(imgUrl);
-            const blob = await response.blob();
-            if (blob.type.startsWith('image/')) {
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(blob);
-                img.style.width = '100%';
-                img.style.borderRadius = '10px';
-                img.style.marginTop = '10px';
-                msgDiv.innerHTML = '';
-                msgDiv.appendChild(img);
-            } else {
-                msgDiv.textContent = '❌ Не удалось создать изображение. Попробуйте другой запрос.';
-            }
-        } catch {
-            msgDiv.textContent = '❌ Ошибка загрузки изображения.';
+        // Егер келген жауап шынымен сурет болса, оны чатқа қосу
+        if (blob.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(blob);
+            img.style.width = '100%';
+            img.style.borderRadius = '10px';
+            img.style.marginTop = '10px';
+            msgDiv.innerHTML = ''; // Жүктелу мәтінін өшіріп, орнына суретті қоямыз
+            msgDiv.appendChild(img);
+        } else {
+            msgDiv.textContent = '❌ Не удалось создать изображение. Попробуйте другой запрос.';
         }
+    } catch {
+        msgDiv.textContent = '❌ Ошибка загрузки изображения.';
     }
+}
+
 
     async generateVideo(promptText) {
         const cleanPrompt = promptText.replace(/(видео|video|сделай видео|жаса|create video|make video|generate video)/gi, '').trim();
