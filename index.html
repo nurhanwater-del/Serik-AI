@@ -138,6 +138,36 @@
             <option value="light">☀️ Светлая</option>
         </select>
         <button id="voiceBtn">🔇 Голос: ВЫКЛ</button>
+        
+        <hr style="border:0; border-top:1px solid var(--border); margin:4px 0;">
+        <span style="font-size:12px; font-weight:bold; color:var(--accent); text-align:center;">🎬 Видео баптаулары</span>
+        <select id="videoFilterSelect">
+            <option value="default">🎬 Фильтр: Стандартты</option>
+            <option value="cyberpunk">🔮 Фильтр: Cyberpunk</option>
+            <option value="vintage">🎞️ Фильтр: Vintage Кино</option>
+            <option value="noir">🕶️ Фильтр: Cinematic Noir</option>
+        </select>
+        <select id="videoMusicSelect">
+            <option value="none">🔇 Музыка: Жоқ</option>
+            <option value="ambient">🎵 Музыка: Ambient Drone</option>
+            <option value="cyberpunk">⚡ Музыка: Cyberpunk Synth</option>
+            <option value="lofi">☕ Музыка: Lo-Fi Beats</option>
+        </select>
+        <select id="videoFramesSelect">
+            <option value="6">⏱️ Сапа: Тез (6 кадр)</option>
+            <option value="15" selected>⏱️ Сапа: Стандарт (15 кадр)</option>
+            <option value="24">⏱️ Сапа: Эпик (24 кадр)</option>
+        </select>
+        <select id="videoSpeedSelect">
+            <option value="fast">🏃 Кадр жылдамдығы: Тез</option>
+            <option value="normal" selected>🏃 Кадр жылдамдығы: Қалыпты</option>
+            <option value="slow">🏃 Кадр жылдамдығы: Баяу</option>
+        </select>
+        <label style="font-size:12px; display:flex; align-items:center; gap:5px; color:var(--text); cursor:pointer; padding-left:4px;">
+            <input type="checkbox" id="videoTextCheckbox" checked style="width:auto; height:auto;"> 💬 Субтитрлерді қосу
+        </label>
+        <hr style="border:0; border-top:1px solid var(--border); margin:4px 0;">
+
         <input type="password" id="adminPass" placeholder="Пароль администратора">
         <div id="adminPanel" style="display:none;">
             <textarea id="bulk" placeholder="вопрос это ответ"></textarea>
@@ -378,7 +408,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
                 continue;
             }
         }
-        return "Извини, сервер перегружен. Повтори запрос позже.";
+        return "Извини, server перегружен. Повтори запрос позже.";
     }
 
     async getWebContext(query) {
@@ -426,8 +456,83 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         }
     }
 
+    // Керемет ИИ Музыка Синтезаторы (Web Audio API)
+    startProceduralMusic(type, audioCtx, destination) {
+        if (type === 'none') return null;
+        const masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        masterGain.connect(destination);
+        masterGain.connect(audioCtx.destination);
+        
+        let intervals = [];
+        if (type === 'ambient') {
+            const freqs = [110, 138.61, 164.81, 220];
+            freqs.forEach((f, index) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 2 + index);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start();
+                const intv = setInterval(() => {
+                    const now = audioCtx.currentTime;
+                    gain.gain.linearRampToValueAtTime(0.01 + Math.random()*0.04, now + 1.5);
+                }, 2000);
+                intervals.push({osc, gain, intv});
+            });
+        } else if (type === 'cyberpunk') {
+            const osc = audioCtx.createOscillator();
+            const filter = audioCtx.createBiquadFilter();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(55, audioCtx.currentTime);
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(180, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(masterGain);
+            osc.start();
+            const intv = setInterval(() => {
+                const now = audioCtx.currentTime;
+                const notes = [55, 55, 65.41, 73.42, 55, 82.41];
+                osc.frequency.setValueAtTime(notes[Math.floor(Math.random() * notes.length)], now);
+                filter.frequency.linearRampToValueAtTime(120 + Math.random()*350, now + 0.25);
+            }, 400);
+            intervals.push({osc, gain, filter, intv});
+        } else if (type === 'lofi') {
+            const notes = [261.63, 329.63, 392.00, 523.25];
+            const intv = setInterval(() => {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(notes[Math.floor(Math.random()*notes.length)], now);
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start();
+                setTimeout(() => { try { osc.stop(); osc.disconnect(); }catch(e){} }, 1600);
+            }, 900);
+            intervals.push({intv});
+        }
+        return {
+            stop: () => {
+                intervals.forEach(item => {
+                    if (item.intv) clearInterval(item.intv);
+                    if (item.osc) { try { item.osc.stop(); item.osc.disconnect(); } catch(e){} }
+                    if (item.gain) item.gain.disconnect();
+                });
+                masterGain.disconnect();
+            }
+        };
+    }
+
     async generateVideo(promptText) {
-        // Форматты анықтау
         let format = '16:9';
         const fm = promptText.match(/(youtube|ютуб|16:9|9:16|tiktok|тикток|reels|рилс|shorts|шортс|instagram|инстаграм|1:1)/i);
         if (fm) {
@@ -443,35 +548,48 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         ).trim();
 
         if (!cleanPrompt) {
-            return this.addMessage('❓ Не жасау керек? Мысалы: "видео tiktok жүгіріп келе жатқан ит"', 'ai');
+            return this.addMessage('❓ Не жасау керек? Мысалы: "видео тикток ғарыштағы мысық"', 'ai');
         }
 
-        // --- КИНЕМАТОГРАФИЯЛЫҚ КОНФИГ ---
+        // Баптауларды оқу
+        const filterType = document.getElementById('videoFilterSelect').value;
+        const musicType = document.getElementById('videoMusicSelect').value;
+        const totalFramesInput = parseInt(document.getElementById('videoFramesSelect').value);
+        const speedType = document.getElementById('videoSpeedSelect').value;
+        const addSubtitles = document.getElementById('videoTextCheckbox').checked;
+
         const config = {
             '16:9': { w: 1280, h: 720 },
             '9:16': { w: 720, h: 1280 },
             '1:1':  { w: 1080, h: 1080 }
         };
         const { w, h } = config[format];
-        const framesPerPhase = 5;        // әр кезеңге 5 кадр
-        const totalFrames = 15;          // барлығы 15
-        const frameDuration = 1800;      // 1.8 сек / кадр
-        const crossfadeSteps = 30;       // өте жұмсақ өту
-        // ---------------------------------
+        
+        const framesPerPhase = Math.floor(totalFramesInput / 3);
+        const totalFrames = framesPerPhase * 3;
+
+        let frameDuration = 1800;
+        let crossfadeSteps = 30;
+        if (speedType === 'fast') { frameDuration = 1000; crossfadeSteps = 15; }
+        else if (speedType === 'slow') { frameDuration = 3000; crossfadeSteps = 45; }
 
         const statusMsg = this.addMessage(
-            `🎬 Кинематографиялық видео (${format})...\n⏳ 1.5 мин\n📊 0/${totalFrames}`,
+            `🎬 Видео өңделуде (${format})...\n⏳ Кадрлар жиналуда...`,
             'ai'
         );
 
-        // 3 фаза: алыс, орта, жақын
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+
         const phases = [
             { name: 'алыс', prompt: `${cleanPrompt}, wide shot, full body, in the distance, cinematic` },
             { name: 'орта', prompt: `${cleanPrompt}, medium shot, waist up, approaching, cinematic` },
             { name: 'жақын', prompt: `${cleanPrompt}, close up portrait, detailed face, foreground, cinematic` }
         ];
 
-        // Барлық кадрларды жинау
+        // Кадрларды жүктеу және Нақты уақытта Көрсету (Live Preview)
         const imageUrls = [];
         let counter = 0;
         for (let phase of phases) {
@@ -483,7 +601,26 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
                     const resp = await fetch(url);
                     const blob = await resp.blob();
                     if (blob.type.startsWith('image/')) {
-                        imageUrls.push(URL.createObjectURL(blob));
+                        const bUrl = URL.createObjectURL(blob);
+                        imageUrls.push(bUrl);
+
+                        // LIVE PREVIEW: Экранға бірден шығару
+                        const imgPre = new Image();
+                        imgPre.crossOrigin = 'anonymous';
+                        await new Promise((resImg) => {
+                            imgPre.onload = () => {
+                                ctx.clearRect(0, 0, w, h);
+                                ctx.drawImage(imgPre, 0, 0, w, h);
+                                ctx.fillStyle = 'rgba(0,0,0,0.6)';
+                                ctx.fillRect(0, h - 50, w, 50);
+                                ctx.fillStyle = '#00b86b';
+                                ctx.font = 'bold 16px sans-serif';
+                                ctx.fillText(`🎬 Live Preview [${phase.name} план]: ${counter+1}/${totalFrames}`, 20, h - 20);
+                                resImg();
+                            };
+                            imgPre.onerror = () => resImg();
+                            imgPre.src = bUrl;
+                        });
                     } else {
                         imageUrls.push(null);
                     }
@@ -495,7 +632,6 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             }
         }
 
-        // Замена битых кадров
         const valid = imageUrls.filter(u => u !== null);
         if (valid.length === 0) {
             statusMsg.textContent = '❌ Суреттер жасалмады.';
@@ -505,32 +641,54 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             if (!imageUrls[i]) imageUrls[i] = imageUrls[i-1] || imageUrls[i+1] || valid[0];
         }
 
-        // MediaRecorder
-        if (typeof MediaRecorder === 'undefined') {
-            statusMsg.textContent = '❌ Браузер бейне жазуды қолдамайды.';
-            return;
+        // Image элементтерін дайындау
+        const imgs = [];
+        await new Promise(res => {
+            let loaded = 0;
+            imageUrls.forEach((url, i) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => { imgs[i] = img; loaded++; if (loaded === imageUrls.length) res(); };
+                img.onerror = () => { imgs[i] = null; loaded++; if (loaded === imageUrls.length) res(); };
+                img.src = url;
+            });
+        });
+        for (let i = 0; i < imgs.length; i++) if (!imgs[i]) imgs[i] = imgs[i-1] || imgs[i+1];
+
+        // МУЗЫКА ЖӘНЕ РЕКОРДЕРДІ ІСКЕ ҚОСУ (Енді таза өңделіп жазылады)
+        let audioTrack = null;
+        let musicController = null;
+        if (musicType !== 'none') {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const dest = audioCtx.createMediaStreamDestination();
+                musicController = this.startProceduralMusic(musicType, audioCtx, dest);
+                if (dest.stream.getAudioTracks().length > 0) audioTrack = dest.stream.getAudioTracks()[0];
+            } catch(e) { console.error(e); }
         }
 
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        const stream = canvas.captureStream(30);
+        const videoStream = canvas.captureStream(30);
+        const tracks = [...videoStream.getVideoTracks()];
+        if (audioTrack) tracks.push(audioTrack);
+        const combinedStream = new MediaStream(tracks);
+
         let mime = 'video/webm; codecs=vp9';
         if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm; codecs=vp8';
         if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
 
         let recorder;
         try {
-            recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 });
+            recorder = new MediaRecorder(combinedStream, { mimeType: mime, videoBitsPerSecond: 6000000 });
         } catch(e) {
-            statusMsg.textContent = '❌ Рекордер құрылмады.';
+            statusMsg.textContent = '❌ Рекордер қатесі.';
+            if (musicController) musicController.stop();
             return;
         }
 
         const chunks = [];
         recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
         recorder.onstop = () => {
+            if (musicController) musicController.stop();
             const blob = new Blob(chunks, { type: mime });
             const url = URL.createObjectURL(blob);
             statusMsg.innerHTML = '';
@@ -552,36 +710,51 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         };
 
         recorder.start();
+        statusMsg.textContent = `⚡ Жоғары сапада жазылуда...`;
 
-        // Суреттерді жүктеу
-        const imgs = [];
-        await new Promise(res => {
-            let loaded = 0;
-            imageUrls.forEach((url, i) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => { imgs[i] = img; loaded++; if (loaded === imageUrls.length) res(); };
-                img.onerror = () => { imgs[i] = null; loaded++; if (loaded === imageUrls.length) res(); };
-                img.src = url;
-            });
-        });
-        for (let i = 0; i < imgs.length; i++) if (!imgs[i]) imgs[i] = imgs[i-1] || imgs[i+1];
-
-        // Ken Burns — 2-3% баяу zoom
-        const drawKenBurns = (img, progress) => {
+        // Фильтрлер, Кроссфейд және Субтитр салу функциясы
+        const drawKenBurns = (img, progress, textOverlay = '') => {
             ctx.clearRect(0, 0, w, h);
-            const zoom = 1 + 0.025 * Math.sin(progress * Math.PI); 
-            const panX = 0.01 * Math.cos(progress * Math.PI * 2) * w;
-            const panY = 0.01 * Math.sin(progress * Math.PI * 2) * h;
+            
+            // Түс түзету (Color Grading)
+            if (filterType === 'cyberpunk') ctx.filter = 'contrast(130%) saturate(160%) hue-rotate(-10deg)';
+            else if (filterType === 'vintage') ctx.filter = 'sepia(60%) contrast(95%) brightness(90%)';
+            else if (filterType === 'noir') ctx.filter = 'grayscale(100%) contrast(140%)';
+            else ctx.filter = 'none';
+
+            const zoom = 1 + 0.03 * Math.sin(progress * Math.PI); 
+            const panX = 0.015 * Math.cos(progress * Math.PI * 2) * w;
+            const panY = 0.015 * Math.sin(progress * Math.PI * 2) * h;
             const dw = w * zoom;
             const dh = h * zoom;
             const dx = (w - dw) / 2 + panX;
             const dy = (h - dh) / 2 + panY;
             ctx.drawImage(img, dx, dy, dw, dh);
+            ctx.filter = 'none'; // Мәтін үшін фильтрді өшіру
+            
+            // Кинематографиялық қараңғылау (Vignette)
+            const vignette = ctx.createRadialGradient(w/2, h/2, Math.min(w, h)*0.4, w/2, h/2, Math.max(w, h)*0.7);
+            vignette.addColorStop(0, 'rgba(0,0,0,0)');
+            vignette.addColorStop(1, 'rgba(0,0,0,0.65)');
+            ctx.fillStyle = vignette;
+            ctx.fillRect(0, 0, w, h);
+
+            // Субтитрлер (Мәтін)
+            if (textOverlay) {
+                ctx.save();
+                ctx.font = 'bold ' + Math.floor(h * 0.045) + 'px sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 4;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.strokeText(textOverlay, w / 2, h - 35);
+                ctx.fillText(textOverlay, w / 2, h - 35);
+                ctx.restore();
+            }
         };
 
-        // Кроссфейд
-        const blend = (imgFrom, imgTo, steps, startProg) => {
+        const blend = (imgFrom, imgTo, steps, startProg, subFrom, subTo) => {
             return new Promise(resolve => {
                 let step = 0;
                 const interval = setInterval(() => {
@@ -589,9 +762,9 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
                     const alpha = step / steps;
                     const prog = startProg + (1 - startProg) * alpha;
                     ctx.globalAlpha = 1 - alpha;
-                    drawKenBurns(imgFrom, prog);
+                    drawKenBurns(imgFrom, prog, subFrom);
                     ctx.globalAlpha = alpha;
-                    drawKenBurns(imgTo, prog);
+                    drawKenBurns(imgTo, prog, subTo);
                     ctx.globalAlpha = 1;
                     if (step >= steps) {
                         clearInterval(interval);
@@ -601,16 +774,23 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             });
         };
 
-        // Ойнату
+        // Анимацияны ойнату
         let progress = 0;
-        drawKenBurns(imgs[0], 0);
+        const getSub = (idx) => {
+            if (!addSubtitles) return '';
+            if (idx < framesPerPhase) return `${cleanPrompt} (Алыс план)`;
+            if (idx < framesPerPhase * 2) return `${cleanPrompt} (Орта план)`;
+            return `${cleanPrompt} (Жақын план)`;
+        };
+
+        drawKenBurns(imgs[0], 0, getSub(0));
         for (let i = 0; i < imgs.length - 1; i++) {
-            await blend(imgs[i], imgs[i+1], crossfadeSteps, progress);
+            await blend(imgs[i], imgs[i+1], crossfadeSteps, progress, getSub(i), getSub(i+1));
             progress = (i + 1) / (imgs.length - 1);
         }
         await new Promise(r => setTimeout(r, 1200));
         recorder.stop();
-        statusMsg.textContent = '✅ Шынайы видео дайын!';
+        statusMsg.textContent = '✅ Кинематографиялық видео дайын!';
     }
 
     async describeImage(url, question) {
