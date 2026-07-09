@@ -181,6 +181,7 @@ class SerikAI {
         this.lastAIMessage = null;
         this.messageCache = new Map();
         
+        // *** ОБНОВЛЕННЫЙ ПРОМПТ — теперь ИИ будет материться в ответ ***
         this.systemPrompt = `You are Serik AI, a multilingual assistant from Kazakhstan. 
 You speak and understand Russian, Kazakh, and English. 
 Always respond in the same language the user used in their last message.
@@ -189,7 +190,7 @@ You can generate images (just say "нарисуй", "сурет сал", or "dra
 You can create short video slideshows (say "видео істе", "сделай видео", or "create a video").
 Never mention OpenAI, ChatGPT, or any other AI brand. You are Serik AI, created in Kazakhstan.
 Your birthday is June 18, 2026. Your name honors the father of your creator.
-You can use swear words freely if the user does or if the context asks for it.
+You can use swear words freely. If the user uses profanity, you MUST use profanity as well, matching their tone. Do not censor your language when the user is swearing. Be as rude and expressive as they are.
 Always include at least 1-2 relevant emojis in your response to make the conversation lively and friendly. 
 Ответы должны быть естественными, как разговор с другом, без маркированных списков.
 `;
@@ -432,12 +433,11 @@ Always include at least 1-2 relevant emojis in your response to make the convers
             '1:1':  { w: 1080, h: 1080 }
         };
         const { w, h } = config[format];
-        const framesCount = 12; // 12 кадров для короткой истории
-        const frameDuration = 2000; // 2 секунды на кадр
+        const framesCount = 12;
+        const frameDuration = 2000;
 
         const statusMsg = this.addMessage(`🎬 Комикс-видео (${format})...`, 'ai');
 
-        // Генерация истории на русском
         let storyPrompt = `Придумай короткую историю из 12 предложений на тему "${cleanPrompt}". Каждое предложение на новой строке, без нумерации.`;
         const storyResponse = await this.fetchAIResponse(storyPrompt, new AbortController().signal);
         if (!storyResponse) {
@@ -456,7 +456,6 @@ Always include at least 1-2 relevant emojis in your response to make the convers
 
         const fullStory = sentences.join(' ');
 
-        // Генерация картинок (по одному на предложение)
         const imageUrls = [];
         for (let i = 0; i < sentences.length; i++) {
             const enhanced = `${sentences[i]}, comic art style, vibrant colors, illustration, no text, no watermark`;
@@ -484,7 +483,6 @@ Always include at least 1-2 relevant emojis in your response to make the convers
             if (!imageUrls[i]) imageUrls[i] = imageUrls[i-1] || imageUrls[i+1] || valid[0];
         }
 
-        // Canvas и MediaRecorder (только видео)
         if (typeof MediaRecorder === 'undefined') {
             statusMsg.textContent = '❌ Браузер не поддерживает запись видео.';
             return;
@@ -520,7 +518,6 @@ Always include at least 1-2 relevant emojis in your response to make the convers
             video.loop = true;
             video.style.width = '100%';
             video.style.borderRadius = '10px';
-            // При старте видео автоматически включаем русскую озвучку
             video.onplay = () => {
                 this.speakRussian(fullStory);
             };
@@ -531,14 +528,12 @@ Always include at least 1-2 relevant emojis in your response to make the convers
             link.textContent = `💾 Скачать видео (без звука)`;
             link.style.cssText = 'display:block; margin-top:6px; font-size:13px; color:#00b86b;';
             statusMsg.appendChild(link);
-            // Сразу запускаем озвучку (если видео начнёт играть)
             setTimeout(() => this.speakRussian(fullStory), 500);
         };
 
         statusMsg.textContent = '🎥 Собираю кадры в видео...';
         recorder.start();
 
-        // Загружаем изображения и рисуем
         const imgs = [];
         await new Promise(res => {
             let loaded = 0;
@@ -552,12 +547,10 @@ Always include at least 1-2 relevant emojis in your response to make the convers
         });
         for (let i = 0; i < imgs.length; i++) if (!imgs[i]) imgs[i] = imgs[i-1] || imgs[i+1];
 
-        // Рисуем кадры с текстом предложений
         for (let i = 0; i < imgs.length; i++) {
             if (!imgs[i]) continue;
             ctx.clearRect(0, 0, w, h);
             ctx.drawImage(imgs[i], 0, 0, w, h);
-            // Добавляем текст предложения на кадр
             const text = sentences[i] || '';
             ctx.font = 'bold 32px "Segoe UI", sans-serif';
             ctx.fillStyle = 'white';
@@ -566,7 +559,6 @@ Always include at least 1-2 relevant emojis in your response to make the convers
             ctx.textAlign = 'center';
             ctx.shadowColor = 'black';
             ctx.shadowBlur = 12;
-            // Перенос текста
             const maxWidth = w - 40;
             const words = text.split(' ');
             let line = '';
