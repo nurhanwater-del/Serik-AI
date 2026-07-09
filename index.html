@@ -103,12 +103,12 @@
         @media (max-width: 768px) {
             body { flex-direction: column; }
             .sidebar {
-                width: 100%; max-height: 100px; padding: 8px 10px;
-                gap: 4px; overflow-y: visible;
+                width: 100%; max-height: auto; min-height: 50px; padding: 8px 10px;
+                gap: 4px; overflow-y: visible; z-index: 100;
             }
             .sidebar h3 { font-size: 18px; margin: 0; }
             .main {
-                height: calc(100vh - 100px);
+                height: calc(100vh - 50px);
                 display: flex; flex-direction: column;
             }
             .chat { padding: 10px; flex: 1; }
@@ -130,7 +130,7 @@
 <div class="sidebar">
     <h3>🤖 Serik AI</h3>
     <button id="menuToggle">⚙️ Настройки</button>
-    <div id="settingsMenu" style="display:none; flex-direction:column; gap:8px;">
+    <div id="settingsMenu" style="display:none; flex-direction:column; gap:8px; margin-top: 10px;">
         <select id="themeSelect">
             <option value="default">🌙 Тёмная</option>
             <option value="hacker">💻 Хакер</option>
@@ -307,7 +307,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         }
         
         // Генерация видео (слайдшоу)
-        if (/(видео|video|сделай видео|жаса|түсір|create video|make video|generate video)/i.test(text)) {
+        if (/(видео|video|сделай видео|жаса|түсір|create video|make video|generate video|сними|түсіріп бер)/i.test(text)) {
             return this.generateVideo(text);
         }
         
@@ -401,54 +401,66 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
     }
 
     async generateImage(promptText) {
-    // Пайдаланушының мәтінінен "сурет сал", "нарисуй" сияқты артық сөздерді тазалау
-    const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
-    
-    // Сурет сапасын арттыратын қосымша тегтер қосу
-    const enhanced = `${userPrompt}, masterpiece, 8k, hyperrealistic, no text`;
-    const seed = Math.floor(Math.random() * 1000000000); // Әр жолы әртүрлі сурет шығуы үшін рандомды сан
-    const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
-    
-    // Чатқа жүктеліп жатқаны туралы хабарлама шығару
-    const msgDiv = this.addMessage('🎨 Генерирую изображение...', 'ai');
-    try {
-        const response = await fetch(imgUrl);
-        const blob = await response.blob();
+        const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
+        const enhanced = `${userPrompt}, masterpiece, 8k, hyperrealistic, no text`;
+        const seed = Math.floor(Math.random() * 1000000000); 
+        const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
         
-        // Егер келген жауап шынымен сурет болса, оны чатқа қосу
-        if (blob.type.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(blob);
-            img.style.width = '100%';
-            img.style.borderRadius = '10px';
-            img.style.marginTop = '10px';
-            msgDiv.innerHTML = ''; // Жүктелу мәтінін өшіріп, орнына суретті қоямыз
-            msgDiv.appendChild(img);
-        } else {
-            msgDiv.textContent = '❌ Не удалось создать изображение. Попробуйте другой запрос.';
+        const msgDiv = this.addMessage('🎨 Генерирую изображение...', 'ai');
+        try {
+            const response = await fetch(imgUrl);
+            const blob = await response.blob();
+            if (blob.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(blob);
+                img.style.width = '100%';
+                img.style.borderRadius = '10px';
+                img.style.marginTop = '10px';
+                msgDiv.innerHTML = ''; 
+                msgDiv.appendChild(img);
+            } else {
+                msgDiv.textContent = '❌ Не удалось создать изображение. Попробуйте другой запрос.';
+            }
+        } catch {
+            msgDiv.textContent = '❌ Ошибка загрузки изображения.';
         }
-    } catch {
-        msgDiv.textContent = '❌ Ошибка загрузки изображения.';
     }
-}
-
 
     async generateVideo(promptText) {
-        const cleanPrompt = promptText.replace(/(видео|video|сделай видео|жаса|create video|make video|generate video)/gi, '').trim();
-        if (!cleanPrompt) return this.addMessage('Уточните, что должно быть на видео.', 'ai');
+        const cleanPrompt = promptText.replace(
+            /(видео|video|сделай видео|жаса|түсір|create video|make video|generate video|сними|түсіріп бер)/gi, 
+            ''
+        ).trim();
+        
+        if (!cleanPrompt) {
+            return this.addMessage(
+                '❓ Уточни, что должно быть в видео.\nНе туралы видео керек? Напиши подробнее.', 
+                'ai'
+            );
+        }
 
-        const framesCount = 5;
-        const frameDuration = 2000;
-        const width = 512;
-        const height = 512;
+        // ===== НАСТРОЙКИ ПРЕМИУМ КАЧЕСТВА =====
+        const framesCount = 10;          // Кадров: 10 для максимальной плавности
+        const frameDuration = 3000;      // Длительность одного кадра (мс)
+        const width = 1920;              // Full HD ширина
+        const height = 1080;             // Full HD высота (16:9)
+        const crossfadeSteps = 20;       // Шагов кроссфейда между кадрами
+        // ======================================
 
-        const statusMsg = this.addMessage(`🎬 Создание видео... 0/${framesCount}`, 'ai');
+        // Предупреждаем, что генерация может быть долгой
+        const statusMsg = this.addMessage(
+            `🎬 Запущена Full HD генерация видео...\n⏳ Это может занять до 2 минут.\n📊 Прогресс: 0/${framesCount} кадров`,
+            'ai'
+        );
 
+        // Генерация кадров
         const imageUrls = [];
         for (let i = 0; i < framesCount; i++) {
             const seed = Math.floor(Math.random() * 1000000000);
-            const enhanced = `${cleanPrompt}, masterpiece, 8k, frame ${i+1}, no text`;
+            const variation = i === 0 ? '' : `, variation ${i+1}`;
+            const enhanced = `${cleanPrompt}${variation}, cinematic, 8k, hyperrealistic, detailed, no text, no watermark`;
             const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
+            
             try {
                 const resp = await fetch(url);
                 const blob = await resp.blob();
@@ -460,25 +472,37 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             } catch(e) {
                 imageUrls.push(null);
             }
-            statusMsg.textContent = `🎬 Создание видео... ${i+1}/${framesCount}`;
+            
+            // Обновляем прогресс
+            statusMsg.textContent = `🎬 Full HD генерация...\n📊 Прогресс: ${i+1}/${framesCount} кадров`;
         }
 
-        if (imageUrls.filter(u => u).length === 0) {
-            statusMsg.textContent = '❌ Ошибка генерации изображений. Попробуйте еще раз.';
+        // Заменяем отсутствующие кадры
+        const validUrls = imageUrls.filter(u => u !== null);
+        if (validUrls.length === 0) {
+            statusMsg.textContent = '❌ Не удалось создать кадры. Проверь интернет.';
             return;
         }
+        for (let i = 0; i < imageUrls.length; i++) {
+            if (imageUrls[i] === null) {
+                imageUrls[i] = imageUrls[i-1] || imageUrls[i+1] || validUrls[0];
+            }
+        }
 
+        // Проверка MediaRecorder
         if (typeof MediaRecorder === 'undefined') {
-            statusMsg.textContent = '❌ Ваш браузер не поддерживает запись видео. Попробуйте Chrome или обновленный Safari.';
+            statusMsg.textContent = '❌ Твой браузер не поддерживает запись видео. Используй Chrome или новый Safari.';
             return;
         }
 
+        // Canvas Full HD
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
-        const stream = canvas.captureStream(framesCount * frameDuration / 1000);
-        
+
+        // Настройка рекордера с высоким битрейтом
+        const stream = canvas.captureStream(30); // 30 fps
         let mimeType = 'video/webm; codecs=vp9';
         if (!MediaRecorder.isTypeSupported(mimeType)) {
             mimeType = 'video/webm; codecs=vp8';
@@ -486,233 +510,122 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
                 mimeType = 'video/webm';
             }
         }
-        
+
         let recorder;
         try {
-            recorder = new MediaRecorder(stream, { mimeType: mimeType });
+            recorder = new MediaRecorder(stream, { 
+                mimeType: mimeType,
+                videoBitsPerSecond: 8000000 // 8 Mbps для Full HD
+            });
         } catch(e) {
-            statusMsg.textContent = '❌ Не удалось запустить запись видео.';
+            statusMsg.textContent = '❌ Ошибка создания рекордера.';
             return;
         }
 
-        this.recordedChunks = [];
+        const recordedChunks = [];
         recorder.ondataavailable = e => {
-            if (e.data.size > 0) this.recordedChunks.push(e.data);
+            if (e.data.size > 0) recordedChunks.push(e.data);
         };
 
         recorder.onstop = () => {
-            const blob = new Blob(this.recordedChunks, { type: mimeType });
-            const url = URL.createObjectURL(blob);
+            const blob = new Blob(recordedChunks, { type: mimeType });
+            const videoUrl = URL.createObjectURL(blob);
+            
             statusMsg.innerHTML = '';
+            
             const video = document.createElement('video');
-            video.src = url;
+            video.src = videoUrl;
             video.controls = true;
+            video.autoplay = true;
+            video.loop = true;
             video.style.width = '100%';
-            video.style.borderRadius = '10px';
-            video.style.marginTop = '10px';
+            video.style.borderRadius = '12px';
+            video.style.marginTop = '8px';
             video.playsinline = true;
             statusMsg.appendChild(video);
-            const link = document.createElement('a');
-async generateVideo(promptText) {
-    const cleanPrompt = promptText.replace(
-        /(видео|video|сделай видео|жаса|түсір|create video|make video|generate video|сними|түсіріп бер)/gi, 
-        ''
-    ).trim();
-    
-    if (!cleanPrompt) {
-        return this.addMessage(
-            '❓ Уточни, что должно быть в видео.\nНе туралы видео керек? Напиши подробнее.', 
-            'ai'
-        );
-    }
+            
+            const downloadLink = document.createElement('a');
+            downloadLink.href = videoUrl;
+            downloadLink.download = `serikai_hd_video_${Date.now()}.webm`;
+            downloadLink.textContent = '💾 Скачать Full HD видео (WebM)';
+            downloadLink.style.cssText = 'display:block; margin-top:8px; font-size:13px; color:#00b86b; text-decoration:none;';
+            statusMsg.appendChild(downloadLink);
+            
+            setTimeout(() => {
+                imageUrls.forEach(url => URL.revokeObjectURL(url));
+            }, 5000);
+        };
 
-    // ===== НАСТРОЙКИ ПРЕМИУМ КАЧЕСТВА =====
-    const framesCount = 10;          // Кадров: 10 для максимальной плавности
-    const frameDuration = 3000;      // Длительность одного кадра (мс)
-    const width = 1920;              // Full HD ширина
-    const height = 1080;             // Full HD высота (16:9)
-    const crossfadeSteps = 20;       // Шагов кроссфейда между кадрами
-    // ======================================
+        recorder.start();
 
-    // Предупреждаем, что генерация может быть долгой
-    const statusMsg = this.addMessage(
-        `🎬 Запущена Full HD генерация видео...\n⏳ Это может занять до 2 минут.\n📊 Прогресс: 0/${framesCount} кадров`,
-        'ai'
-    );
-
-    // Генерация кадров
-    const imageUrls = [];
-    for (let i = 0; i < framesCount; i++) {
-        const seed = Math.floor(Math.random() * 1000000000);
-        const variation = i === 0 ? '' : `, variation ${i+1}`;
-        const enhanced = `${cleanPrompt}${variation}, cinematic, 8k, hyperrealistic, detailed, no text, no watermark`;
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
+        // Загружаем все кадры как Image
+        const loadedImages = [];
+        let loadedCount = 0;
         
-        try {
-            const resp = await fetch(url);
-            const blob = await resp.blob();
-            if (blob.type.startsWith('image/')) {
-                imageUrls.push(URL.createObjectURL(blob));
-            } else {
-                imageUrls.push(null);
+        await new Promise(resolveAll => {
+            imageUrls.forEach((url, index) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    loadedImages[index] = img;
+                    loadedCount++;
+                    if (loadedCount === imageUrls.length) resolveAll();
+                };
+                img.onerror = () => {
+                    loadedImages[index] = null;
+                    loadedCount++;
+                    if (loadedCount === imageUrls.length) resolveAll();
+                };
+                img.src = url;
+            });
+        });
+
+        // Заменяем null соседними
+        for (let i = 0; i < loadedImages.length; i++) {
+            if (!loadedImages[i]) {
+                loadedImages[i] = loadedImages[i-1] || loadedImages[i+1];
             }
-        } catch(e) {
-            imageUrls.push(null);
+        }
+
+        // Кроссфейд функция
+        const crossfade = (imgFrom, imgTo, steps) => {
+            return new Promise(resolve => {
+                let step = 0;
+                const fadeInterval = setInterval(() => {
+                    step++;
+                    const alpha = step / steps;
+                    
+                    ctx.globalAlpha = 1 - alpha;
+                    ctx.drawImage(imgFrom, 0, 0, width, height);
+                    
+                    ctx.globalAlpha = alpha;
+                    ctx.drawImage(imgTo, 0, 0, width, height);
+                    
+                    ctx.globalAlpha = 1;
+                    
+                    if (step >= steps) {
+                        clearInterval(fadeInterval);
+                        resolve();
+                    }
+                }, frameDuration / steps);
+            });
+        };
+
+        // Первый кадр
+        ctx.drawImage(loadedImages[0], 0, 0, width, height);
+        
+        // Показываем каждый кадр с кроссфейдом
+        for (let i = 0; i < loadedImages.length - 1; i++) {
+            await crossfade(loadedImages[i], loadedImages[i+1], crossfadeSteps);
         }
         
-        // Обновляем прогресс
-        statusMsg.textContent = `🎬 Full HD генерация...\n📊 Прогресс: ${i+1}/${framesCount} кадров`;
-    }
-
-    // Заменяем отсутствующие кадры
-    const validUrls = imageUrls.filter(u => u !== null);
-    if (validUrls.length === 0) {
-        statusMsg.textContent = '❌ Не удалось создать кадры. Проверь интернет.';
-        return;
-    }
-    for (let i = 0; i < imageUrls.length; i++) {
-        if (imageUrls[i] === null) {
-            imageUrls[i] = imageUrls[i-1] || imageUrls[i+1] || validUrls[0];
-        }
-    }
-
-    // Проверка MediaRecorder
-    if (typeof MediaRecorder === 'undefined') {
-        statusMsg.textContent = '❌ Твой браузер не поддерживает запись видео. Используй Chrome или новый Safari.';
-        return;
-    }
-
-    // Canvas Full HD
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-
-    // Настройка рекордера с высоким битрейтом
-    const stream = canvas.captureStream(30); // 30 fps
-    let mimeType = 'video/webm; codecs=vp9';
-    if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = 'video/webm; codecs=vp8';
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-            mimeType = 'video/webm';
-        }
-    }
-
-    let recorder;
-    try {
-        recorder = new MediaRecorder(stream, { 
-            mimeType: mimeType,
-            videoBitsPerSecond: 8000000 // 8 Mbps для Full HD
-        });
-    } catch(e) {
-        statusMsg.textContent = '❌ Ошибка создания рекордера.';
-        return;
-    }
-
-    const recordedChunks = [];
-    recorder.ondataavailable = e => {
-        if (e.data.size > 0) recordedChunks.push(e.data);
-    };
-
-    recorder.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: mimeType });
-        const videoUrl = URL.createObjectURL(blob);
+        // Держим последний кадр
+        await new Promise(r => setTimeout(r, 2000));
         
-        statusMsg.innerHTML = '';
+        // Завершаем запись
+        recorder.stop();
         
-        const video = document.createElement('video');
-        video.src = videoUrl;
-        video.controls = true;
-        video.autoplay = true;
-        video.loop = true;
-        video.style.width = '100%';
-        video.style.borderRadius = '12px';
-        video.style.marginTop = '8px';
-        video.playsinline = true;
-        statusMsg.appendChild(video);
-        
-        const downloadLink = document.createElement('a');
-        downloadLink.href = videoUrl;
-        downloadLink.download = `serikai_hd_video_${Date.now()}.webm`;
-        downloadLink.textContent = '💾 Скачать Full HD видео (WebM)';
-        downloadLink.style.cssText = 'display:block; margin-top:8px; font-size:13px; color:#00b86b; text-decoration:none;';
-        statusMsg.appendChild(downloadLink);
-        
-        setTimeout(() => {
-            imageUrls.forEach(url => URL.revokeObjectURL(url));
-        }, 5000);
-    };
-
-    recorder.start();
-
-    // Загружаем все кадры как Image
-    const loadedImages = [];
-    let loadedCount = 0;
-    
-    await new Promise(resolveAll => {
-        imageUrls.forEach((url, index) => {
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-                loadedImages[index] = img;
-                loadedCount++;
-                if (loadedCount === imageUrls.length) resolveAll();
-            };
-            img.onerror = () => {
-                loadedImages[index] = null;
-                loadedCount++;
-                if (loadedCount === imageUrls.length) resolveAll();
-            };
-            img.src = url;
-        });
-    });
-
-    // Заменяем null соседними
-    for (let i = 0; i < loadedImages.length; i++) {
-        if (!loadedImages[i]) {
-            loadedImages[i] = loadedImages[i-1] || loadedImages[i+1];
-        }
-    }
-
-    // Кроссфейд функция
-    const crossfade = (imgFrom, imgTo, steps) => {
-        return new Promise(resolve => {
-            let step = 0;
-            const fadeInterval = setInterval(() => {
-                step++;
-                const alpha = step / steps;
-                
-                ctx.globalAlpha = 1 - alpha;
-                ctx.drawImage(imgFrom, 0, 0, width, height);
-                
-                ctx.globalAlpha = alpha;
-                ctx.drawImage(imgTo, 0, 0, width, height);
-                
-                ctx.globalAlpha = 1;
-                
-                if (step >= steps) {
-                    clearInterval(fadeInterval);
-                    resolve();
-                }
-            }, frameDuration / steps);
-        });
-    };
-
-    // Первый кадр
-    ctx.drawImage(loadedImages[0], 0, 0, width, height);
-    
-    // Показываем каждый кадр с кроссфейдом
-    for (let i = 0; i < loadedImages.length - 1; i++) {
-        await crossfade(loadedImages[i], loadedImages[i+1], crossfadeSteps);
-    }
-    
-    // Держим последний кадр
-    await new Promise(r => setTimeout(r, 2000));
-    
-    // Завершаем запись
-    recorder.stop();
-    
-    statusMsg.textContent = '✅ Full HD видео готово!';
+        statusMsg.textContent = '✅ Full HD видео готово!';
     }
 
     async describeImage(url, question) {
