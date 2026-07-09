@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Serik AI Pro — Мультиязычный</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -13,6 +13,7 @@
             --ai-msg: linear-gradient(135deg, #2b2b3a, #20202d);
             --border: #333; --accent: #00b86b;
             --radius: 14px; --transition: 0.2s ease;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -64,11 +65,30 @@
         .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
         .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0%,100%{opacity:0.2} 20%{opacity:1} }
+
+        /* Мобильді нұсқа */
         @media (max-width: 768px) {
             body { flex-direction: column; }
-            .sidebar { width: 100%; max-height: 110px; padding: 10px; }
-            .main { height: calc(100vh - 110px); }
-            .msg { max-width: 92%; }
+            .sidebar {
+                width: 100%; max-height: 100px; padding: 8px 10px;
+                gap: 4px; overflow-y: visible;
+            }
+            .sidebar h3 { font-size: 18px; margin: 0; }
+            .main {
+                height: calc(100vh - 100px);
+                display: flex; flex-direction: column;
+            }
+            .chat { padding: 10px; flex: 1; }
+            .msg { max-width: 92%; font-size: 15px; }
+            .generators { padding: 6px 8px; }
+            .generators button { padding: 5px 10px; font-size: 11px; }
+            .row {
+                position: sticky; bottom: 0; left: 0; width: 100%;
+                background: #111; padding: 8px;
+                padding-bottom: calc(8px + var(--safe-bottom));
+                border-top: 1px solid #222;
+            }
+            input, textarea { font-size: 16px !important; } /* iOS үшін маңызды */
         }
     </style>
 </head>
@@ -228,19 +248,24 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         
         // Локальная память + кэш
         const cached = this.messageCache.get(text.toLowerCase());
-        if (cached) return this.addMessage(cached, 'ai');
+        if (cached) {
+            this.addMessage(cached, 'ai');
+            return;
+        }
         
         const localAnswer = this.searchMemory(text);
         if (localAnswer) {
             this.messageCache.set(text.toLowerCase(), localAnswer);
-            return this.addMessage(localAnswer, 'ai');
+            this.addMessage(localAnswer, 'ai');
+            return;
         }
         
         // Картинка по ссылке
         const imgMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
         if (imgMatch) {
             const desc = await this.describeImage(imgMatch[0], text.replace(imgMatch[0], '').trim());
-            return this.addMessage(desc || 'Не удалось проанализировать изображение', 'ai');
+            this.addMessage(desc || 'Не удалось проанализировать изображение', 'ai');
+            return;
         }
         
         // Генерация изображения
@@ -403,9 +428,9 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             return;
         }
 
-        // Проверка поддержки MediaRecorder
+        // MediaRecorder тексеру
         if (typeof MediaRecorder === 'undefined') {
-            statusMsg.textContent = '❌ Ваш браузер не поддерживает запись видео. / Браузеріңіз бейне жазуды қолдамайды.';
+            statusMsg.textContent = '❌ Ваш браузер не поддерживает запись видео. Попробуйте Chrome или обновленный Safari.';
             return;
         }
 
@@ -414,9 +439,18 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         const stream = canvas.captureStream(framesCount * frameDuration / 1000);
+        
+        let mimeType = 'video/webm; codecs=vp9';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'video/webm; codecs=vp8';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+                mimeType = 'video/webm'; // fallback
+            }
+        }
+        
         let recorder;
         try {
-            recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+            recorder = new MediaRecorder(stream, { mimeType: mimeType });
         } catch(e) {
             statusMsg.textContent = '❌ Не удалось создать рекордер. / Рекордер жасау мүмкін болмады.';
             return;
@@ -428,7 +462,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         };
 
         recorder.onstop = () => {
-            const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
+            const blob = new Blob(this.recordedChunks, { type: mimeType });
             const url = URL.createObjectURL(blob);
             statusMsg.innerHTML = '';
             const video = document.createElement('video');
@@ -510,6 +544,11 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         }
         this.chat.appendChild(div);
         this.chat.scrollTop = this.chat.scrollHeight;
+
+        // Автоматически озвучиваем ответ (если разрешено)
+        if (sender === 'ai' && this.voiceEnabled && !isHTML && text.length < 500) {
+            this.speak(text);
+        }
         return div;
     }
 
@@ -523,16 +562,26 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
     toggleVoice() {
         this.voiceEnabled = !this.voiceEnabled;
         this.voiceBtn.textContent = this.voiceEnabled ? '🔊 Голос: ВКЛ' : '🔇 Голос: ВЫКЛ';
-        if (!this.voiceEnabled) speechSynthesis.cancel();
+        if (!this.voiceEnabled) {
+            speechSynthesis.cancel();
+        } else {
+            // Пробуждаем speechSynthesis (iOS требует действие пользователя)
+            if ('speechSynthesis' in window) {
+                const dummy = new SpeechSynthesisUtterance('');
+                dummy.volume = 0;
+                speechSynthesis.speak(dummy);
+            }
+        }
     }
 
     speak(text) {
-        if (!this.voiceEnabled) return;
+        if (!this.voiceEnabled || !('speechSynthesis' in window)) return;
         speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text.replace(/[📋✅⚛️📜🔥💻🎬]/g, ''));
-        if (/[әғқңөұүһіІ]/g.test(text)) {
+        const cleanText = text.replace(/[📋✅⚛️📜🔥💻🎬]/g, '');
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        if (/[әғқңөұүһіІ]/g.test(cleanText)) {
             utterance.lang = 'kk-KZ';
-        } else if (/[a-zA-Z]{4,}/.test(text) && !/[а-яё]/i.test(text)) {
+        } else if (/[a-zA-Z]{4,}/.test(cleanText) && !/[а-яё]/i.test(cleanText)) {
             utterance.lang = 'en-US';
         } else {
             utterance.lang = 'ru-RU';
