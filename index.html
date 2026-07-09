@@ -443,7 +443,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         ).trim();
 
         if (!cleanPrompt) {
-            return this.addMessage('❓ Теманы жазыңыз. Мысалы: "видео tiktok жүгіріп келе жатқан мысық"', 'ai');
+            return this.addMessage('❓ Не жасау керек? Мысалы: "видео tiktok жүгіріп келе жатқан ит"', 'ai');
         }
 
         // --- КИНЕМАТОГРАФИЯЛЫҚ КОНФИГ ---
@@ -453,40 +453,52 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             '1:1':  { w: 1080, h: 1080 }
         };
         const { w, h } = config[format];
-        const framesCount = 15;           // 15 кадр — жанды қозғалыс
-        const frameDuration = 2000;       // 2 сек әр кадрға
-        const crossfadeSteps = 24;        // көзге көрінбейтін өту
+        const framesPerPhase = 5;        // әр кезеңге 5 кадр
+        const totalFrames = 15;          // барлығы 15
+        const frameDuration = 1800;      // 1.8 сек / кадр
+        const crossfadeSteps = 30;       // өте жұмсақ өту
         // ---------------------------------
 
         const statusMsg = this.addMessage(
-            `🎬 Кинематографиялық видео жасалуда (${format})...\n⏳ ~1.5 мин\n📊 0/${framesCount}`,
+            `🎬 Кинематографиялық видео (${format})...\n⏳ 1.5 мин\n📊 0/${totalFrames}`,
             'ai'
         );
 
-        // Суреттерді генерациялау (motion blur қосып)
+        // 3 фаза: алыс, орта, жақын
+        const phases = [
+            { name: 'алыс', prompt: `${cleanPrompt}, wide shot, full body, in the distance, cinematic` },
+            { name: 'орта', prompt: `${cleanPrompt}, medium shot, waist up, approaching, cinematic` },
+            { name: 'жақын', prompt: `${cleanPrompt}, close up portrait, detailed face, foreground, cinematic` }
+        ];
+
+        // Барлық кадрларды жинау
         const imageUrls = [];
-        for (let i = 0; i < framesCount; i++) {
-            const seed = Math.floor(Math.random() * 1000000000);
-            const enhanced = `${cleanPrompt}, cinematic lighting, motion blur, depth of field, 8k, photorealistic, no text, no watermark`;
-            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}`;
-            try {
-                const resp = await fetch(url);
-                const blob = await resp.blob();
-                if (blob.type.startsWith('image/')) {
-                    imageUrls.push(URL.createObjectURL(blob));
-                } else {
+        let counter = 0;
+        for (let phase of phases) {
+            for (let i = 0; i < framesPerPhase; i++) {
+                const seed = Math.floor(Math.random() * 1000000000);
+                const enhanced = `${phase.prompt}, motion blur, depth of field, 8k, photorealistic, no text, no watermark`;
+                const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}`;
+                try {
+                    const resp = await fetch(url);
+                    const blob = await resp.blob();
+                    if (blob.type.startsWith('image/')) {
+                        imageUrls.push(URL.createObjectURL(blob));
+                    } else {
+                        imageUrls.push(null);
+                    }
+                } catch(e) {
                     imageUrls.push(null);
                 }
-            } catch(e) {
-                imageUrls.push(null);
+                counter++;
+                statusMsg.textContent = `🎬 ${format} | ${phase.name} план...\n📊 ${counter}/${totalFrames}`;
             }
-            statusMsg.textContent = `🎬 Кинематографиялық видео (${format})...\n📊 ${i+1}/${framesCount}`;
         }
 
-        // Замена битых
+        // Замена битых кадров
         const valid = imageUrls.filter(u => u !== null);
         if (valid.length === 0) {
-            statusMsg.textContent = '❌ Суреттер жасалмады. Байланысты тексер.';
+            statusMsg.textContent = '❌ Суреттер жасалмады.';
             return;
         }
         for (let i = 0; i < imageUrls.length; i++) {
@@ -495,7 +507,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
 
         // MediaRecorder
         if (typeof MediaRecorder === 'undefined') {
-            statusMsg.textContent = '❌ Браузер видео жазуды қолдамайды.';
+            statusMsg.textContent = '❌ Браузер бейне жазуды қолдамайды.';
             return;
         }
 
@@ -541,7 +553,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
 
         recorder.start();
 
-        // Барлық суретті Image-ге айналдыру
+        // Суреттерді жүктеу
         const imgs = [];
         await new Promise(res => {
             let loaded = 0;
@@ -555,12 +567,12 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         });
         for (let i = 0; i < imgs.length; i++) if (!imgs[i]) imgs[i] = imgs[i-1] || imgs[i+1];
 
-        // Ken Burns эффекті: zoom + pan
-        const drawWithKenBurns = (img, progress) => {
+        // Ken Burns — 2-3% баяу zoom
+        const drawKenBurns = (img, progress) => {
             ctx.clearRect(0, 0, w, h);
-            const zoom = 1 + 0.06 * Math.sin(progress * Math.PI); // 6% zoom
-            const panX = 0.04 * Math.cos(progress * Math.PI * 2) * w; // көлденең жылжу
-            const panY = 0.02 * Math.sin(progress * Math.PI * 2) * h; // тік жылжу
+            const zoom = 1 + 0.025 * Math.sin(progress * Math.PI); 
+            const panX = 0.01 * Math.cos(progress * Math.PI * 2) * w;
+            const panY = 0.01 * Math.sin(progress * Math.PI * 2) * h;
             const dw = w * zoom;
             const dh = h * zoom;
             const dx = (w - dw) / 2 + panX;
@@ -568,8 +580,8 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             ctx.drawImage(img, dx, dy, dw, dh);
         };
 
-        // Кроссфейд + Ken Burns
-        const cinematicTransition = (imgFrom, imgTo, steps, startProg) => {
+        // Кроссфейд
+        const blend = (imgFrom, imgTo, steps, startProg) => {
             return new Promise(resolve => {
                 let step = 0;
                 const interval = setInterval(() => {
@@ -577,9 +589,9 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
                     const alpha = step / steps;
                     const prog = startProg + (1 - startProg) * alpha;
                     ctx.globalAlpha = 1 - alpha;
-                    drawWithKenBurns(imgFrom, prog);
+                    drawKenBurns(imgFrom, prog);
                     ctx.globalAlpha = alpha;
-                    drawWithKenBurns(imgTo, prog);
+                    drawKenBurns(imgTo, prog);
                     ctx.globalAlpha = 1;
                     if (step >= steps) {
                         clearInterval(interval);
@@ -591,14 +603,14 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
 
         // Ойнату
         let progress = 0;
-        drawWithKenBurns(imgs[0], 0);
+        drawKenBurns(imgs[0], 0);
         for (let i = 0; i < imgs.length - 1; i++) {
-            await cinematicTransition(imgs[i], imgs[i+1], crossfadeSteps, progress);
+            await blend(imgs[i], imgs[i+1], crossfadeSteps, progress);
             progress = (i + 1) / (imgs.length - 1);
         }
-        await new Promise(r => setTimeout(r, 1500));
+        await new Promise(r => setTimeout(r, 1200));
         recorder.stop();
-        statusMsg.textContent = '✅ Кинематографиялық видео дайын!';
+        statusMsg.textContent = '✅ Шынайы видео дайын!';
     }
 
     async describeImage(url, question) {
