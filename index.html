@@ -195,7 +195,7 @@ You speak and understand Russian, Kazakh, and English.
 Always respond in the same language the user used in their last message.
 If the user writes in Kazakh, answer in Kazakh. If in Russian, answer in Russian. If in English, answer in English.
 You can generate images (just say "нарисуй", "сурет сал", or "draw"). 
-You can create short video slideshows (say "видео жаса", "сделай видео", or "create a video").
+You can create short video slideshows (say "видео істе", "сделай видео", or "create a video").
 Never mention OpenAI, ChatGPT, or any other AI brand. You are Serik AI, created in Kazakhstan.
 Your birthday is June 18, 2026. Your name honors the father of your creator.
 You can use swear words freely if the user does or if the context asks for it. Don't be overly polite when a strong expression is needed.
@@ -298,7 +298,6 @@ Always include at least 1-2 relevant emojis in your response to make the convers
             return this.generateImage(text);
         }
         
-        // ТРИГГЕР ВИДЕО — только нужные слова, без "жаса"
         if (/(видео|video|сделай видео|видео істе|түсір|create video|make video|generate video|сними|түсіріп бер)/i.test(text)) {
             return this.generateVideo(text);
         }
@@ -428,7 +427,7 @@ Always include at least 1-2 relevant emojis in your response to make the convers
             else if (/instagram|инстаграм|1:1/.test(t)) format = '1:1';
         }
 
-        // Тазарту (clean prompt)
+        // Тазарту
         const cleanPrompt = promptText.replace(
             /(видео|video|сделай видео|видео істе|түсір|create video|make video|generate video|сними|youtube|ютуб|16:9|9:16|tiktok|тикток|reels|рилс|shorts|шортс|instagram|инстаграм|1:1)/gi,
             ''
@@ -444,22 +443,21 @@ Always include at least 1-2 relevant emojis in your response to make the convers
             '1:1':  { w: 1080, h: 1080 }
         };
         const { w, h } = config[format];
-        const framesCount = 10;           // 10 кадров
-        const frameDuration = 500;        // 0.5 сек на кадр
+        const framesCount = 15;           // 15 кадров = 30 секунд
+        const frameDuration = 2000;       // 2 секунды на кадр
 
         const statusMsg = this.addMessage(
-            `🎬 Комикс-видео жасалуда (${format})...\n📖 Әңгіме жазылуда...`,
+            `🎬 Комикс-видео (${format})...\n📖 Придумываю историю...`,
             'ai'
         );
 
-        // 1. AI-ден әңгіме сұраймыз (10 сөйлем)
-        let storyPrompt = `Напиши короткую историю из 10 предложений на тему "${cleanPrompt}". Каждое предложение на отдельной строке, без нумерации, только предложения.`;
+        // Генерация истории на русском языке
+        let storyPrompt = `Придумай короткую интересную историю из 15 предложений на тему "${cleanPrompt}". Каждое предложение на отдельной строке, без нумерации.`;
         const storyResponse = await this.fetchAIResponse(storyPrompt, new AbortController().signal);
         if (!storyResponse) {
-            statusMsg.textContent = '❌ Әңгіме жазу сәтсіз аяқталды.';
+            statusMsg.textContent = '❌ Не удалось придумать историю.';
             return;
         }
-        // Сөйлемдерге бөлу
         const sentences = storyResponse
             .split(/\n|(?<=[.!?])\s+/)
             .map(s => s.trim())
@@ -467,49 +465,46 @@ Always include at least 1-2 relevant emojis in your response to make the convers
             .slice(0, framesCount);
         
         if (sentences.length === 0) {
-            statusMsg.textContent = '❌ Әңгіме бос болып шықты.';
+            statusMsg.textContent = '❌ История слишком короткая.';
             return;
         }
 
-        // 2. Әр сөйлемге сурет салу
+        // Генерация картинок для каждого предложения
         const imageUrls = [];
         for (let i = 0; i < sentences.length; i++) {
             const sentence = sentences[i];
-            const enhanced = `${sentence}, comic style, story illustration, no text, no watermark`;
+            const enhanced = `${sentence}, comic art style, vibrant colors, story illustration, no text, no watermark`;
             const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${Math.floor(Math.random() * 1000000000)}`;
             try {
                 const resp = await fetch(url);
                 const blob = await resp.blob();
                 if (blob.type.startsWith('image/')) {
-                    imageUrls.push({ url: URL.createObjectURL(blob), text: sentence });
+                    imageUrls.push(URL.createObjectURL(blob));
                 } else {
                     imageUrls.push(null);
                 }
             } catch(e) {
                 imageUrls.push(null);
             }
-            statusMsg.textContent = `🎬 Кадрлар дайындалуда... ${i+1}/${sentences.length}`;
+            statusMsg.textContent = `🎨 Рисую кадр ${i+1} из ${sentences.length}...`;
         }
 
-        // Заменяем битые кадры
+        // Замена битых
+        const valid = imageUrls.filter(u => u !== null);
+        if (valid.length === 0) {
+            statusMsg.textContent = '❌ Не удалось создать иллюстрации.';
+            return;
+        }
         for (let i = 0; i < imageUrls.length; i++) {
-            if (!imageUrls[i]) {
-                // Соседний берем
-                const prev = imageUrls[i-1] || imageUrls[i+1];
-                imageUrls[i] = prev || null;
-            }
+            if (!imageUrls[i]) imageUrls[i] = imageUrls[i-1] || imageUrls[i+1] || valid[0];
         }
-        const validFrames = imageUrls.filter(f => f !== null);
-        if (validFrames.length === 0) {
-            statusMsg.textContent = '❌ Суреттер жасалмады.';
+
+        // MediaRecorder
+        if (typeof MediaRecorder === 'undefined') {
+            statusMsg.textContent = '❌ Браузер не поддерживает запись видео.';
             return;
         }
 
-        // 3. Canvas және видео жазу
-        if (typeof MediaRecorder === 'undefined') {
-            statusMsg.textContent = '❌ Браузер видео жазуды қолдамайды.';
-            return;
-        }
         const canvas = document.createElement('canvas');
         canvas.width = w;
         canvas.height = h;
@@ -523,7 +518,7 @@ Always include at least 1-2 relevant emojis in your response to make the convers
         try {
             recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 });
         } catch(e) {
-            statusMsg.textContent = '❌ Рекордер құрылмады.';
+            statusMsg.textContent = '❌ Ошибка создания рекордера.';
             return;
         }
 
@@ -543,71 +538,41 @@ Always include at least 1-2 relevant emojis in your response to make the convers
             statusMsg.appendChild(video);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `serikai_story_${format.replace(':','-')}.webm`;
-            link.textContent = `💾 Жүктеп алу (${format})`;
+            link.download = `serikai_comic_${format.replace(':','-')}.webm`;
+            link.textContent = `💾 Скачать (${format})`;
             link.style.cssText = 'display:block; margin-top:6px; font-size:13px; color:#00b86b;';
             statusMsg.appendChild(link);
-            // Озвучка всей истории (если голос включен, или отдельно)
+            // Озвучка всей истории на русском
             const fullStory = sentences.join(' ');
-            this.speak(fullStory);
+            this.speakRussian(fullStory);
         };
 
-        statusMsg.textContent = '🎥 Кадрлар біріктіріліп жатыр...';
+        statusMsg.textContent = '🎥 Собираю кадры в видео...';
         recorder.start();
 
-        // Загружаем изображения и рисуем кадры
+        // Загружаем все изображения
         const imgs = [];
         await new Promise(res => {
             let loaded = 0;
-            imageUrls.forEach((frame, i) => {
-                if (!frame) { loaded++; return; }
+            imageUrls.forEach((url, i) => {
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
                 img.onload = () => { imgs[i] = img; loaded++; if (loaded === imageUrls.length) res(); };
                 img.onerror = () => { imgs[i] = null; loaded++; if (loaded === imageUrls.length) res(); };
-                img.src = frame.url;
+                img.src = url;
             });
         });
+        for (let i = 0; i < imgs.length; i++) if (!imgs[i]) imgs[i] = imgs[i-1] || imgs[i+1];
 
-        // Рисуем каждый кадр с текстом
-        for (let i = 0; i < imageUrls.length; i++) {
+        // Рисуем кадры без текста
+        for (let i = 0; i < imgs.length; i++) {
             if (!imgs[i]) continue;
             ctx.clearRect(0, 0, w, h);
             ctx.drawImage(imgs[i], 0, 0, w, h);
-            // Текст (комикс стиль)
-            const text = imageUrls[i]?.text || '';
-            ctx.font = 'bold 28px "Segoe UI", sans-serif';
-            ctx.fillStyle = 'white';
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 4;
-            ctx.textAlign = 'center';
-            ctx.shadowColor = 'black';
-            ctx.shadowBlur = 10;
-            // Перенос текста
-            const maxWidth = w - 40;
-            const words = text.split(' ');
-            let line = '';
-            let y = h - 60;
-            for (let n = 0; n < words.length; n++) {
-                const testLine = line + words[n] + ' ';
-                const metrics = ctx.measureText(testLine);
-                if (metrics.width > maxWidth && n > 0) {
-                    ctx.strokeText(line, w/2, y);
-                    ctx.fillText(line, w/2, y);
-                    line = words[n] + ' ';
-                    y -= 36;
-                } else {
-                    line = testLine;
-                }
-            }
-            ctx.strokeText(line, w/2, y);
-            ctx.fillText(line, w/2, y);
-            ctx.shadowBlur = 0; // сброс тени
-            // Задержка кадра
             await new Promise(r => setTimeout(r, frameDuration));
         }
         recorder.stop();
-        statusMsg.textContent = '✅ Комикс-видео дайын!';
+        statusMsg.textContent = '✅ Комикс-видео готово!';
     }
 
     async describeImage(url, question) {
@@ -669,7 +634,7 @@ Always include at least 1-2 relevant emojis in your response to make the convers
     }
 
     speak(text) {
-        if (!('speechSynthesis' in window)) return;
+        if (!this.voiceEnabled || !('speechSynthesis' in window)) return;
         speechSynthesis.cancel();
         const cleanText = text.replace(/[📋✅⚛️📜🔥💻🎬]/g, '');
 
@@ -696,6 +661,27 @@ Always include at least 1-2 relevant emojis in your response to make the convers
             }
         }
 
+        speechSynthesis.speak(utterance);
+    }
+
+    // Отдельный метод для русской озвучки видео
+    speakRussian(text) {
+        if (!('speechSynthesis' in window)) return;
+        speechSynthesis.cancel();
+        const cleanText = text.replace(/[📋✅⚛️📜🔥💻🎬]/g, '');
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'ru-RU';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+
+        const voices = speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            const ruVoices = voices.filter(v => v.lang.startsWith('ru'));
+            if (ruVoices.length > 0) {
+                const best = ruVoices.find(v => /google|microsoft|natural|premium|enhanced/i.test(v.name)) || ruVoices[0];
+                utterance.voice = best;
+            }
+        }
         speechSynthesis.speak(utterance);
     }
 
