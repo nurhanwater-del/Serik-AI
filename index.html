@@ -674,60 +674,163 @@ Key Principles:
         }
     }
 
-     async speak(text) {
+         async send() {
+        const text = this.input.value.trim();
+        if (!text) return;
+
+        // 1. Браузердің аудио жүйесін батырманы басқан сәтте ояту (Autoplay бұғаттауын айналып өту)
+        if (this.voiceEnabled && 'speechSynthesis' in window) {
+            window.speechSynthesis.resume();
+        }
+
+        this.input.value = '';
+        this.addMessage(text, 'user');
+        
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        this.abortController = new AbortController();
+        const signal = this.abortController.signal;
+        
+        if (/^[\d\s+\-*/().]+$/.test(text)) {
+            try {
+                const result = eval(text);
+                return this.addMessage(`🧮 ${result}`, 'ai');
+            } catch {}
+        }
+        
+        const cached = this.messageCache.get(text.toLowerCase());
+        if (cached) {
+            this.addMessage(cached, 'ai');
+            return;
+        }
+        
+        const localAnswer = this.searchMemory(text);
+        if (localAnswer) {
+            this.messageCache.set(text.toLowerCase(), localAnswer);
+            this.addMessage(localAnswer, 'ai');
+            return;
+        }
+        
+        const imgMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
+        if (imgMatch) {
+            const desc = await this.describeImage(imgMatch[0], text.replace(imgMatch[0], '').trim());
+            this.addMessage(desc || 'Не удалось проанализировать изображение', 'ai');
+            return;
+        }
+        
+        if (/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/i.test(text)) {
+            return this.generateImage(text);
+        }
+        
+        if (/(видео|video|сделай видео|видео істе|түсір|create video|make video|generate video|сними|түсіріп бер)/i.test(text)) {
+            return this.generateVideo(text);
+        }
+        
+        const typingIndicator = this.addMessage('<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>', 'ai', true);
+        try {
+            const response = await this.fetchAIResponse(text, signal);
+            typingIndicator.remove();
+            if (response) {
+                this.messageCache.set(text.toLowerCase(), response);
+                this.addMessage(response, 'ai');
+            }
+        } catch (err) {
+            typingIndicator.remove();
+            if (err.name !== 'AbortError') {
+                this.addMessage('⚠️ Ошибка соединения. Попробуйте ещё раз.', 'ai');
+            }
+        }
+    }
+
+    async speak(text) {
         if (!this.voiceEnabled) return;
         
         const cleanText = this.cleanSpeechText(text);
         if (!cleanText) return;
 
-        // Қай тіл екенін дәл анықтау
-        let lang = 'ru'; // Әдепкі тіл - орысша
+        // Тілді анықтау
+        let lang = 'ru';
         if (/[әғқңөұүһіІҚҰҒҢӨҮӘ]/g.test(cleanText)) {
-            lang = 'kk'; // Қазақ тілі
+            lang = 'kk';
         } else if (/[a-zA-Z]{4,}/.test(cleanText) && !/[а-яё]/i.test(cleanText)) {
-            lang = 'en'; // Ағылшын тілі
+            lang = 'en';
         }
 
-        // Google Translate ұзын мәтінді оқымайды, сондықтан оны сөйлемдерге бөлеміз
+        // Бұрыннан оқылып жатқан дыбыстарды тоқтату
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+
+        // Мәтінді сөйлемдерге бөлу
         const chunks = cleanText.match(/[^.!?]+[.!?]+|\s*[^.!?]+\s*/g) || [cleanText];
         
         for (let chunk of chunks) {
-            if (chunk.trim() === '') continue;
+            const trimmed = chunk.trim();
+            if (!trimmed) continue;
             
-            // Егер бір сөйлемнің өзі 200 символдан ұзын болса, оны сөздерге бөліп оқытамыз
-            let subChunks = [];
-            if (chunk.length > 200) {
-                const words = chunk.split(' ');
-                let current = '';
-                for (let w of words) {
-                    if ((current + w).length < 200) {
-                        current += w + ' ';
-                    } else {
-                        subChunks.push(current);
-                        current = w + ' ';
-                    }
-                }
-                if (current) subChunks.push(current);
-            } else {
-                subChunks.push(chunk);
-            }
-
-            // Әр бөлікті кезекпен Google Translate арқылы дыбыстау
-            for (let sub of subChunks) {
-                // client=tw-ob параметрі API кілтсіз тегін жұмыс істеуіне мүмкіндік береді
-                const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${encodeURIComponent(sub.trim())}`;
-                const audio = new Audio(url);
-                
-                // Алдыңғы сөйлем бітпейінше, келесісі басталмауы үшін күтеміз (Promise)
-                await new Promise(resolve => {
-                    audio.onended = resolve;
-                    audio.onerror = resolve; // Қате шықса да, келесі сөйлемге өтіп кете береді
-                    audio.play().catch(resolve); // Браузер бұғаттаса да код сынбау үшін
-                });
-            }
+            // Әр сөйлемді кезекпен оқыту
+            await this.playAudioChunk(trimmed, lang);
         }
     }
 
+    // Аудионы ойнату және қате болса резервтік дауысқа өту
+    playAudioChunk(text, lang) {
+        return new Promise((resolve) => {
+            // Google Translate арқылы оқыту (200 символдан асырмай)
+            const safeText = text.length > 180 ? text.substring(0, 180) : text;
+            const url = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${encodeURIComponent(safeText)}`;
+            
+            const audio = new Audio();
+            audio.src = url;
+
+            let isFinished = false;
+            const done = () => {
+                if (!isFinished) {
+                    isFinished = true;
+                    resolve();
+                }
+            };
+
+            audio.onended = done;
+            
+            // Егер Google бұғаттаса немесе желі қатесі болса -> браузердің ішкі дауысына өту
+            audio.onerror = () => {
+                this.fallbackSpeech(text, lang, done);
+            };
+
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {
+                    // Браузер автоплейді бұғаттаса да ішкі дауысқа өтеді
+                    this.fallbackSpeech(text, lang, done);
+                });
+            }
+        });
+    }
+
+    // Резервтік SpeechSynthesis дауысы
+    fallbackSpeech(text, lang, callback) {
+        if (!('speechSynthesis' in window)) {
+            callback();
+            return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang === 'kk' ? 'kk-KZ' : (lang === 'en' ? 'en-US' : 'ru-RU');
+        utterance.rate = 1.0;
+
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            const match = voices.find(v => v.lang.startsWith(lang));
+            if (match) utterance.voice = match;
+        }
+
+        utterance.onend = callback;
+        utterance.onerror = callback;
+
+        window.speechSynthesis.speak(utterance);
+    }
 
     changeTheme() {
         document.body.className = `theme-${this.themeSelect.value}`;
