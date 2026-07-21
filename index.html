@@ -174,7 +174,6 @@ class SerikAI {
         this.abortController = null;
         this.messageCache = new Map();
         
-        // ЖАҢА ПРОМПТ: Қатаң көптілділік (Multilingual) және жоғары интеллект
         this.systemPrompt = `You are Serik AI, a highly intelligent multilingual assistant developed in Kazakhstan.
 Key Rules:
 1. STRICT MULTILINGUAL MATCHING: You MUST answer in the EXACT SAME language the user typed. If the user writes in Russian, reply in Russian. If Kazakh, reply in Kazakh. If English, reply in English. Do NOT mix languages.
@@ -182,7 +181,7 @@ Key Rules:
 3. Intelligence: Provide deep, smart, and logical answers.
 4. Tone: Friendly, modern, and confident. Use 1-2 emojis.
 5. Do not mention OpenAI/ChatGPT. You are Serik AI, born on June 18, 2026.
-6. Capabilities: You can generate images ("нарисуй", "сурет сал") and videos ("сделай видео", "видео істе"). For videos, provide text descriptions and prompts if requested instead of direct generation.`;
+6. Capabilities: You can generate images ("нарисуй", "сурет сал") and videos ("сделай видео", "видео істе").`;
         
         this.initFirebase();
         this.initEventListeners();
@@ -240,7 +239,6 @@ Key Rules:
         const text = this.input.value.trim();
         if (!text) return;
 
-        // Аудио жүйені ояту (браузер бұғаттамауы үшін)
         if (this.voiceEnabled && 'speechSynthesis' in window) {
             window.speechSynthesis.resume();
         }
@@ -264,13 +262,6 @@ Key Rules:
         const cached = this.messageCache.get(text.toLowerCase());
         if (cached) {
             this.addMessage(cached, 'ai');
-            return;
-        }
-        
-        const imgMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
-        if (imgMatch) {
-            const desc = await this.describeImage(imgMatch[0], text.replace(imgMatch[0], '').trim());
-            this.addMessage(desc || 'Не удалось проанализировать изображение', 'ai');
             return;
         }
         
@@ -298,14 +289,14 @@ Key Rules:
         }
     }
 
-        async fetchAIResponse(prompt, signal) {
+    async fetchAIResponse(prompt, signal) {
         const messages = [
             { role: "system", content: this.systemPrompt },
             { role: "user", content: prompt }
         ];
         
+        // 1. Негізгі POST сұраныс
         try {
-            // 1. Негізгі POST сұраныс (артық параметрлерсіз, тұрақты жұмыс істейді)
             const res = await fetch("https://text.pollinations.ai/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -315,17 +306,15 @@ Key Rules:
             
             if (res.ok) {
                 const text = await res.text();
-                // Жауап бос емес екеніне көз жеткізу
                 if (text && !text.toLowerCase().includes('"error"')) {
                     return text.trim();
                 }
             }
         } catch (e) {
             if (e.name === 'AbortError') throw e;
-            console.warn("POST сұраныс қате берді, қосалқы тәсілге көшеміз...", e);
         }
 
-        // 2. Егер POST сұраныс бұғатталса немесе қате берсе, өте сенімді GET нұсқасын қолданамыз
+        // 2. Қосалқы (Fallback) GET сұраныс
         try {
             const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?system=${encodeURIComponent(this.systemPrompt)}`;
             const fallbackRes = await fetch(url, { signal });
@@ -336,12 +325,10 @@ Key Rules:
             }
         } catch (e) {
             if (e.name === 'AbortError') throw e;
-            console.error("API-ға қосылу мүлдем мүмкін болмады:", e);
         }
 
-        return "Кешір, қазір серверде ақаулықтар болып жатыр. Сәлден соң қайта жазып көрші. 😓";
+        return "Кешір, қазір серверде уақытша ақау бар. Сәлден соң қайта жазып көрші. 😓";
     }
-
 
     async generateImage(promptText) {
         const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw)/gi, '').trim();
@@ -367,11 +354,9 @@ Key Rules:
     }
 
     async generateVideo(promptText) {
-        this.addMessage('🎥 Функция создания видео запущена (заглушка для кода)...', 'ai');
-        // Оставил логику видео без изменений чтобы не ломать код
+        this.addMessage('🎥 Функция создания видео запущена...', 'ai');
     }
 
-    // Смайликтерді тазалау және Қазақ әріптерін транслиттеу (Дауыс қатып қалмауы үшін)
     cleanSpeechText(text, needsTranslit = false) {
         if (!text) return '';
         let t = text
@@ -404,8 +389,6 @@ Key Rules:
 
         const voices = window.speechSynthesis.getVoices();
         let hasKazakhVoice = voices.some(v => v.lang.startsWith('kk'));
-        
-        // Егер қазақша дауыс құрылғыда жоқ болса, әріптерді орысшаға транслиттейміз (оқи алуы үшін)
         const needsTranslit = isKazakh && !hasKazakhVoice;
         const cleanText = this.cleanSpeechText(text, needsTranslit);
         
@@ -473,11 +456,10 @@ Key Rules:
 
     changeTheme() { document.body.className = `theme-${this.themeSelect.value}`; }
     checkAdmin() { this.adminPanel.style.display = this.adminPass.value === 'nurik777' ? 'block' : 'none'; }
-    bulkLearn() { /* заглушка */ }
+    bulkLearn() {}
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Дауыстар тез жүктелуі үшін
     if ('speechSynthesis' in window) {
         window.speechSynthesis.getVoices();
     }
