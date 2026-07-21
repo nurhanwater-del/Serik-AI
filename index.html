@@ -298,34 +298,50 @@ Key Rules:
         }
     }
 
-    async fetchAIResponse(prompt, signal) {
+        async fetchAIResponse(prompt, signal) {
         const messages = [
             { role: "system", content: this.systemPrompt },
             { role: "user", content: prompt }
         ];
         
-        const models = ["openai", "mistral"];
-        for (let model of models) {
-            if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
-            try {
-                const res = await fetch("https://text.pollinations.ai/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ messages, model, private: true }),
-                    signal
-                });
-                if (!res.ok) continue;
+        try {
+            // 1. Негізгі POST сұраныс (артық параметрлерсіз, тұрақты жұмыс істейді)
+            const res = await fetch("https://text.pollinations.ai/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messages: messages }),
+                signal
+            });
+            
+            if (res.ok) {
                 const text = await res.text();
-                if (text && !text.includes('"error"')) {
+                // Жауап бос емес екеніне көз жеткізу
+                if (text && !text.toLowerCase().includes('"error"')) {
                     return text.trim();
                 }
-            } catch (e) {
-                if (e.name === 'AbortError') throw e;
-                continue;
             }
+        } catch (e) {
+            if (e.name === 'AbortError') throw e;
+            console.warn("POST сұраныс қате берді, қосалқы тәсілге көшеміз...", e);
         }
-        return "Извини, сервер перегружен. Повтори запрос позже. 😓";
+
+        // 2. Егер POST сұраныс бұғатталса немесе қате берсе, өте сенімді GET нұсқасын қолданамыз
+        try {
+            const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?system=${encodeURIComponent(this.systemPrompt)}`;
+            const fallbackRes = await fetch(url, { signal });
+            
+            if (fallbackRes.ok) {
+                const fallbackText = await fallbackRes.text();
+                if (fallbackText) return fallbackText.trim();
+            }
+        } catch (e) {
+            if (e.name === 'AbortError') throw e;
+            console.error("API-ға қосылу мүлдем мүмкін болмады:", e);
+        }
+
+        return "Кешір, қазір серверде ақаулықтар болып жатыр. Сәлден соң қайта жазып көрші. 😓";
     }
+
 
     async generateImage(promptText) {
         const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw)/gi, '').trim();
