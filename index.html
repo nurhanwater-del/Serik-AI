@@ -611,21 +611,7 @@ async function send() {
 img.src = imageUrl;
 return;
 }
-showLoading();
 
-try {
-    let response = await fetch("https://text.pollinations.ai/" + encodeURIComponent(text));
-
-    let answer = await response.text();
-
-    hideLoading();
-    add(answer, "ai");
-
-} catch (e) {
-    hideLoading();
-    add("🔧 Технический перерыв.", "ai");
-}
-}
 </script>
 </body>
 </html>
