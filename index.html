@@ -513,7 +513,7 @@ async function send() {
     if (!text) return;
     
     add(text, "user");
-    input.value = ""; }
+    input.value = "";
 
     // --- 1. МАТЕМАТИКА ---
     if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
@@ -578,36 +578,49 @@ async function send() {
         let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2048&height=2048&nologo=true&seed=${randomSeed}`;
        
         let img = document.createElement("img");
+        img.style.maxWidth = "100%";
+        img.style.borderRadius = "10px";
+        img.style.marginTop = "10px";
 
-img.onload = function () {
+        img.onload = function () {
+            hideLoading();
+
+            let div = add("🎨 Вот ваше изображение:", "ai", true);
+            div.appendChild(img);
+
+            let downloadBtn = document.createElement("button");
+            downloadBtn.innerText = "📥 Скачать";
+            downloadBtn.style.marginTop = "10px";
+
+            downloadBtn.onclick = async function () {
+                const response = await fetch(imageUrl);
+                const blob = await response.blob();
+
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "Serik_AI.png";
+                a.click();
+
+                URL.revokeObjectURL(url);
+            };
+
+            div.appendChild(downloadBtn);
+        };
+
+        img.onerror = function() {
+            hideLoading();
+            add("⚠️ Не удалось сгенерировать изображение. Попробуйте другой запрос.", "ai");
+        };
+
+        img.src = imageUrl;
+        return;
+    }
+
+    // Если ничего не подошло — сообщение по умолчанию
     hideLoading();
-
-    let div = add("🎨 Вот ваше изображение:", "ai", true);
-    div.appendChild(img);
-
-    let downloadBtn = document.createElement("button");
-    downloadBtn.innerText = "📥 Скачать";
-
-    downloadBtn.onclick = async function () {
-        const response = await fetch(imageUrl);
-        const blob = await response.blob();
-
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "Serik_AI.png";
-        a.click();
-
-        URL.revokeObjectURL(url);
-    };
-
-    div.appendChild(downloadBtn);
-};
-
-img.src = imageUrl;
-
-
+    add("Технический перерыв!. Попробуйте спросить иначе или используйте команду «Нарисуй» для генерации изображений.", "ai");
 }
 </script>
 </body>
