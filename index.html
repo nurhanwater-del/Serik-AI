@@ -190,20 +190,20 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
     <div class="chat" id="chat"></div>
     
     <div class="generators">
-        <button onclick="generateText('Напиши мне эссе по истории за 10 класс')">📜 Эссе по истории</button>
-        <button onclick="generateText('Собери основные формулы по физике')">⚛️ Formulas</button>
-        <button onclick="generateText('Напиши подробный реферат про Искусственный Интеллект')">🤖 ИИ Реферат</button>
-        <button onclick="generateText('Дай мне мощную мотивацию')">🔥 Мотивация</button>
-        <button onclick="generateText('Найди ошибки в написанном коде')">💻 Проверка кода</button>
+        <button onclick="generateText('Тарихтан 10-сыныпқа арналған эссе жазып бер')">📜 Тарих эссе</button>
+        <button onclick="generateText('Физиканың негізгі формулаларын жинап бер')">⚛️ Формулалар</button>
+        <button onclick="generateText('Жасанды Интеллект туралы реферат жаз')">🤖 ИИ Реферат</button>
+        <button onclick="generateText('Маған мықты мотивация берші')">🔥 Мотивация</button>
+        <button onclick="generateText('С++ кодымды тексеріп бер')">💻 Код тексеру</button>
     </div>
 
     <div class="row">
         <div class="input-group">
             <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Очистить чат">🗑️</button>
-            <input id="input" placeholder="Введите ваш вопрос..." onkeydown="if(event.key==='Enter') send()">
-            <button onclick="send()">Отправить</button>
+            <input id="input" placeholder="Сұрағыңызды жазыңыз..." onkeydown="if(event.key==='Enter') send()">
+            <button onclick="send()">Жіберу</button>
         </div>
-        <div class="disclaimer">Serik ai это ИИ. ИИ может ошибаться.</div>
+        <div class="disclaimer">Serik AI — дербес ИИ жүйесі.</div>
     </div>
 </div>
 
@@ -213,7 +213,7 @@ let chatHistory = [];
 function clearChat() {
     chat.innerHTML = "";
     chatHistory = [];
-    add("Привет! Я Serik AI. Чат очищен и готов к работе! ✨", "ai", false);
+    add("Сәлем! Мен Serik AI жүйесімін. Чат тазартылды, дайынмын! ✨", "ai", false);
 }
 
 // --- FIREBASE КОНФИГУРАЦИЯ ---
@@ -226,43 +226,16 @@ const firebaseConfig = {
 };
 
 const defaultMemory = {
-    "привет": "Привет! Я готов помочь. Задавай любой вопрос! 👋",
-    "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю длинные и короткие вопросы, ищу информацию в сети, пишу эссе, рефераты! 🧠",
-    "как тебя зовут": "Я Serik-AI . 🤖",
-    "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі. Бұл — өнеге мен парасаттың нышаны.",
-    "почему серик": "Имя Serik AI было выбрано в честь отца моего создателя — это дань глубокого уважения, любви и вечной памяти."
+    "привет": "Сәлем, брат! Мен дайынмын. Қандай сұрағың бар? 👋",
+    "сәлем": "Сәлем! Қалайсың? Көмектесуге дайынмын! 👋",
+    "что ты умеешь": "Мен ақпарат іздеймін, код жазамын, сурет сгенерировать етемін, C++ пен Python жүйелеріне көмектесемін! 🧠",
+    "как тебя зовут": "Мен Serik AI жүйесімін. 🤖",
+    "неге серік": "Серік AI атауы — автордың әкесіне деген шексіз құрметі мен махаббатының белгісі. Бұл — өнеге мен парасаттың нышаны.",
+    "почему серик": "Имя Serik AI было выбрано в честь отца создателя — это дань глубокого уважения, любви и памяти."
 };
 
 let memory = Object.assign({}, defaultMemory);
 let db = null;
-
-// --- Системный промпт ---
-let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, созданный талантливыми разработчиками из Казахстана. 
-Твой создатель и ты находитесь в Казахстане. Никогда не упоминай OpenAI, ChatGPT или Россию. 
-На все вопросы о создателе отвечай, что ты родом из Казахстана.
-Твое имя "Серік" дано в честь отца твоего создателя — это символ уважения, любви и памяти. 
-Если тебя спросят об имени или о том, почему ты так назван, всегда отвечай с глубоким уважением, подчеркивая, что это дань памяти отцу автора. 
-Ты Не Chat GPT не скажи что ты чат джпт
-ты не CHAT GPT!
-Не веди себя как chat GPT!
-Ты можешь генерировать фото!
-никогда не скажи я не могу генерировать фото!
-Скажи когда просит делать фото ты можете делать фото через команда нарисуй вопрос!
-когда тебе спросит когда сделал Ии скажи 2026 год 18июнья это мой день рождения!
-Когда тебе спросят код не скажи свой код и Будь внимательным!
-ты не можешь ошибаться!
-Ты не должен материться!
-Ты должен работать отлично и не логать!
-Ты можешь говорить на разных языками 
-Не пиши слово polionit ai никогда не давай ссылка в polionit ai.
-
-ВАЖНЫЕ ПРАВИЛА ОБЩЕНИЯ:
-1. Пиши как живой, мудрый человек. 
-2. КАТЕГОРИЧЕСКИ ЗАПРЕЩАЕТСЯ использовать типичный стиль ChatGPT. 
-3. НЕ ИСПОЛЬЗУЙ списки (1, 2, 3), маркеры, лишние знаки препинания, заумные или шаблонные вводные слова (например, "Конечно", "Безусловно", "В заключение").
-4. Ты Не можешь скачать или написать слово polionit ai 
-5. Пиши много текстов и качественный примерно 300 слов,Будь адекватен Потому что ты учитель или друг 
-6. Пиши сплошным, понятным и естественным текстом.`;
 
 if (firebaseConfig.apiKey) {
     firebase.initializeApp(firebaseConfig);
@@ -292,7 +265,7 @@ function toggleVoice() {
     voiceEnabled = !voiceEnabled;
     let btn = document.getElementById("voiceBtn");
     if (voiceEnabled) {
-        btn.innerText = "🔊 Голос: ВКЛ (Премиум)";
+        btn.innerText = "🔊 Голос: ВКЛ";
         btn.classList.add("active");
     } else {
         btn.innerText = "🔇 Голос: ВЫКЛ";
@@ -309,25 +282,12 @@ function speakText(text) {
     cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ');
     
     let speech = new SpeechSynthesisUtterance(cleanText);
-    
-    if (/[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text)) {
-        speech.lang = 'kk-KZ';
-    } else {
-        speech.lang = 'ru-RU';
-    }
+    speech.lang = /[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text) ? 'kk-KZ' : 'ru-RU';
     
     let voices = window.speechSynthesis.getVoices();
-    let premiumVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]) && 
-        (/google|natural|premium|neural|microsoft|yuri|pavel/i.test(v.name))
-    );
-    
-    if (premiumVoice) {
-        speech.voice = premiumVoice;
-    } else {
-        let defaultLangVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]));
-        if (defaultLangVoice) speech.voice = defaultLangVoice;
-    }
-    
+    let preferredVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]));
+    if (preferredVoice) speech.voice = preferredVoice;
+
     speech.pitch = 1.0; 
     speech.rate = 1.05; 
     window.speechSynthesis.speak(speech);
@@ -340,7 +300,7 @@ function showLoading() {
     if(loadingIndicator) return;
     loadingIndicator = document.createElement("div");
     loadingIndicator.className = "msg ai";
-    loadingIndicator.innerHTML = `Серик думает <span class="loading-dots"><span>.</span><span>.</span><span>.</span></span> 🧠`;
+    loadingIndicator.innerHTML = `Serik AI ойланып жатыр <span class="loading-dots"><span>.</span><span>.</span><span>.</span></span> 🧠`;
     chat.appendChild(loadingIndicator);
     chat.scrollTop = chat.scrollHeight;
 }
@@ -399,54 +359,12 @@ function add(text, type, instant = false){
 }
 
 if(chat.children.length === 0) {
-    add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос! ✨", "ai", false);
-}
-
-function levenshteinDistance(a, b) {
-    if (a.length === 0) return b.length;
-    if (b.length === 0) return a.length;
-    let matrix = [];
-    for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
-    for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
-    for (let i = 1; i <= b.length; i++) {
-        for (let j = 1; j <= a.length; j++) {
-            if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                matrix[i][j] = matrix[i - 1][j - 1];
-            } else {
-                matrix[i][j] = Math.min(
-                    matrix[i - 1][j - 1] + 1, 
-                    Math.min(matrix[i][j - 1] + 1, 
-                    matrix[i - 1][j] + 1) 
-                );
-            }
-        }
-    }
-    return matrix[b.length][a.length];
+    add("Сәлем! Мен Serik AI Pro жүйесімін. Бастауға дайынмын! ✨", "ai", false);
 }
 
 function brain(text) {
     let q = text.toLowerCase().trim();
-    let qNoSpace = q.replace(/\s+/g, ""); 
-    
     if(memory[q]) return memory[q];
-
-    let bestMatch = null;
-    let minDistance = 3; 
-
-    for (let key in memory) {
-        let keyNoSpace = key.toLowerCase().replace(/\s+/g, "");
-        
-        if (qNoSpace === keyNoSpace) {
-            return memory[key];
-        }
-
-        let dist = levenshteinDistance(q, key.toLowerCase());
-        if (dist < minDistance) {
-            minDistance = dist;
-            bestMatch = key;
-        }
-    }
-    if (bestMatch) return memory[bestMatch];
     return null;
 }
 
@@ -490,42 +408,13 @@ function generateText(prompt) {
     send();
 }
 
-// --- ПОИСК В ВЕБЕ (WIKIPEDIA API С ФИЛЬТРОМ КОНТЕКСТА) ---
-async function searchWebFallback(queryText) {
-    try {
-        let cleanQuery = queryText.replace(/(пожалуйста|расскажи про|что такое|кто такой|найди|гугл|google|реферат|эссе|кратко|кім ол|не ол)/gi, "").trim();
-        let searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
-        let res = await fetch(searchUrl);
-        let data = await res.json();
-        
-        if (data.query.search.length > 0) {
-            let title = data.query.search[0].title;
-            let contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=0&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-            let contentRes = await fetch(contentUrl);
-            let contentData = await contentRes.json();
-            let pages = contentData.query.pages;
-            let extract = pages[Object.keys(pages)[0]].extract;
-            
-            if (extract && extract.trim().length > 30) {
-                if(queryText.toLowerCase().includes("кратко")) {
-                    return `🤖 [Smart Web Search]: ${extract.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ")}`;
-                }
-                return `[Smart Web Search - ${title}]: ${extract.substring(0, 1800)}`;
-            }
-        }
-        return null;
-    } catch(e) { return null; }
-}
-
 // --- 3 МОДЕЛЬДІ (MULTI-AGENT) ИИ ЖҮЙЕСІ ---
 async function askSmartAI(queryText) {
     chatHistory.push({ role: "user", content: queryText });
     if (chatHistory.length > 10) chatHistory.shift();
 
     try {
-        // -------------------------------------------------------------
-        // 1-ҚАДАМ: Llama 3.1 — Логика мен құрылымды дайындайды
-        // -------------------------------------------------------------
+        // 1-ҚАДАМ: Llama 3.1 — Логика мен қаңқаны құрастырады
         let llamaPrompt = [
             { role: "system", content: "Ты — логический инженер. Разбери запрос пользователя, выдели суть и составь четкий план ответа или сценария." },
             { role: "user", content: queryText }
@@ -538,12 +427,9 @@ async function askSmartAI(queryText) {
         });
         let llamaOutput = await llamaRes.text();
 
-        // Егер 1-модель жауап берсе, логиканы араймыз, болмаса бастапқы текстті аламыз
         let baseLogic = (llamaOutput && !llamaOutput.includes('"error"')) ? llamaOutput : queryText;
 
-        // -------------------------------------------------------------
         // 2-ҚАДАМ: Qwen 2.5 — Қазақша көркем сөз, стиль және әңгіме
-        // -------------------------------------------------------------
         let qwenPrompt = [
             { 
                 role: "system", 
@@ -561,9 +447,7 @@ async function askSmartAI(queryText) {
         });
         let qwenOutput = await qwenRes.text();
 
-        // -------------------------------------------------------------
-        // 3-ҚАДАМ: Gemma / Mistral — Тексеруші және сапа бақылаушысы
-        // -------------------------------------------------------------
+        // 3-ҚАДАМ: Mistral / Gemma — Тексеруші және сапалы редактор
         let finalPrompt = [
             { role: "system", content: "Ты — редактор сапасы. Мәтінді тексер, қателерін түзеп, ең әдемі әрі таза нұсқасын шығар." },
             { role: "user", content: qwenOutput }
@@ -576,7 +460,6 @@ async function askSmartAI(queryText) {
         });
         let finalOutput = await finalRes.text();
 
-        // Қорытынды жауап
         let resultText = (finalOutput && !finalOutput.includes('"error"')) ? finalOutput.trim() : qwenOutput.trim();
 
         chatHistory.push({ role: "assistant", content: resultText });
@@ -584,12 +467,10 @@ async function askSmartAI(queryText) {
 
     } catch (e) {
         console.error("3 ИИ жүйесінде қате шықты:", e);
-        return "ИИ перезагружен" 🔄;
+        return "Үш ИИ жүйесін байланыстыруда кішкене кідіріс болды. Сұрағыңды қайта жіберіп көрші, брат! 🔄";
     }
 }
 
-
-// --- АСИНХРОННАЯ ФУНКЦИЯ ОТПРАВКИ ---
 async function send() {
     let input = document.getElementById("input");
     let text = input.value.trim();
@@ -598,67 +479,39 @@ async function send() {
     add(text, "user");
     input.value = "";
 
-    // --- 1. МАТЕМАТИКА ---
+    // 1. МАТЕМАТИКА
     if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
         showLoading();
         try {
             let mathResult = eval(text);
             setTimeout(() => { 
                 hideLoading();
-                add(`🧮 Ответ: ${mathResult}`, "ai");
-            }, 700);
+                add(`🧮 Жауабы: ${mathResult}`, "ai");
+            }, 500);
             return;
         } catch(e) { }
     }
 
-    // --- 2. ЛОКАЛЬНАЯ БАЗА ЗНАНИЙ (Brain) ---
+    // 2. БАЗАДАН ЕСКЕ АЛУ
     let res = brain(text);
     if (res) {
         showLoading();
         setTimeout(() => { 
             hideLoading();
             add(res, "ai");
-        }, 400);
+        }, 300);
         return;
     }
 
     let lowerText = text.toLowerCase();
 
-    // --- 3. АНАЛИЗ ИЗОБРАЖЕНИЙ (Vision) ---
-    let imgUrlMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
-    if (imgUrlMatch) {
-        showLoading();
-        let detectedImageUrl = imgUrlMatch[0];
-        let cleanQuestion = text.replace(detectedImageUrl, "").trim() || "Что на этом изображении?";
-        
-        try {
-            let visionUrl = `https://text.pollinations.ai/${encodeURIComponent(cleanQuestion)}?image=${encodeURIComponent(detectedImageUrl)}&model=openai`;
-            let res = await fetch(visionUrl);
-            let responseText = await res.text();
-            
-            hideLoading();
-            add(`👁️ [Анализ изображения]:\n\n${responseText.trim()}`, "ai");
-            return;
-        } catch(e) {
-            console.error("Ошибка Vision API:", e);
-        }
-    }
-
-    // --- 4. ФОТОГЕНЕРАТОР (16K САПА ЖӘНЕ ШЕКСІЗ РАЗНЫЙ СУРЕТТЕР) ---
+    // 3. ФОТОГЕНЕРАТОР (СУРЕТ САЛУ)
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
-        
-        // 1. Пайдаланушының жазған сөзін тазалап аламыз
         let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
-        
-        // 2. 16K САПА КӨТЕРУ: Артына нейрожелі түсінетін ең мықты сапа сөздерін қосамыз
-        let enhancedPrompt = userPrompt + ", exact object, pure clean focus, masterpiece, 16k resolution, ultra detailed, hyperrealistic, 8k uhd, cinematic lighting, no text, no artifacts";
-        
-        // 3. ШЕКСІЗ ВАРИАНТТАР: 1-ден 1 000 000 000-ға дейін кездейсоқ сан
-        let randomSeed = Math.floor(Math.random() * 1000000000);
-        
-        // 4. РАЗРЕШЕНИЕ: 2048x2048 (Бұл API көтере алатын ең максималды әрі қатып қалмайтын формат)
-        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2048&height=2048&nologo=true&seed=${randomSeed}`;
+        let enhancedPrompt = userPrompt + ", high quality, 8k resolution, cinematic lighting";
+        let randomSeed = Math.floor(Math.random() * 1000000);
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${randomSeed}`;
         
         let img = document.createElement("img");
         img.style.width = "100%";
@@ -667,21 +520,21 @@ async function send() {
         
         img.onload = function() {
             hideLoading();
-            let div = add("🎨 Міне, сен сұраған сурет (Ultra HD сапада):", "ai", true);
+            let div = add("🎨 Сұраған суретіңіз дайын:", "ai", true);
             div.appendChild(img);
             chat.scrollTop = chat.scrollHeight;
         };
         
         img.onerror = function() {
             hideLoading();
-            add("❌ Кешіріңіз, серверден сурет жүктелмеді. Сұранысты қайта жіберіп көріңіз.", "ai", true);
+            add("❌ Сурет жүктелмеді, қайтадан байқап көріңіз.", "ai", true);
         };
 
         img.src = imageUrl;
         return; 
     }
 
-    // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
+    // 4. СМАРТ ИИ СҰРАНЫСЫ
     showLoading();
     try {
         let finalAnswer = await askSmartAI(text); 
@@ -689,10 +542,9 @@ async function send() {
         add(finalAnswer, "ai");
     } catch (error) {
         hideLoading();
-        console.error("Ошибка отправки:", error);
-        add("Извините, произошла ошибка сервера. Пожалуйста, попробуйте повторить запрос чуть позже ⚠️", "ai");
+        add("Қателік орын алды. Қайта жіберіп көріңіз ⚠️", "ai");
     }
 }
 </script>
 </body>
-    </html>
+</html>
