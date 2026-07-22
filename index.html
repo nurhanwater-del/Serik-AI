@@ -592,27 +592,19 @@ async function send() {
     let downloadBtn = document.createElement("button");
     downloadBtn.innerText = "📥 Скачать";
 
-    downloadBtn.onclick = function() {
-        const a = document.createElement("a");
-        a.href = imageUrl;
-        a.download = "Serik_AI.png";
-        a.click();
-    };
+    downloadBtn.onclick = async function () {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
 
-    div.appendChild(downloadBtn);
+    const url = URL.createObjectURL(blob);
 
-    chat.scrollTop = chat.scrollHeight;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Serik_AI.png";
+    a.click();
+
+    URL.revokeObjectURL(url);
 };
-        
-        img.onerror = function() {
-            hideLoading();
-            add("❌ Кешіріңіз, серверден сурет жүктелмеді. Сұранысты қайта жіберіп көріңіз.", "ai", true);
-        };
-
-        img.src = imageUrl;
-        return; 
-    }
-
     // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
     showLoading();
     try {
