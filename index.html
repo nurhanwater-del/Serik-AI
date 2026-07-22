@@ -1,21 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="kk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
 <title>Serik AI</title>
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Serik AI",
-  "url": "https://serik-ai.vercel.app"
-}
-</script>
-
-<meta name="google-site-verification" content="google9a22931bc29d7cd7" />
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -24,7 +12,6 @@
 * { box-sizing: border-box; }
 body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0f0f14; color: white; display: flex; height: 100vh; overflow: hidden; transition: background 0.4s, color 0.4s; }
 
-/* Стили скроллбара */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
@@ -33,7 +20,6 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .sidebar { width: 280px; background: #1a1a24; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; transition: background 0.4s; z-index: 10; box-shadow: 2px 0 15px rgba(0,0,0,0.5); }
 .sidebar h3 { text-align: center; margin-top: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; color: #00b86b; text-shadow: 0 0 10px rgba(0,184,107,0.3); }
 
-/* --- СТИЛИ МЕНЮ --- */
 #menuToggle { background: #2b2b3a; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; }
 #menuToggle:hover { background: #3a3a4d; border-color: #00b86b; }
 .settings-menu { display: none; flex-direction: column; gap: 10px; background: #111118; padding: 15px; border-radius: 10px; border: 1px solid #333; margin-top: -5px; }
@@ -43,7 +29,6 @@ body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; height: 100vh; }
 .chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; scroll-behavior: smooth; }
 
-/* Стили сообщений */
 .msg { padding: 14px 18px; margin: 8px 0; border-radius: 14px; max-width: 85%; white-space: pre-wrap; word-wrap: break-word; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); line-height: 1.5; font-size: 15px; transition: transform 0.2s ease-out; }
 .msg:hover { transform: translateY(-1px); }
 .user { background: linear-gradient(135deg, #00b86b, #008f53); margin-left: auto; color: white; border-bottom-right-radius: 4px; }
@@ -58,104 +43,50 @@ button, select { padding: 12px; background: #00b86b; border: none; border-radius
 button:hover { background: #009e5b; transform: scale(1.02); }
 button:active { transform: scale(0.98); }
 select { background: #2b2b3a; width: 100%; color: white; }
-select:hover { background: #3a3a4d; }
 
 #voiceBtn { background: #444; border-radius: 8px; }
 #voiceBtn.active { background: linear-gradient(135deg, #007bff, #0056b3); box-shadow: 0 0 10px rgba(0,123,255,0.4); }
 #adminPanel { display: none; margin-top: 10px; background: #222230; padding: 15px; border-radius: 10px; border: 1px solid #333; }
 textarea { height: 120px; resize: none; }
 
-/* Кнопки быстрой генерации */
 .generators { display: flex; gap: 10px; padding: 12px 15px; background: #1a1a24; border-top: 1px solid #2b2b3a; overflow-x: auto; white-space: nowrap; }
 .generators button { background: #2b2b3a; padding: 8px 14px; font-size: 13px; border: 1px solid #444; border-radius: 20px; font-weight: normal; }
 .generators button:hover { background: #00b86b; border-color: #00b86b; color: white; }
 
-/* Кнопка копирования */
 .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.3); border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: 0; transition: 0.3s; }
 .msg.ai:hover .copy-btn { opacity: 1; }
 .copy-btn:hover { background: #00b86b; transform: scale(1.1); }
 
-/* Дисклеймер */
 .disclaimer { text-align: center; font-size: 11px; color: #777; width: 100%; font-family: sans-serif; letter-spacing: 0.5px; margin-top: 2px; }
 
-/* Анимация загрузки */
 .loading-dots { display: inline-block; animation: blink 1.4s infinite both; font-weight: bold; font-size: 18px; line-height: 1; }
 .loading-dots span { animation: blink 1.4s infinite both; }
 .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
 .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
 
-/* --- ТЕМЫ ОФОРМЛЕНИЯ --- */
 body.theme-hacker { background: #050505; color: #0f0; }
-body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; box-shadow: none; }
-body.theme-hacker .settings-menu { background: #001100; border-color: #0f0; }
-body.theme-hacker .msg.ai { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; box-shadow: 0 0 10px rgba(0,255,0,0.1); }
+body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; }
+body.theme-hacker .msg.ai { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; }
 body.theme-hacker .msg.user { background: #003300; border: 1px solid #0f0; color: #0f0; }
 body.theme-hacker button, body.theme-hacker select, body.theme-hacker #menuToggle { background: #002200; border: 1px solid #0f0; color: #0f0; }
-body.theme-hacker .row, body.theme-hacker .generators { background: #050505; border-color: #0f0; }
-body.theme-hacker input, body.theme-hacker textarea { background: #000; color: #0f0; border-color: #0f0; }
 
 body.theme-cyberpunk { background: #0f001a; color: #0ff; }
-body.theme-cyberpunk .sidebar { background: #1a0033; border-right: 1px solid #f0f; box-shadow: 5px 0 20px rgba(255,0,255,0.2); }
-body.theme-cyberpunk .settings-menu { background: #220033; border-color: #f0f; }
-body.theme-cyberpunk .msg.ai { background: #2a004d; border: 1px solid #0ff; color: #fff; box-shadow: 0 0 15px rgba(0,255,255,0.2); }
-body.theme-cyberpunk .msg.user { background: #4d004d; border: 1px solid #f0f; color: #fff; box-shadow: 0 0 15px rgba(255,0,255,0.2); }
-body.theme-cyberpunk button, body.theme-cyberpunk select, body.theme-cyberpunk #menuToggle { background: linear-gradient(45deg, #8a2be2, #f0f); border: none; color: #fff; text-shadow: 1px 1px 2px #000; }
-body.theme-cyberpunk .row, body.theme-cyberpunk .generators { background: #1a0033; border-color: #f0f; }
-body.theme-cyberpunk input, body.theme-cyberpunk textarea { background: #0f001a; color: #0ff; border-color: #0ff; }
+body.theme-cyberpunk .sidebar { background: #1a0033; border-right: 1px solid #f0f; }
+body.theme-cyberpunk .msg.ai { background: #2a004d; border: 1px solid #0ff; color: #fff; }
+body.theme-cyberpunk .msg.user { background: #4d004d; border: 1px solid #f0f; color: #fff; }
 
 body.theme-light { background: #f4f4f9; color: #333; }
-body.theme-light .sidebar { background: #ffffff; border-right: 1px solid #ddd; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
-body.theme-light .settings-menu { background: #f9f9f9; border-color: #ccc; }
-body.theme-light .msg.ai { background: #ffffff; color: #333; border: 1px solid #e0e0e0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-body.theme-light .msg.user { background: linear-gradient(135deg, #00b86b, #009e5b); color: #fff; box-shadow: 0 2px 10px rgba(0,184,107,0.3); }
-body.theme-light button { background: #00b86b; color: white; border: none; }
-body.theme-light #menuToggle { background: #eee; color: #333; border: 1px solid #ccc; }
-body.theme-light select { background: #fff; color: #333; border: 1px solid #ccc; }
-body.theme-light .row, body.theme-light .generators { background: #fff; border-color: #ddd; }
-body.theme-light input, body.theme-light textarea { background: #fafafa; color: #333; border-color: #ccc; }
+body.theme-light .sidebar { background: #ffffff; border-right: 1px solid #ddd; }
+body.theme-light .msg.ai { background: #ffffff; color: #333; border: 1px solid #e0e0e0; }
+body.theme-light .msg.user { background: linear-gradient(135deg, #00b86b, #009e5b); color: #fff; }
 
-/* 📱 АДАПТИВ ДЛЯ СМАРТФОНОВ */
 @media (max-width: 768px) {
-    body { flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
-    .sidebar { 
-        width: 100%; 
-        height: auto; 
-        max-height: 120px; 
-        padding: 8px 12px; 
-        gap: 4px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
-    }
-    .sidebar h3 { font-size: 16px; margin: 0 0 2px 0; }
-    #menuToggle { padding: 6px 10px; font-size: 13px; }
-    .settings-menu { padding: 8px; gap: 6px; }
-    
-    .main { 
-        flex: 1; 
-        height: calc(100vh - 120px);
-        height: calc(100dvh - 120px);
-        display: flex;
-        flex-direction: column;
-        position: relative;
-    }
+    body { flex-direction: column; height: 100vh; overflow: hidden; position: fixed; width: 100%; }
+    .sidebar { width: 100%; height: auto; max-height: 120px; padding: 8px 12px; gap: 4px; }
+    .main { flex: 1; height: calc(100vh - 120px); display: flex; flex-direction: column; position: relative; }
     .chat { flex: 1; padding: 10px; padding-bottom: 90px; }
-    .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
-    .generators { padding: 6px 10px; }
-    .generators button { padding: 5px 10px; font-size: 11px; }
-    
-    .row { 
-        padding: 10px; 
-        position: fixed; 
-        bottom: 0; 
-        left: 0;
-        width: 100%;
-        background: #111; 
-        border-top: 1px solid #222;
-        z-index: 999;
-    }
-    input { padding: 10px; font-size: 15px; }
-    button { padding: 10px 14px; font-size: 14px; }
-    .disclaimer { font-size: 10px; margin-top: 4px; }
+    .row { position: fixed; bottom: 0; left: 0; width: 100%; background: #111; padding: 10px; }
 }
 </style>
 </head>
@@ -163,25 +94,25 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
 <body class="theme-default">
 
 <div class="sidebar">
-    <h3>🤖 Serik AI </h3>
+    <h3>🤖 Serik AI</h3>
     
-    <button id="menuToggle" onclick="toggleSettings()">⚙️ Настройки <span>🔽</span></button>
+    <button id="menuToggle" onclick="toggleSettings()">⚙️ Баптаулар <span>🔽</span></button>
     
     <div id="settingsMenu" class="settings-menu">
         <select id="themeSelect" onchange="changeTheme()">
-            <option value="default">🌙 Тёмная (По умолчанию)</option>
-            <option value="hacker">💻 Хакер (Матрица)</option>
+            <option value="default">🌙 Қараңғы</option>
+            <option value="hacker">💻 Хакер (Matrix)</option>
             <option value="cyberpunk">🌃 Киберпанк</option>
-            <option value="light">☀️ Светлая (Light)</option>
+            <option value="light">☀️ Жарық</option>
         </select>
 
-        <button id="voiceBtn" onclick="toggleVoice()">🔇 Голос: ВЫКЛ</button>
-        <input type="password" id="adminPass" placeholder="Пароль администратора" oninput="checkAdmin()">
+        <button id="voiceBtn" onclick="toggleVoice()">🔇 Дауыс: ӨШІРУЛІ</button>
+        <input type="password" id="adminPass" placeholder="Админ паролі" oninput="checkAdmin()">
         
         <div id="adminPanel">
             <p style="color: #00b86b; margin: 0 0 5px 0; font-weight: bold; text-align: center;">🔒 ADMIN MODE</p>
-            <textarea id="bulk" placeholder="вопрос это ответ"></textarea>
-            <button onclick="bulkLearn()" style="width: 100%; margin-top: 5px;">Сохранить базу</button>
+            <textarea id="bulk" placeholder="сұрақ это жауап"></textarea>
+            <button onclick="bulkLearn()" style="width: 100%; margin-top: 5px;">Базаға сақтау</button>
         </div>
     </div>
 </div>
@@ -190,48 +121,38 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
     <div class="chat" id="chat"></div>
     
     <div class="generators">
-        <button onclick="generateText('Тарихтан 10-сыныпқа арналған эссе жазып бер')">📜 Тарих эссе</button>
-        <button onclick="generateText('Физиканың негізгі формулаларын жинап бер')">⚛️ Формулалар</button>
-        <button onclick="generateText('Жасанды Интеллект туралы реферат жаз')">🤖 ИИ Реферат</button>
+        <button onclick="generateText('Амандасып, жағдай сұрасшы брат')">💬 Әңгімелесу</button>
+        <button onclick="generateText('Қазіргі соңғы жаңалықтарды айтып бер')">🌐 Соңғы жаңалықтар</button>
+        <button onclick="generateText('С++ тілінде ойын жазу неден басталады?')">💻 C++ Ойын дамыту</button>
+        <button onclick="generateText('Godot движогында 3D ойын жасау бойынша кеңес бер')">🎮 Godot Engine</button>
         <button onclick="generateText('Маған мықты мотивация берші')">🔥 Мотивация</button>
-        <button onclick="generateText('С++ кодымды тексеріп бер')">💻 Код тексеру</button>
     </div>
 
     <div class="row">
         <div class="input-group">
-            <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Очистить чат">🗑️</button>
-            <input id="input" placeholder="Сұрағыңызды жазыңыз..." onkeydown="if(event.key==='Enter') send()">
+            <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Тазалау">🗑️</button>
+            <input id="input" placeholder="Сұрағыңызды немесе ойыңызды жазыңыз..." onkeydown="if(event.key==='Enter') send()">
             <button onclick="send()">Жіберу</button>
         </div>
-        <div class="disclaimer">Serik AI — дербес ИИ жүйесі.</div>
+        <div class="disclaimer">Serik AI — Llama өзегіне негізделген ақылды жүйе.</div>
     </div>
 </div>
 
 <script>
 let chatHistory = [];
 
-function clearChat() {
-    chat.innerHTML = "";
-    chatHistory = [];
-    add("Сәлем! Мен Serik AI жүйесімін. Чат тазартылды, дайынмын! ✨", "ai", false);
-}
-
-// --- FIREBASE КОНФИГУРАЦИЯ ---
 const firebaseConfig = {
   apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
   authDomain: "serik-ai.firebaseapp.com",
   databaseURL: "https://serik-ai-default-rtdb.firebaseio.com",
-  projectId: "serik-ai",
-  storageBucket: "serik-ai.appspot.com"
+  projectId: "serik-ai"
 };
 
 const defaultMemory = {
     "привет": "Сәлем, брат! Мен дайынмын. Қандай сұрағың бар? 👋",
-    "сәлем": "Сәлем! Қалайсың? Көмектесуге дайынмын! 👋",
-    "что ты умеешь": "Мен ақпарат іздеймін, код жазамын, сурет сгенерировать етемін, C++ пен Python жүйелеріне көмектесемін! 🧠",
+    "сәлем": "Сәлем, бауырым! Қалайсың? Жұмыстар қалай? 👋",
     "как тебя зовут": "Мен Serik AI жүйесімін. 🤖",
-    "неге серік": "Серік AI атауы — автордың әкесіне деген шексіз құрметі мен махаббатының белгісі. Бұл — өнеге мен парасаттың нышаны.",
-    "почему серик": "Имя Serik AI было выбрано в честь отца создателя — это дань глубокого уважения, любви и памяти."
+    "неге серік": "Серік AI атауы — автордың әкесіне деген шексіз құрметі мен махаббатының белгісі."
 };
 
 let memory = Object.assign({}, defaultMemory);
@@ -265,10 +186,10 @@ function toggleVoice() {
     voiceEnabled = !voiceEnabled;
     let btn = document.getElementById("voiceBtn");
     if (voiceEnabled) {
-        btn.innerText = "🔊 Голос: ВКЛ";
+        btn.innerText = "🔊 Дауыс: ҚОСУЛЫ";
         btn.classList.add("active");
     } else {
-        btn.innerText = "🔇 Голос: ВЫКЛ";
+        btn.innerText = "🔇 Дауыс: ӨШІРУЛІ";
         btn.classList.remove("active");
         window.speechSynthesis.cancel();
     }
@@ -277,23 +198,12 @@ function toggleVoice() {
 function speakText(text) {
     if (!voiceEnabled) return;
     window.speechSynthesis.cancel(); 
-
-    let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '');
-    cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ');
-    
+    let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🤖😎✨]/gu, '').replace(/[#*`~_\-()]/g, ' ');
     let speech = new SpeechSynthesisUtterance(cleanText);
     speech.lang = /[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text) ? 'kk-KZ' : 'ru-RU';
-    
-    let voices = window.speechSynthesis.getVoices();
-    let preferredVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]));
-    if (preferredVoice) speech.voice = preferredVoice;
-
-    speech.pitch = 1.0; 
     speech.rate = 1.05; 
     window.speechSynthesis.speak(speech);
 }
-
-window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 
 let loadingIndicator = null;
 function showLoading() {
@@ -304,6 +214,7 @@ function showLoading() {
     chat.appendChild(loadingIndicator);
     chat.scrollTop = chat.scrollHeight;
 }
+
 function hideLoading() {
     if (loadingIndicator && chat.contains(loadingIndicator)) {
         chat.removeChild(loadingIndicator);
@@ -314,7 +225,6 @@ function hideLoading() {
 function add(text, type, instant = false){
     let div = document.createElement("div");
     div.className = "msg " + type;
-    
     let textSpan = document.createElement("span");
     div.appendChild(textSpan);
 
@@ -334,7 +244,6 @@ function add(text, type, instant = false){
             let chars = [...text];
             let i = 0;
             let chunkSize = chars.length > 400 ? 4 : 1;
-            
             let timer = setInterval(() => {
                 if (i < chars.length) {
                     textSpan.innerText += chars.slice(i, i + chunkSize).join('');
@@ -359,7 +268,13 @@ function add(text, type, instant = false){
 }
 
 if(chat.children.length === 0) {
-    add("Сәлем! Мен Serik AI Pro жүйесімін. Бастауға дайынмын! ✨", "ai", false);
+    add("Сәлем, брат! Мен Serik AI-мін. Әңгімелесеміз бе, әлде бір нәрсе іздеп тауып берейін бе? ✨", "ai", false);
+}
+
+function clearChat() {
+    chat.innerHTML = "";
+    chatHistory = [];
+    add("Чат тазартылды, брат! Дайынмын. 🚀", "ai", true);
 }
 
 function brain(text) {
@@ -392,7 +307,7 @@ function bulkLearn(){
         memory = newMemory;
         if (db) {
             db.ref('serik_memory').set(memory);
-            alert("✅ Успешно сохранено в облаке Firebase!");
+            alert("✅ Сақталды!");
         }
     }
     document.getElementById("bulk").value = "";
@@ -408,66 +323,80 @@ function generateText(prompt) {
     send();
 }
 
-// --- 3 МОДЕЛЬДІ (MULTI-AGENT) ИИ ЖҮЙЕСІ ---
+// --- LLAMA СОҢҒЫ ВЕРСИЯСЫ + GOOGLE SEARCH АҚЫЛДЫ МИ ЖҮЙЕСІ ---
 async function askSmartAI(queryText) {
     chatHistory.push({ role: "user", content: queryText });
     if (chatHistory.length > 10) chatHistory.shift();
 
     try {
-        // 1-ҚАДАМ: Llama 3.1 — Логика мен қаңқаны құрастырады
-        let llamaPrompt = [
-            { role: "system", content: "Ты — логический инженер. Разбери запрос пользователя, выдели суть и составь четкий план ответа или сценария." },
+        // 1-ҚАДАМ: Llama соңғы версиясы шешеді (Әңгіме ме әлде нақты факт/іздеу ме?)
+        let routePrompt = [
+            { 
+                role: "system", 
+                content: "Ты классификатор запросов. Проанализируй сообщение пользователя. Если это обычный разговор, приветствие, шутка, совет или обсуждение — ответь строго 'CHAT'. Если вопрос требует точных свежих фактов, дат, новостей, курсов валют, специфических данных из интернета — ответь строго 'FACT'." 
+            },
             { role: "user", content: queryText }
         ];
 
-        let llamaRes = await fetch("https://text.pollinations.ai/", {
+        let routeRes = await fetch("https://text.pollinations.ai/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: llamaPrompt, model: "llama", private: true })
+            body: JSON.stringify({ messages: routePrompt, model: "llama", private: true })
         });
-        let llamaOutput = await llamaRes.text();
+        
+        let routeDecision = await routeRes.text();
+        let isFactRequest = routeDecision.toUpperCase().includes("FACT");
 
-        let baseLogic = (llamaOutput && !llamaOutput.includes('"error"')) ? llamaOutput : queryText;
+        let fetchedFacts = "";
 
-        // 2-ҚАДАМ: Qwen 2.5 — Қазақша көркем сөз, стиль және әңгіме
-        let qwenPrompt = [
-            { 
-                role: "system", 
-                content: `Ты — Serik AI. Өте ақылды, бауырлас, құрметті ИИ-ассистентсің.
-Никогда не говори, что ты ChatGPT. Твое имя Serik AI, родом из Казахстана.
-Басты тапсырма: Берілген логиканы қазақша (немесе қолданушы тілінде) өте шынайы, көркем, достық рухта, мағыналы етіп жеткіз.` 
-            },
-            { role: "user", content: `Пайдаланушы сұрағы: "${queryText}"\nЛогикалық құрылым: "${baseLogic}"` }
-        ];
+        // 2-ҚАДАМ: Егер факт керек болса, Гугл іздеуге жіберіп, деректерді табамыз
+        if (isFactRequest) {
+            let searchRes = await fetch("https://text.pollinations.ai/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    messages: [
+                        { role: "system", content: "Найди актуальные точные факты и краткую информацию по запросу пользователя." },
+                        { role: "user", content: queryText }
+                    ], 
+                    model: "llama", 
+                    search: true, // Google Search функционалын қосу
+                    private: true 
+                })
+            });
+            fetchedFacts = await searchRes.text();
+        }
 
-        let qwenRes = await fetch("https://text.pollinations.ai/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: qwenPrompt, model: "qwen", private: true })
-        });
-        let qwenOutput = await qwenRes.text();
+        // 3-ҚАДАМ: Деректерді (немесе жай әңгімені) Llama-ға қайта жіберіп, фактіні бүлдірмей, досша жауап құрастыру
+        let systemInstruction = `Ты — Serik AI. Өте ақылды, бауырлас, құрметті ИИ-ассистентсің. Қолданушымен нағыз дос, бауыр сияқты (брат, бауырым) сөйлесесің.
+Сенің негізгі миың — Llama (соңғы версиясы).
+Міндетің:
+1. Жауапты қазақ тілінде, табиғи, достық рухта, мағыналы әрі анық бер.
+2. Егер саған интернеттен табылған фактілер берілсе, ол фактілерді ешқандай БҮЛДІРМАЙ, бұрмаламай, тура әрі нақты пайдалан.
+3. 'Мен гуглдан қарадым' деп құрғақ айтпа, өзің білетін ақпаратты досыңа түсіндіріп отырғандай жеткіз.
 
-        // 3-ҚАДАМ: Mistral / Gemma — Тексеруші және сапалы редактор
+${isFactRequest ? "Гуглдан табылған нақты фактілер: " + fetchedFacts : "Бұл жай достық әңгімелесу."}`;
+
         let finalPrompt = [
-            { role: "system", content: "Ты — редактор сапасы. Мәтінді тексер, қателерін түзеп, ең әдемі әрі таза нұсқасын шығар." },
-            { role: "user", content: qwenOutput }
+            { role: "system", content: systemInstruction },
+            ...chatHistory
         ];
 
         let finalRes = await fetch("https://text.pollinations.ai/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ messages: finalPrompt, model: "mistral", private: true })
+            body: JSON.stringify({ messages: finalPrompt, model: "llama", private: true })
         });
+        
         let finalOutput = await finalRes.text();
-
-        let resultText = (finalOutput && !finalOutput.includes('"error"')) ? finalOutput.trim() : qwenOutput.trim();
+        let resultText = (finalOutput && !finalOutput.includes('"error"')) ? finalOutput.trim() : "Брат, миым аздап кідіріп қалды. Сұрағыңды қайта жазып жіберші!";
 
         chatHistory.push({ role: "assistant", content: resultText });
         return resultText;
 
     } catch (e) {
-        console.error("3 ИИ жүйесінде қате шықты:", e);
-        return "Үш ИИ жүйесін байланыстыруда кішкене кідіріс болды. Сұрағыңды қайта жіберіп көрші, брат! 🔄";
+        console.error("Llama + Google Search жүйесінде қате:", e);
+        return "Брат, байланыста аздап проблема болды. Қайта жіберіп көрші! 🔄";
     }
 }
 
@@ -487,7 +416,7 @@ async function send() {
             setTimeout(() => { 
                 hideLoading();
                 add(`🧮 Жауабы: ${mathResult}`, "ai");
-            }, 500);
+            }, 400);
             return;
         } catch(e) { }
     }
@@ -505,7 +434,7 @@ async function send() {
 
     let lowerText = text.toLowerCase();
 
-    // 3. ФОТОГЕНЕРАТОР (СУРЕТ САЛУ)
+    // 3. СУРЕТ САЛУ
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
         let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
@@ -520,21 +449,21 @@ async function send() {
         
         img.onload = function() {
             hideLoading();
-            let div = add("🎨 Сұраған суретіңіз дайын:", "ai", true);
+            let div = add("🎨 Сұраған суретің дайын, брат:", "ai", true);
             div.appendChild(img);
             chat.scrollTop = chat.scrollHeight;
         };
         
         img.onerror = function() {
             hideLoading();
-            add("❌ Сурет жүктелмеді, қайтадан байқап көріңіз.", "ai", true);
+            add("❌ Сурет жүктелмеді, қайтадан байқап көрші.", "ai", true);
         };
 
         img.src = imageUrl;
         return; 
     }
 
-    // 4. СМАРТ ИИ СҰРАНЫСЫ
+    // 4. СМАРТ Llama + GOOGLE SEARCH ЖҮЙЕСІ
     showLoading();
     try {
         let finalAnswer = await askSmartAI(text); 
@@ -542,7 +471,7 @@ async function send() {
         add(finalAnswer, "ai");
     } catch (error) {
         hideLoading();
-        add("Қателік орын алды. Қайта жіберіп көріңіз ⚠️", "ai");
+        add("Қателік орын алды, қайта жіберіп көрші ⚠️", "ai");
     }
 }
 </script>
