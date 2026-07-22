@@ -490,46 +490,20 @@ function generateText(prompt) {
     send();
 }
 
-// --- ПОИСК В ВЕБЕ (WIKIPEDIA API С ФИЛЬТРОМ КОНТЕКСТА) ---
-async function searchWebFallback(queryText) {
-    try {
-        let cleanQuery = queryText.replace(/(пожалуйста|расскажи про|что такое|кто такой|найди|гугл|google|реферат|эссе|кратко|кім ол|не ол)/gi, "").trim();
-        let searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
-        let res = await fetch(searchUrl);
-        let data = await res.json();
-        
-        if (data.query.search.length > 0) {
-            let title = data.query.search[0].title;
-            let contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=0&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-            let contentRes = await fetch(contentUrl);
-            let contentData = await contentRes.json();
-            let pages = contentData.query.pages;
-            let extract = pages[Object.keys(pages)[0]].extract;
-            
-            if (extract && extract.trim().length > 30) {
-                if(queryText.toLowerCase().includes("кратко")) {
-                    return `🤖 [Smart Web Search]: ${extract.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ")}`;
-                }
-                return `[Smart Web Search - ${title}]: ${extract.substring(0, 1800)}`;
-            }
-        }
-        return null;
-    } catch(e) { return null; }
-}
-
 hideLoading();
 
 add(`🔧 Технический перерыв
 
-Сейчас Serik AI проходит масштабное обновление.
+Текстовый ИИ временно недоступен из-за обновления серверов.
 
-🚀 Оптимизация скорости
-🧠 Улучшение качества ответов
-🌍 Подготовка новых функций
+🧠 Мы улучшаем качество ответов и производительность системы.
 
-⏳ Пожалуйста, немного подождите.
+🖼️ Генерация изображений продолжает работать в обычном режиме.
+Просто начните сообщение со слова «Нарисуй» и опишите, что хотите увидеть.
 
-Совсем скоро Serik AI снова будет доступен! ❤️`, "ai");
+⏳ Пожалуйста, попробуйте снова немного позже.
+
+💚 Спасибо за понимание!`, "ОТ Serik ai");
 
 return;
   
