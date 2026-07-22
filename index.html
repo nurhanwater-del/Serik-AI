@@ -103,12 +103,12 @@
         @media (max-width: 768px) {
             body { flex-direction: column; }
             .sidebar {
-                width: 100%; max-height: auto; min-height: 50px; padding: 8px 10px;
-                gap: 4px; overflow-y: visible; z-index: 100;
+                width: 100%; max-height: 100px; padding: 8px 10px;
+                gap: 4px; overflow-y: visible;
             }
             .sidebar h3 { font-size: 18px; margin: 0; }
             .main {
-                height: calc(100vh - 50px);
+                height: calc(100vh - 100px);
                 display: flex; flex-direction: column;
             }
             .chat { padding: 10px; flex: 1; }
@@ -130,7 +130,7 @@
 <div class="sidebar">
     <h3>🤖 Serik AI</h3>
     <button id="menuToggle">⚙️ Настройки</button>
-    <div id="settingsMenu" style="display:none; flex-direction:column; gap:8px; margin-top: 10px;">
+    <div id="settingsMenu" style="display:none; flex-direction:column; gap:8px;">
         <select id="themeSelect">
             <option value="default">🌙 Тёмная</option>
             <option value="hacker">💻 Хакер</option>
@@ -307,7 +307,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         }
         
         // Генерация видео (слайдшоу)
-        if (/(видео|video|сделай видео|жаса|түсір|create video|make video|generate video|сними|түсіріп бер)/i.test(text)) {
+        if (/(видео|video|сделай видео|жаса|түсір|create video|make video|generate video)/i.test(text)) {
             return this.generateVideo(text);
         }
         
@@ -401,74 +401,54 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
     }
 
     async generateImage(promptText) {
-        const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
-        const enhanced = `${userPrompt}, masterpiece, 8k, hyperrealistic, no text`;
-        const seed = Math.floor(Math.random() * 1000000000); 
-        const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
+    // Пайдаланушының мәтінінен "сурет сал", "нарисуй" сияқты артық сөздерді тазалау
+    const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
+    
+    // Сурет сапасын арттыратын қосымша тегтер қосу
+    const enhanced = `${userPrompt}, masterpiece, 8k, hyperrealistic, no text`;
+    const seed = Math.floor(Math.random() * 1000000000); // Әр жолы әртүрлі сурет шығуы үшін рандомды сан
+    const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
+    
+    // Чатқа жүктеліп жатқаны туралы хабарлама шығару
+    const msgDiv = this.addMessage('🎨 Генерирую изображение...', 'ai');
+    try {
+        const response = await fetch(imgUrl);
+        const blob = await response.blob();
         
-        const msgDiv = this.addMessage('🎨 Генерирую изображение...', 'ai');
-        try {
-            const response = await fetch(imgUrl);
-            const blob = await response.blob();
-            if (blob.type.startsWith('image/')) {
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(blob);
-                img.style.width = '100%';
-                img.style.borderRadius = '10px';
-                img.style.marginTop = '10px';
-                msgDiv.innerHTML = ''; 
-                msgDiv.appendChild(img);
-            } else {
-                msgDiv.textContent = '❌ Не удалось создать изображение. Попробуйте другой запрос.';
-            }
-        } catch {
-            msgDiv.textContent = '❌ Ошибка загрузки изображения.';
+        // Егер келген жауап шынымен сурет болса, оны чатқа қосу
+        if (blob.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(blob);
+            img.style.width = '100%';
+            img.style.borderRadius = '10px';
+            img.style.marginTop = '10px';
+            msgDiv.innerHTML = ''; // Жүктелу мәтінін өшіріп, орнына суретті қоямыз
+            msgDiv.appendChild(img);
+        } else {
+            msgDiv.textContent = '❌ Не удалось создать изображение. Попробуйте другой запрос.';
         }
+    } catch {
+        msgDiv.textContent = '❌ Ошибка загрузки изображения.';
     }
+}
+
 
     async generateVideo(promptText) {
-        // Форматты анықтау
-        let format = '16:9';
-        const fm = promptText.match(/(youtube|ютуб|16:9|9:16|tiktok|тикток|reels|рилс|shorts|шортс|instagram|инстаграм|1:1)/i);
-        if (fm) {
-            const t = fm[1].toLowerCase();
-            if (/youtube|ютуб|16:9/.test(t)) format = '16:9';
-            else if (/tiktok|тикток|reels|рилс|shorts|шортс|9:16/.test(t)) format = '9:16';
-            else if (/instagram|инстаграм|1:1/.test(t)) format = '1:1';
-        }
+        const cleanPrompt = promptText.replace(/(видео|video|сделай видео|жаса|create video|make video|generate video)/gi, '').trim();
+        if (!cleanPrompt) return this.addMessage('Уточните, что должно быть на видео.', 'ai');
 
-        const cleanPrompt = promptText.replace(
-            /(видео|video|сделай видео|жаса|түсір|create video|make video|generate video|сними|youtube|ютуб|16:9|9:16|tiktok|тикток|reels|рилс|shorts|шортс|instagram|инстаграм|1:1)/gi,
-            ''
-        ).trim();
+        const framesCount = 5;
+        const frameDuration = 2000;
+        const width = 512;
+        const height = 512;
 
-        if (!cleanPrompt) {
-            return this.addMessage('❓ Теманы жазыңыз. Мысалы: "видео tiktok жүгіріп келе жатқан мысық"', 'ai');
-        }
+        const statusMsg = this.addMessage(`🎬 Создание видео... 0/${framesCount}`, 'ai');
 
-        // --- КИНЕМАТОГРАФИЯЛЫҚ КОНФИГ ---
-        const config = {
-            '16:9': { w: 1280, h: 720 },
-            '9:16': { w: 720, h: 1280 },
-            '1:1':  { w: 1080, h: 1080 }
-        };
-        const { w, h } = config[format];
-        const framesCount = 15;           // 15 кадр — жанды қозғалыс
-        const frameDuration = 2000;       // 2 сек әр кадрға
-        const crossfadeSteps = 24;        // көзге көрінбейтін өту
-        // ---------------------------------
-
-        const statusMsg = this.addMessage(
-            `🎬 Кинематографиялық видео жасалуда (${format})...\n⏳ ~1.5 мин\n📊 0/${framesCount}`,
-            'ai'
-        );
-
-        // Суреттерді генерациялау (motion blur қосып)
         const imageUrls = [];
         for (let i = 0; i < framesCount; i++) {
             const seed = Math.floor(Math.random() * 1000000000);
-            const enhanced = `${cleanPrompt}, cinematic lighting, motion blur, depth of field, 8k, photorealistic, no text, no watermark`;
-            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}`;
+            const enhanced = `${cleanPrompt}, masterpiece, 8k, frame ${i+1}, no text`;
+            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
             try {
                 const resp = await fetch(url);
                 const blob = await resp.blob();
@@ -480,125 +460,97 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             } catch(e) {
                 imageUrls.push(null);
             }
-            statusMsg.textContent = `🎬 Кинематографиялық видео (${format})...\n📊 ${i+1}/${framesCount}`;
+            statusMsg.textContent = `🎬 Создание видео... ${i+1}/${framesCount}`;
         }
 
-        // Замена битых
-        const valid = imageUrls.filter(u => u !== null);
-        if (valid.length === 0) {
-            statusMsg.textContent = '❌ Суреттер жасалмады. Байланысты тексер.';
+        if (imageUrls.filter(u => u).length === 0) {
+            statusMsg.textContent = '❌ Ошибка генерации изображений. Попробуйте еще раз.';
             return;
         }
-        for (let i = 0; i < imageUrls.length; i++) {
-            if (!imageUrls[i]) imageUrls[i] = imageUrls[i-1] || imageUrls[i+1] || valid[0];
-        }
 
-        // MediaRecorder
         if (typeof MediaRecorder === 'undefined') {
-            statusMsg.textContent = '❌ Браузер видео жазуды қолдамайды.';
+            statusMsg.textContent = '❌ Ваш браузер не поддерживает запись видео. Попробуйте Chrome или обновленный Safari.';
             return;
         }
 
         const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext('2d');
-        const stream = canvas.captureStream(30);
-        let mime = 'video/webm; codecs=vp9';
-        if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm; codecs=vp8';
-        if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
-
+        const stream = canvas.captureStream(framesCount * frameDuration / 1000);
+        
+        let mimeType = 'video/webm; codecs=vp9';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'video/webm; codecs=vp8';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+                mimeType = 'video/webm';
+            }
+        }
+        
         let recorder;
         try {
-            recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 });
+            recorder = new MediaRecorder(stream, { mimeType: mimeType });
         } catch(e) {
-            statusMsg.textContent = '❌ Рекордер құрылмады.';
+            statusMsg.textContent = '❌ Не удалось запустить запись видео.';
             return;
         }
 
-        const chunks = [];
-        recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+        this.recordedChunks = [];
+        recorder.ondataavailable = e => {
+            if (e.data.size > 0) this.recordedChunks.push(e.data);
+        };
+
         recorder.onstop = () => {
-            const blob = new Blob(chunks, { type: mime });
+            const blob = new Blob(this.recordedChunks, { type: mimeType });
             const url = URL.createObjectURL(blob);
             statusMsg.innerHTML = '';
             const video = document.createElement('video');
             video.src = url;
             video.controls = true;
-            video.autoplay = true;
-            video.loop = true;
             video.style.width = '100%';
             video.style.borderRadius = '10px';
+            video.style.marginTop = '10px';
+            video.playsinline = true;
             statusMsg.appendChild(video);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `serikai_cinema_${format.replace(':','-')}.webm`;
-            link.textContent = `💾 Жүктеп алу (${format})`;
-            link.style.cssText = 'display:block; margin-top:6px; font-size:13px; color:#00b86b;';
+            link.download = 'serikai_video.webm';
+            link.textContent = '💾 Скачать видео';
+            link.style.display = 'block';
+            link.style.marginTop = '5px';
+            link.style.fontSize = '12px';
             statusMsg.appendChild(link);
-            imageUrls.forEach(u => URL.revokeObjectURL(u));
         };
 
         recorder.start();
 
-        // Барлық суретті Image-ге айналдыру
-        const imgs = [];
-        await new Promise(res => {
-            let loaded = 0;
-            imageUrls.forEach((url, i) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => { imgs[i] = img; loaded++; if (loaded === imageUrls.length) res(); };
-                img.onerror = () => { imgs[i] = null; loaded++; if (loaded === imageUrls.length) res(); };
-                img.src = url;
-            });
-        });
-        for (let i = 0; i < imgs.length; i++) if (!imgs[i]) imgs[i] = imgs[i-1] || imgs[i+1];
-
-        // Ken Burns эффекті: zoom + pan
-        const drawWithKenBurns = (img, progress) => {
-            ctx.clearRect(0, 0, w, h);
-            const zoom = 1 + 0.06 * Math.sin(progress * Math.PI); // 6% zoom
-            const panX = 0.04 * Math.cos(progress * Math.PI * 2) * w; // көлденең жылжу
-            const panY = 0.02 * Math.sin(progress * Math.PI * 2) * h; // тік жылжу
-            const dw = w * zoom;
-            const dh = h * zoom;
-            const dx = (w - dw) / 2 + panX;
-            const dy = (h - dh) / 2 + panY;
-            ctx.drawImage(img, dx, dy, dw, dh);
+        let frameIndex = 0;
+        const drawNext = () => {
+            if (frameIndex >= imageUrls.length) {
+                recorder.stop();
+                return;
+            }
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                ctx.clearRect(0, 0, width, height);
+                ctx.drawImage(img, 0, 0, width, height);
+                frameIndex++;
+                setTimeout(drawNext, frameDuration);
+            };
+            img.onerror = () => {
+                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = '#111';
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = '#fff';
+                ctx.font = '20px sans-serif';
+                ctx.fillText('Ошибка загрузки кадра', 50, height/2);
+                frameIndex++;
+                setTimeout(drawNext, frameDuration);
+            };
+            img.src = imageUrls[frameIndex] || '';
         };
-
-        // Кроссфейд + Ken Burns
-        const cinematicTransition = (imgFrom, imgTo, steps, startProg) => {
-            return new Promise(resolve => {
-                let step = 0;
-                const interval = setInterval(() => {
-                    step++;
-                    const alpha = step / steps;
-                    const prog = startProg + (1 - startProg) * alpha;
-                    ctx.globalAlpha = 1 - alpha;
-                    drawWithKenBurns(imgFrom, prog);
-                    ctx.globalAlpha = alpha;
-                    drawWithKenBurns(imgTo, prog);
-                    ctx.globalAlpha = 1;
-                    if (step >= steps) {
-                        clearInterval(interval);
-                        resolve();
-                    }
-                }, frameDuration / steps);
-            });
-        };
-
-        // Ойнату
-        let progress = 0;
-        drawWithKenBurns(imgs[0], 0);
-        for (let i = 0; i < imgs.length - 1; i++) {
-            await cinematicTransition(imgs[i], imgs[i+1], crossfadeSteps, progress);
-            progress = (i + 1) / (imgs.length - 1);
-        }
-        await new Promise(r => setTimeout(r, 1500));
-        recorder.stop();
-        statusMsg.textContent = '✅ Кинематографиялық видео дайын!';
+        drawNext();
     }
 
     async describeImage(url, question) {
@@ -710,4 +662,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-  </html>
+</html>
