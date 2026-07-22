@@ -505,7 +505,6 @@ add(`🔧 Технический перерыв
 
 💚 Спасибо за понимание!`, "ОТ Serik ai");
 
-return;
   
 // --- АСИНХРОННАЯ ФУНКЦИЯ ОТПРАВКИ ---
 async function send() {
@@ -607,8 +606,8 @@ async function send() {
         add(finalAnswer, "ai");
     } catch (error) {
         hideLoading();
-        console.error("Ошибка отправки:", error);
-        add("Извините, произошла ошибка сервера. Пожалуйста, попробуйте повторить запрос чуть позже ⚠️", "ai");
+        console.error("Технический перерыв:", error);
+        add("Извините,Технический перерыв ⚠️", "Serik ai");
     }
 }
 </script>
