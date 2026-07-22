@@ -583,11 +583,26 @@ async function send() {
         img.style.marginTop = "10px";
         
         img.onload = function() {
-            hideLoading();
-            let div = add("🎨 Міне, сен сұраған сурет (Ultra HD сапада):", "ai", true);
-            div.appendChild(img);
-            chat.scrollTop = chat.scrollHeight;
-        };
+    hideLoading();
+
+    let div = add("🎨 Вот ваше изображение:", "ai", true);
+    div.appendChild(img);
+
+    // Кнопка скачать
+    let downloadBtn = document.createElement("button");
+    downloadBtn.innerText = "📥 Скачать";
+
+    downloadBtn.onclick = function() {
+        const a = document.createElement("a");
+        a.href = imageUrl;
+        a.download = "Serik_AI.png";
+        a.click();
+    };
+
+    div.appendChild(downloadBtn);
+
+    chat.scrollTop = chat.scrollHeight;
+};
         
         img.onerror = function() {
             hideLoading();
