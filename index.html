@@ -323,17 +323,17 @@ function generateText(prompt) {
     send();
 }
 
-// --- LLAMA СОҢҒЫ ВЕРСИЯСЫ + GOOGLE SEARCH АҚЫЛДЫ МИ ЖҮЙЕСІ ---
+// --- СТАБИЛЬНЫЙ LLAMA + GOOGLE SEARCH ЖҮЙЕСІ (ҚАТЕЛІККЕ ТӨЗІМДІ) ---
 async function askSmartAI(queryText) {
     chatHistory.push({ role: "user", content: queryText });
-    if (chatHistory.length > 10) chatHistory.shift();
+    if (chatHistory.length > 8) chatHistory.shift(); // Историяны 8 хабарламамен шектеу (асып кетпеуі үшін)
 
     try {
-        // 1-ҚАДАМ: Llama соңғы версиясы шешеді (Әңгіме ме әлде нақты факт/іздеу ме?)
+        // 1-ҚАДАМ: Llama маршрутизаторы
         let routePrompt = [
             { 
                 role: "system", 
-                content: "Ты классификатор запросов. Проанализируй сообщение пользователя. Если это обычный разговор, приветствие, шутка, совет или обсуждение — ответь строго 'CHAT'. Если вопрос требует точных свежих фактов, дат, новостей, курсов валют, специфических данных из интернета — ответь строго 'FACT'." 
+                content: "Если запрос пользователя требует поиска свежей информации в интернете, фактов, погоды или дат — ответь строго одним словом: 'FACT'. Иначе ответь: 'CHAT'." 
             },
             { role: "user", content: queryText }
         ];
@@ -344,38 +344,38 @@ async function askSmartAI(queryText) {
             body: JSON.stringify({ messages: routePrompt, model: "llama", private: true })
         });
         
+        if (!routeRes.ok) throw new Error("Router Server Error");
         let routeDecision = await routeRes.text();
         let isFactRequest = routeDecision.toUpperCase().includes("FACT");
 
         let fetchedFacts = "";
 
-        // 2-ҚАДАМ: Егер факт керек болса, Гугл іздеуге жіберіп, деректерді табамыз
+        // 2-ҚАДАМ: Гуглдан факт іздеу
         if (isFactRequest) {
             let searchRes = await fetch("https://text.pollinations.ai/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
                     messages: [
-                        { role: "system", content: "Найди актуальные точные факты и краткую информацию по запросу пользователя." },
+                        { role: "system", content: "Кратко найди факты по запросу пользователя." },
                         { role: "user", content: queryText }
                     ], 
                     model: "llama", 
-                    search: true, // Google Search функционалын қосу
+                    search: true, // Google Search
                     private: true 
                 })
             });
-            fetchedFacts = await searchRes.text();
+            if (searchRes.ok) {
+                fetchedFacts = await searchRes.text();
+                // Факт тым үлкен болып кетсе қысқартамыз
+                if(fetchedFacts.length > 1500) fetchedFacts = fetchedFacts.substring(0, 1500) + "..."; 
+            }
         }
 
-        // 3-ҚАДАМ: Деректерді (немесе жай әңгімені) Llama-ға қайта жіберіп, фактіні бүлдірмей, досша жауап құрастыру
+        // 3-ҚАДАМ: Финалды жауап (Llama)
         let systemInstruction = `Ты — Serik AI. Өте ақылды, бауырлас, құрметті ИИ-ассистентсің. Қолданушымен нағыз дос, бауыр сияқты (брат, бауырым) сөйлесесің.
-Сенің негізгі миың — Llama (соңғы версиясы).
-Міндетің:
-1. Жауапты қазақ тілінде, табиғи, достық рухта, мағыналы әрі анық бер.
-2. Егер саған интернеттен табылған фактілер берілсе, ол фактілерді ешқандай БҮЛДІРМАЙ, бұрмаламай, тура әрі нақты пайдалан.
-3. 'Мен гуглдан қарадым' деп құрғақ айтпа, өзің білетін ақпаратты досыңа түсіндіріп отырғандай жеткіз.
-
-${isFactRequest ? "Гуглдан табылған нақты фактілер: " + fetchedFacts : "Бұл жай достық әңгімелесу."}`;
+Жауапты қазақ тілінде, достық рухта, анық етіп бер.
+${isFactRequest && fetchedFacts ? "Мынау интернеттен алынған фактілер: " + fetchedFacts + ". Осы фактіні бұрмаламай пайдалан, бірақ 'Мен гуглдан қарадым' деп айтпа, өзің біліп тұрғандай әңгімеле." : "Бұл жай достық әңгіме."}`;
 
         let finalPrompt = [
             { role: "system", content: systemInstruction },
@@ -388,15 +388,38 @@ ${isFactRequest ? "Гуглдан табылған нақты фактілер: 
             body: JSON.stringify({ messages: finalPrompt, model: "llama", private: true })
         });
         
+        if (!finalRes.ok) throw new Error("Final Llama Server Error");
         let finalOutput = await finalRes.text();
-        let resultText = (finalOutput && !finalOutput.includes('"error"')) ? finalOutput.trim() : "Брат, миым аздап кідіріп қалды. Сұрағыңды қайта жазып жіберші!";
+        let resultText = finalOutput.trim();
+
+        if(!resultText || resultText.includes('"error"')) throw new Error("Empty Answer");
 
         chatHistory.push({ role: "assistant", content: resultText });
         return resultText;
 
     } catch (e) {
-        console.error("Llama + Google Search жүйесінде қате:", e);
-        return "Брат, байланыста аздап проблема болды. Қайта жіберіп көрші! 🔄";
+        console.error("Жүйеде кідіріс болды, запасной ми қосылды:", e);
+        
+        // ЗАПАСНОЙ МИ (FALLBACK) - Егер күрделі 3 қадамдық алгоритм құласа, қарапайым сұрау кетеді
+        try {
+            let fallbackRes = await fetch("https://text.pollinations.ai/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    messages: [
+                        { role: "system", content: "Ты Serik AI. Отвечай на казахском языке как братан." },
+                        { role: "user", content: queryText }
+                    ], 
+                    model: "llama" 
+                })
+            });
+            let fallbackText = await fallbackRes.text();
+            let res = fallbackText.trim();
+            chatHistory.push({ role: "assistant", content: res });
+            return res;
+        } catch (err) {
+            return "Брат, қазір интернетте немесе серверде үлкен нагрузка болып жатыр. Сәлден соң қайта жазып жіберші! 🔄";
+        }
     }
 }
 
@@ -463,17 +486,13 @@ async function send() {
         return; 
     }
 
-    // 4. СМАРТ Llama + GOOGLE SEARCH ЖҮЙЕСІ
+    // 4. СМАРТ ЖҮЙЕ
     showLoading();
-    try {
-        let finalAnswer = await askSmartAI(text); 
-        hideLoading();
-        add(finalAnswer, "ai");
-    } catch (error) {
-        hideLoading();
-        add("Қателік орын алды, қайта жіберіп көрші ⚠️", "ai");
-    }
+    let finalAnswer = await askSmartAI(text); 
+    hideLoading();
+    add(finalAnswer, "ai");
 }
 </script>
 </body>
 </html>
+
