@@ -582,40 +582,34 @@ async function send() {
         img.style.borderRadius = "10px";
         img.style.marginTop = "10px";
         
-        img.onload = function() {
+        img.onload = function () {
     hideLoading();
 
     let div = add("🎨 Вот ваше изображение:", "ai", true);
     div.appendChild(img);
 
-    // Кнопка скачать
     let downloadBtn = document.createElement("button");
     downloadBtn.innerText = "📥 Скачать";
 
     downloadBtn.onclick = async function () {
-    const response = await fetch(imageUrl);
-    const blob = await response.blob();
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
 
-    const url = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "Serik_AI.png";
-    a.click();
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Serik_AI.png";
+        a.click();
 
-    URL.revokeObjectURL(url);
+        URL.revokeObjectURL(url);
+    };
+
+    div.appendChild(downloadBtn);
 };
-    // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
-    showLoading();
-    try {
-        let finalAnswer = await askSmartAI(text); 
-        hideLoading();
-        add(finalAnswer, "ai");
-    } catch (error) {
-        hideLoading();
-        console.error("Технический перерыв:", error);
-        add("Извините,Технический перерыв ⚠️", "Serik ai");
-    }
+
+img.src = imageUrl;
+return;
 }
 </script>
 </body>
