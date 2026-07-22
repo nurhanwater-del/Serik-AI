@@ -506,10 +506,27 @@ add(`🔧 Технический перерыв
 💚 Спасибо за понимание!`, "ОТ Serik ai");
 
   
-// Технический перерыв для текстового ИИ
-hideLoading();
-add("🔧 Технический перерыв. Текстовый ИИ временно недоступен.", "ai");
-return;
+// --- АСИНХРОННАЯ ФУНКЦИЯ ОТПРАВКИ ---
+async function send() {
+    let input = document.getElementById("input");
+    let text = input.value.trim();
+    if (!text) return;
+    
+    add(text, "user");
+    input.value = "";
+
+    // --- 1. МАТЕМАТИКА ---
+    if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
+        showLoading();
+        try {
+            let mathResult = eval(text);
+            setTimeout(() => { 
+                hideLoading();
+                add(`🧮 Ответ: ${mathResult}`, "ai");
+            }, 700);
+            return;
+        } catch(e) { }
+    }
 
     // --- 2. ЛОКАЛЬНАЯ БАЗА ЗНАНИЙ (Brain) ---
     let res = brain(text);
@@ -602,4 +619,4 @@ return;
 }
 </script>
 </body>
-    </html>
+</html>
