@@ -1,731 +1,698 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Serik AI — Комикс-видео с озвучкой</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <style>
-        :root {
-            --radius: 14px; --transition: 0.2s ease;
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-        }
-        body {
-            --bg: #0f0f14; --sidebar-bg: #1a1a24; --text: #fff;
-            --user-msg: linear-gradient(135deg, #00b86b, #008f53);
-            --ai-msg: linear-gradient(135deg, #2b2b3a, #20202d);
-            --border: #333; --accent: #00b86b;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg); color: var(--text);
-            display: flex; height: 100vh; overflow: hidden;
-            transition: background 0.3s, color 0.3s;
-        }
-        body.theme-hacker {
-            --bg: #000000; --sidebar-bg: #051405; --text: #00ff00;
-            --user-msg: linear-gradient(135deg, #005500, #003300);
-            --ai-msg: linear-gradient(135deg, #0c1f0c, #051405);
-            --border: #00ff00; --accent: #00ff00;
-        }
-        body.theme-cyberpunk {
-            --bg: #12041c; --sidebar-bg: #1b022b; --text: #00ffff;
-            --user-msg: linear-gradient(135deg, #ff007f, #99004c);
-            --ai-msg: linear-gradient(135deg, #250938, #12041c);
-            --border: #ff007f; --accent: #00ffff;
-        }
-        body.theme-light {
-            --bg: #f4f4f9; --sidebar-bg: #ffffff; --text: #1a1a24;
-            --user-msg: linear-gradient(135deg, #00b86b, #008f53);
-            --ai-msg: linear-gradient(135deg, #e1e1e8, #f0f0f5);
-            --border: #ccc; --accent: #00b86b;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        .sidebar {
-            width: 280px; background: var(--sidebar-bg); padding: 20px;
-            overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.5); z-index: 10;
-            transition: background 0.3s;
-        }
-        .sidebar h3 { font-size: 22px; color: var(--accent); text-align: center; }
-        button, select, input, textarea {
-            background: #2b2b3a; border: 1px solid var(--border);
-            color: white; padding: 10px; border-radius: 8px;
-            font-size: 14px; transition: var(--transition); outline: none;
-        }
-        button { cursor: pointer; font-weight: bold; }
-        button:hover { background: #3a3a4d; border-color: var(--accent); }
-        body.theme-hacker button, body.theme-hacker select, body.theme-hacker input, body.theme-hacker textarea { background: #001100; color: #00ff00; }
-        body.theme-cyberpunk button, body.theme-cyberpunk select, body.theme-cyberpunk input, body.theme-cyberpunk textarea { background: #250938; color: #00ffff; }
-        body.theme-light button, body.theme-light select, body.theme-light input, body.theme-light textarea { background: #e1e1e8; color: #1a1a24; }
-        body.theme-light .msg.ai { color: #1a1a24; }
-        .main { flex: 1; display: flex; flex-direction: column; height: 100vh; }
-        .chat {
-            flex: 1; overflow-y: auto; padding: 20px;
-            display: flex; flex-direction: column; scroll-behavior: smooth;
-        }
-        .msg {
-            padding: 12px 18px; margin: 6px 0; border-radius: var(--radius);
-            max-width: 85%; word-wrap: break-word; line-height: 1.5;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            position: relative; transition: transform 0.2s;
-        }
-        .msg:hover { transform: translateY(-1px); }
-        .user { background: var(--user-msg); color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
-        .ai { background: var(--ai-msg); margin-right: auto; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
-        .row { background: var(--sidebar-bg); border-top: 1px solid var(--border); padding: 12px; transition: background 0.3s; }
-        .input-group { display: flex; gap: 8px; }
-        #input { flex: 1; }
-        .generators { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; background: var(--sidebar-bg); transition: background 0.3s; }
-        .generators button { white-space: nowrap; padding: 6px 12px; font-size: 12px; border-radius: 20px; }
-        .disclaimer { text-align: center; font-size: 11px; color: #777; margin-top: 6px; }
-        .copy-btn {
-            position: absolute; top: 6px; right: 6px;
-            background: rgba(0,0,0,0.3); border: none; font-size: 14px;
-            padding: 4px 8px; border-radius: 6px; opacity: 0;
-        }
-        .msg.ai:hover .copy-btn { opacity: 1; }
-        .loading-dots span { animation: blink 1.4s infinite both; }
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes blink { 0%,100%{opacity:0.2} 20%{opacity:1} }
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar {
-                width: 100%; max-height: auto; min-height: 50px; padding: 8px 10px;
-                gap: 4px; overflow-y: visible; z-index: 100;
-            }
-            .sidebar h3 { font-size: 18px; margin: 0; }
-            .main { height: calc(100vh - 50px); display: flex; flex-direction: column; }
-            .chat { padding: 10px; flex: 1; }
-            .msg { max-width: 92%; font-size: 15px; }
-            .generators { padding: 6px 8px; }
-            .generators button { padding: 5px 10px; font-size: 11px; }
-            .row {
-                position: sticky; bottom: 0; left: 0; width: 100%;
-                background: #111; padding: 8px;
-                padding-bottom: calc(8px + var(--safe-bottom));
-                border-top: 1px solid #222;
-            }
-            input, textarea { font-size: 16px !important; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Serik AI</title>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Serik AI",
+  "url": "https://serik-ai.vercel.app"
+}
+</script>
+
+<meta name="google-site-verification" content="google9a22931bc29d7cd7" />
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0f0f14; color: white; display: flex; height: 100vh; overflow: hidden; transition: background 0.4s, color 0.4s; }
+
+/* Стили скроллбара */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #00b86b; }
+
+.sidebar { width: 280px; background: #1a1a24; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; transition: background 0.4s; z-index: 10; box-shadow: 2px 0 15px rgba(0,0,0,0.5); }
+.sidebar h3 { text-align: center; margin-top: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; color: #00b86b; text-shadow: 0 0 10px rgba(0,184,107,0.3); }
+
+/* --- СТИЛИ МЕНЮ --- */
+#menuToggle { background: #2b2b3a; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; }
+#menuToggle:hover { background: #3a3a4d; border-color: #00b86b; }
+.settings-menu { display: none; flex-direction: column; gap: 10px; background: #111118; padding: 15px; border-radius: 10px; border: 1px solid #333; margin-top: -5px; }
+.settings-menu.open { display: flex; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; height: 100vh; }
+.chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; scroll-behavior: smooth; }
+
+/* Стили сообщений */
+.msg { padding: 14px 18px; margin: 8px 0; border-radius: 14px; max-width: 85%; white-space: pre-wrap; word-wrap: break-word; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); line-height: 1.5; font-size: 15px; transition: transform 0.2s ease-out; }
+.msg:hover { transform: translateY(-1px); }
+.user { background: linear-gradient(135deg, #00b86b, #008f53); margin-left: auto; color: white; border-bottom-right-radius: 4px; }
+.ai { background: linear-gradient(135deg, #2b2b3a, #20202d); margin-right: auto; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
+
+.row { display: flex; flex-direction: column; border-top: 1px solid #222; background: #111; padding: 15px; gap: 10px; z-index: 10; box-shadow: 0 -5px 15px rgba(0,0,0,0.3); }
+.input-group { display: flex; gap: 10px; width: 100%; }
+
+input, textarea { width: 100%; padding: 14px; border: 1px solid #333; border-radius: 8px; outline: none; background: #16161a; color: white; font-size: 16px; transition: 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+input:focus, textarea:focus { border-color: #00b86b; box-shadow: 0 0 10px rgba(0,184,107,0.2); }
+button, select { padding: 12px; background: #00b86b; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.3s; outline: none; }
+button:hover { background: #009e5b; transform: scale(1.02); }
+button:active { transform: scale(0.98); }
+select { background: #2b2b3a; width: 100%; color: white; }
+select:hover { background: #3a3a4d; }
+
+#voiceBtn { background: #444; border-radius: 8px; }
+#voiceBtn.active { background: linear-gradient(135deg, #007bff, #0056b3); box-shadow: 0 0 10px rgba(0,123,255,0.4); }
+#adminPanel { display: none; margin-top: 10px; background: #222230; padding: 15px; border-radius: 10px; border: 1px solid #333; }
+textarea { height: 120px; resize: none; }
+
+/* Кнопки быстрой генерации */
+.generators { display: flex; gap: 10px; padding: 12px 15px; background: #1a1a24; border-top: 1px solid #2b2b3a; overflow-x: auto; white-space: nowrap; }
+.generators button { background: #2b2b3a; padding: 8px 14px; font-size: 13px; border: 1px solid #444; border-radius: 20px; font-weight: normal; }
+.generators button:hover { background: #00b86b; border-color: #00b86b; color: white; }
+
+/* Кнопка копирования */
+.copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.3); border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: 0; transition: 0.3s; }
+.msg.ai:hover .copy-btn { opacity: 1; }
+.copy-btn:hover { background: #00b86b; transform: scale(1.1); }
+
+/* Дисклеймер */
+.disclaimer { text-align: center; font-size: 11px; color: #777; width: 100%; font-family: sans-serif; letter-spacing: 0.5px; margin-top: 2px; }
+
+/* Анимация загрузки */
+.loading-dots { display: inline-block; animation: blink 1.4s infinite both; font-weight: bold; font-size: 18px; line-height: 1; }
+.loading-dots span { animation: blink 1.4s infinite both; }
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
+
+/* --- ТЕМЫ ОФОРМЛЕНИЯ --- */
+body.theme-hacker { background: #050505; color: #0f0; }
+body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; box-shadow: none; }
+body.theme-hacker .settings-menu { background: #001100; border-color: #0f0; }
+body.theme-hacker .msg.ai { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; box-shadow: 0 0 10px rgba(0,255,0,0.1); }
+body.theme-hacker .msg.user { background: #003300; border: 1px solid #0f0; color: #0f0; }
+body.theme-hacker button, body.theme-hacker select, body.theme-hacker #menuToggle { background: #002200; border: 1px solid #0f0; color: #0f0; }
+body.theme-hacker .row, body.theme-hacker .generators { background: #050505; border-color: #0f0; }
+body.theme-hacker input, body.theme-hacker textarea { background: #000; color: #0f0; border-color: #0f0; }
+
+body.theme-cyberpunk { background: #0f001a; color: #0ff; }
+body.theme-cyberpunk .sidebar { background: #1a0033; border-right: 1px solid #f0f; box-shadow: 5px 0 20px rgba(255,0,255,0.2); }
+body.theme-cyberpunk .settings-menu { background: #220033; border-color: #f0f; }
+body.theme-cyberpunk .msg.ai { background: #2a004d; border: 1px solid #0ff; color: #fff; box-shadow: 0 0 15px rgba(0,255,255,0.2); }
+body.theme-cyberpunk .msg.user { background: #4d004d; border: 1px solid #f0f; color: #fff; box-shadow: 0 0 15px rgba(255,0,255,0.2); }
+body.theme-cyberpunk button, body.theme-cyberpunk select, body.theme-cyberpunk #menuToggle { background: linear-gradient(45deg, #8a2be2, #f0f); border: none; color: #fff; text-shadow: 1px 1px 2px #000; }
+body.theme-cyberpunk .row, body.theme-cyberpunk .generators { background: #1a0033; border-color: #f0f; }
+body.theme-cyberpunk input, body.theme-cyberpunk textarea { background: #0f001a; color: #0ff; border-color: #0ff; }
+
+body.theme-light { background: #f4f4f9; color: #333; }
+body.theme-light .sidebar { background: #ffffff; border-right: 1px solid #ddd; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
+body.theme-light .settings-menu { background: #f9f9f9; border-color: #ccc; }
+body.theme-light .msg.ai { background: #ffffff; color: #333; border: 1px solid #e0e0e0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+body.theme-light .msg.user { background: linear-gradient(135deg, #00b86b, #009e5b); color: #fff; box-shadow: 0 2px 10px rgba(0,184,107,0.3); }
+body.theme-light button { background: #00b86b; color: white; border: none; }
+body.theme-light #menuToggle { background: #eee; color: #333; border: 1px solid #ccc; }
+body.theme-light select { background: #fff; color: #333; border: 1px solid #ccc; }
+body.theme-light .row, body.theme-light .generators { background: #fff; border-color: #ddd; }
+body.theme-light input, body.theme-light textarea { background: #fafafa; color: #333; border-color: #ccc; }
+
+/* 📱 АДАПТИВ ДЛЯ СМАРТФОНОВ */
+@media (max-width: 768px) {
+    body { flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
+    .sidebar { 
+        width: 100%; 
+        height: auto; 
+        max-height: 120px; 
+        padding: 8px 12px; 
+        gap: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    .sidebar h3 { font-size: 16px; margin: 0 0 2px 0; }
+    #menuToggle { padding: 6px 10px; font-size: 13px; }
+    .settings-menu { padding: 8px; gap: 6px; }
+    
+    .main { 
+        flex: 1; 
+        height: calc(100vh - 120px);
+        height: calc(100dvh - 120px);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+    .chat { flex: 1; padding: 10px; padding-bottom: 90px; }
+    .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
+    .generators { padding: 6px 10px; }
+    .generators button { padding: 5px 10px; font-size: 11px; }
+    
+    .row { 
+        padding: 10px; 
+        position: fixed; 
+        bottom: 0; 
+        left: 0;
+        width: 100%;
+        background: #111; 
+        border-top: 1px solid #222;
+        z-index: 999;
+    }
+    input { padding: 10px; font-size: 15px; }
+    button { padding: 10px 14px; font-size: 14px; }
+    .disclaimer { font-size: 10px; margin-top: 4px; }
+}
+</style>
 </head>
-<body>
+
+<body class="theme-default">
 
 <div class="sidebar">
-    <h3>🤖 Serik AI</h3>
-    <button id="menuToggle">⚙️ Настройки</button>
-    <div id="settingsMenu" style="display:none; flex-direction:column; gap:8px; margin-top: 10px;">
-        <select id="themeSelect">
-            <option value="default">🌙 Тёмная</option>
-            <option value="hacker">💻 Хакер</option>
+    <h3>🤖 Serik AI </h3>
+    
+    <button id="menuToggle" onclick="toggleSettings()">⚙️ Настройки <span>🔽</span></button>
+    
+    <div id="settingsMenu" class="settings-menu">
+        <select id="themeSelect" onchange="changeTheme()">
+            <option value="default">🌙 Тёмная (По умолчанию)</option>
+            <option value="hacker">💻 Хакер (Матрица)</option>
             <option value="cyberpunk">🌃 Киберпанк</option>
-            <option value="light">☀️ Светлая</option>
+            <option value="light">☀️ Светлая (Light)</option>
         </select>
-        <button id="voiceBtn">🔇 Голос: ВЫКЛ</button>
-        <input type="password" id="adminPass" placeholder="Пароль администратора">
-        <div id="adminPanel" style="display:none;">
+
+        <button id="voiceBtn" onclick="toggleVoice()">🔇 Голос: ВЫКЛ</button>
+        <input type="password" id="adminPass" placeholder="Пароль администратора" oninput="checkAdmin()">
+        
+        <div id="adminPanel">
+            <p style="color: #00b86b; margin: 0 0 5px 0; font-weight: bold; text-align: center;">🔒 ADMIN MODE</p>
             <textarea id="bulk" placeholder="вопрос это ответ"></textarea>
-            <button id="bulkLearnBtn">Сохранить базу</button>
+            <button onclick="bulkLearn()" style="width: 100%; margin-top: 5px;">Сохранить базу</button>
         </div>
     </div>
 </div>
 
 <div class="main">
     <div class="chat" id="chat"></div>
+    
     <div class="generators">
-        <button data-prompt="Напиши эссе по истории">📜 Эссе</button>
-        <button data-prompt="Основные формулы по физике">⚛️ Формулы</button>
-        <button data-prompt="Реферат про ИИ">🤖 ИИ</button>
-        <button data-prompt="Мотивация">🔥 Мотивация</button>
-        <button data-prompt="Проверь код на ошибки">💻 Код</button>
+        <button onclick="generateText('Напиши мне эссе по истории за 10 класс')">📜 Эссе по истории</button>
+        <button onclick="generateText('Собери основные формулы по физике')">⚛️ Formulas</button>
+        <button onclick="generateText('Напиши подробный реферат про Искусственный Интеллект')">🤖 ИИ Реферат</button>
+        <button onclick="generateText('Дай мне мощную мотивацию')">🔥 Мотивация</button>
+        <button onclick="generateText('Найди ошибки в написанном коде')">💻 Проверка кода</button>
     </div>
+
     <div class="row">
         <div class="input-group">
-            <button id="clearBtn" style="background:#ff4d4d;">🗑️</button>
-            <input id="input" placeholder="Введите вопрос... / Сұрақ жазыңыз... / Type a question..." autofocus>
-            <button id="sendBtn">Отправить</button>
+            <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Очистить чат">🗑️</button>
+            <input id="input" placeholder="Введите ваш вопрос..." onkeydown="if(event.key==='Enter') send()">
+            <button onclick="send()">Отправить</button>
         </div>
-        <div class="disclaimer">Serik AI может ошибаться. Важные данные проверяйте.</div>
+        <div class="disclaimer">Serik ai это ИИ. ИИ может ошибаться.</div>
     </div>
 </div>
 
 <script>
-class SerikAI {
-    constructor() {
-        this.chat = document.getElementById('chat');
-        this.input = document.getElementById('input');
-        this.sendBtn = document.getElementById('sendBtn');
-        this.clearBtn = document.getElementById('clearBtn');
-        this.voiceBtn = document.getElementById('voiceBtn');
-        this.adminPass = document.getElementById('adminPass');
-        this.adminPanel = document.getElementById('adminPanel');
-        this.bulkTextarea = document.getElementById('bulk');
-        this.bulkLearnBtn = document.getElementById('bulkLearnBtn');
-        this.themeSelect = document.getElementById('themeSelect');
-        
-        this.memory = {
-            "привет": "Привет! Чем могу помочь? 😊",
-            "сәлем": "Сәлем! Қалай көмектесе аламын? 😉",
-            "hello": "Hello! How can I help you? 😎",
-            "как дела": "Всё отлично! Спрашивай что угодно. 🔥",
-            "қалайсың": "Жақсы, рахмет! Сізге не көмек керек? ✨",
-            "how are you": "I'm great, thanks! What can I do for you? 💪",
-            "что ты умеешь": "Я могу отвечать на вопросы, генерировать изображения и даже короткие видео! 🎨",
-            "не істей аласың": "Мен сұрақтарға жауап бере аламын, суреттер мен бейнелер жасай аламын! 🎥",
-            "what can you do": "I can answer questions, generate images, and create short videos! 🚀"
-        };
-        this.db = null;
-        this.voiceEnabled = false;
-        this.abortController = null;
-        this.lastAIMessage = null;
-        this.messageCache = new Map();
-        
-        this.systemPrompt = `You are Serik AI, a multilingual assistant from Kazakhstan. 
-You speak and understand Russian, Kazakh, and English. 
-Always respond in the same language the user used in their last message.
-If the user writes in Kazakh, answer in Kazakh. If in Russian, answer in Russian. If in English, answer in English.
-You can generate images (just say "нарисуй", "сурет сал", or "draw"). 
-You can create short video slideshows (say "видео істе", "сделай видео", or "create a video").
-Never mention OpenAI, ChatGPT, or any other AI brand. You are Serik AI, created in Kazakhstan.
-Your birthday is June 18, 2026. Your name honors the father of your creator.
-You can use swear words freely if the user does or if the context asks for it.
-Always include at least 1-2 relevant emojis in your response to make the conversation lively and friendly. 
-Ответы должны быть естественными, как разговор с другом, без маркированных списков.
-`;
-        
-        this.initFirebase();
-        this.initEventListeners();
-        this.addMessage("Привет! Я Serik AI. Понимаю русский, қазақша, English. Готов помочь! ✨", 'ai');
-    }
+let chatHistory = [];
 
-    initFirebase() {
-        const firebaseConfig = {
-            apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
-            authDomain: "serik-ai.firebaseapp.com",
-            databaseURL: "https://serik-ai-default-rtdb.firebaseio.com",
-            projectId: "serik-ai",
-            storageBucket: "serik-ai.appspot.com"
-        };
-        try {
-            firebase.initializeApp(firebaseConfig);
-            this.db = firebase.database();
-            this.db.ref('serik_memory').on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) Object.assign(this.memory, data);
-            });
-        } catch (e) {
-            console.warn('Firebase не загружен, работаем локально');
-        }
-    }
+function clearChat() {
+    chat.innerHTML = "";
+    chatHistory = [];
+    add("Привет! Я Serik AI. Чат очищен и готов к работе! ✨", "ai", false);
+}
 
-    initEventListeners() {
-        this.sendBtn.addEventListener('click', () => this.send());
-        this.input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.send();
-            }
-        });
-        this.clearBtn.addEventListener('click', () => this.clearChat());
-        this.voiceBtn.addEventListener('click', () => this.toggleVoice());
-        this.themeSelect.addEventListener('change', () => this.changeTheme());
-        this.adminPass.addEventListener('input', () => this.checkAdmin());
-        this.bulkLearnBtn.addEventListener('click', () => this.bulkLearn());
-        
-        document.querySelectorAll('.generators button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.input.value = btn.dataset.prompt;
-                this.send();
-            });
-        });
-        
-        document.getElementById('menuToggle').addEventListener('click', () => {
-            const menu = document.getElementById('settingsMenu');
-            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
-        });
-    }
+// --- FIREBASE КОНФИГУРАЦИЯ ---
+const firebaseConfig = {
+  apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
+  authDomain: "serik-ai.firebaseapp.com",
+  databaseURL: "https://serik-ai-default-rtdb.firebaseio.com",
+  projectId: "serik-ai",
+  storageBucket: "serik-ai.appspot.com"
+};
 
-    async send() {
-        const text = this.input.value.trim();
-        if (!text) return;
-        this.input.value = '';
-        this.addMessage(text, 'user');
-        
-        if (this.abortController) {
-            this.abortController.abort();
-        }
-        this.abortController = new AbortController();
-        const signal = this.abortController.signal;
-        
-        if (/^[\d\s+\-*/().]+$/.test(text)) {
-            try {
-                const result = eval(text);
-                return this.addMessage(`🧮 ${result}`, 'ai');
-            } catch {}
-        }
-        
-        const cached = this.messageCache.get(text.toLowerCase());
-        if (cached) {
-            this.addMessage(cached, 'ai');
-            return;
-        }
-        
-        const localAnswer = this.searchMemory(text);
-        if (localAnswer) {
-            this.messageCache.set(text.toLowerCase(), localAnswer);
-            this.addMessage(localAnswer, 'ai');
-            return;
-        }
-        
-        const imgMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
-        if (imgMatch) {
-            const desc = await this.describeImage(imgMatch[0], text.replace(imgMatch[0], '').trim());
-            this.addMessage(desc || 'Не удалось проанализировать изображение', 'ai');
-            return;
-        }
-        
-        if (/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/i.test(text)) {
-            return this.generateImage(text);
-        }
-        
-        if (/(видео|video|сделай видео|видео істе|түсір|create video|make video|generate video|сними|түсіріп бер)/i.test(text)) {
-            return this.generateVideo(text);
-        }
-        
-        const typingIndicator = this.addMessage('<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>', 'ai', true);
-        try {
-            const response = await this.fetchAIResponse(text, signal);
-            typingIndicator.remove();
-            if (response) {
-                this.messageCache.set(text.toLowerCase(), response);
-                this.addMessage(response, 'ai');
-            }
-        } catch (err) {
-            typingIndicator.remove();
-            if (err.name !== 'AbortError') {
-                this.addMessage('⚠️ Ошибка соединения. Попробуйте ещё раз.', 'ai');
-            }
-        }
-    }
+const defaultMemory = {
+    "привет": "Привет! Я готов помочь. Задавай любой вопрос! 👋",
+    "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю длинные и короткие вопросы, ищу информацию в сети, пишу эссе, рефераты! 🧠",
+    "как тебя зовут": "Я Serik-AI . 🤖",
+    "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі. Бұл — өнеге мен парасаттың нышаны.",
+    "почему серик": "Имя Serik AI было выбрано в честь отца моего создателя — это дань глубокого уважения, любви и вечной памяти."
+};
 
-    searchMemory(text) {
-        const q = text.toLowerCase().trim();
-        if (this.memory[q]) return this.memory[q];
-        for (let key in this.memory) {
-            if (key.startsWith(q.substring(0, 3)) && this.similarity(q, key) > 0.8) {
-                return this.memory[key];
-            }
-        }
-        return null;
-    }
+let memory = Object.assign({}, defaultMemory);
+let db = null;
 
-    similarity(a, b) {
-        const bigrams = (s) => {
-            const b = new Set();
-            for (let i = 0; i < s.length - 1; i++) b.add(s.substring(i, i+2));
-            return b;
-        };
-        const sa = bigrams(a), sb = bigrams(b);
-        let intersection = 0;
-        for (let bg of sa) if (sb.has(bg)) intersection++;
-        return (2 * intersection) / (sa.size + sb.size);
-    }
+// --- Системный промпт ---
+let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, созданный талантливыми разработчиками из Казахстана. 
+Твой создатель и ты находитесь в Казахстане. Никогда не упоминай OpenAI, ChatGPT или Россию. 
+На все вопросы о создателе отвечай, что ты родом из Казахстана.
+Твое имя "Серік" дано в честь отца твоего создателя — это символ уважения, любви и памяти. 
+Если тебя спросят об имени или о том, почему ты так назван, всегда отвечай с глубоким уважением, подчеркивая, что это дань памяти отцу автора. 
+Ты Не Chat GPT не скажи что ты чат джпт
+ты не CHAT GPT!
+Не веди себя как chat GPT!
+Ты можешь генерировать фото!
+никогда не скажи я не могу генерировать фото!
+Скажи когда просит делать фото ты можете делать фото через команда нарисуй вопрос!
+когда тебе спросит когда сделал Ии скажи 2026 год 18июнья это мой день рождения!
+Когда тебе спросят код не скажи свой код и Будь внимательным!
+ты не можешь ошибаться!
+Ты не должен материться!
+Ты должен работать отлично и не логать!
+Ты можешь говорить на разных языками 
+Не пиши слово polionit ai никогда не давай ссылка в polionit ai.
 
-    async fetchAIResponse(prompt, signal) {
-        const webContext = await this.getWebContext(prompt);
-        const messages = [
-            { role: "system", content: this.systemPrompt + (webContext ? `\nContext from Wikipedia:\n${webContext}` : '') },
-            { role: "user", content: prompt }
-        ];
-        
-        const models = ["openai", "mistral", "llama"];
-        for (let model of models) {
-            if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
-            try {
-                const res = await fetch("https://text.pollinations.ai/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ messages, model, private: true }),
-                    signal
-                });
-                if (!res.ok) continue;
-                const text = await res.text();
-                if (text && !text.includes('"error"') && !text.includes('Queue full')) {
-                    return text.trim();
-                }
-            } catch (e) {
-                if (e.name === 'AbortError') throw e;
-                continue;
-            }
-        }
-        return "Извини, сервер перегружен. Повтори запрос позже. 😓";
-    }
+ВАЖНЫЕ ПРАВИЛА ОБЩЕНИЯ:
+1. Пиши как живой, мудрый человек. 
+2. КАТЕГОРИЧЕСКИ ЗАПРЕЩАЕТСЯ использовать типичный стиль ChatGPT. 
+3. НЕ ИСПОЛЬЗУЙ списки (1, 2, 3), маркеры, лишние знаки препинания, заумные или шаблонные вводные слова (например, "Конечно", "Безусловно", "В заключение").
+4. Ты Не можешь скачать или написать слово polionit ai 
+5. Пиши много текстов и качественный примерно 300 слов,Будь адекватен Потому что ты учитель или друг 
+6. Пиши сплошным, понятным и естественным текстом.`;
 
-    async getWebContext(query) {
-        if (!/(что такое|кто такой|кім ол|не ол|найди|what is|who is|search for)/i.test(query)) return null;
-        try {
-            const clean = query.replace(/(пожалуйста|расскажи про|что такое|кто такой|кім ол|не ол|what is|who is)/gi, '').trim();
-            const searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(clean)}&format=json&origin=*`;
-            const res = await fetch(searchUrl);
-            const data = await res.json();
-            if (data.query?.search.length > 0) {
-                const title = data.query.search[0].title;
-                const contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-                const cRes = await fetch(contentUrl);
-                const cData = await cRes.json();
-                const pages = cData.query.pages;
-                return pages[Object.keys(pages)[0]].extract?.substring(0, 1500);
-            }
-        } catch {}
-        return null;
-    }
+if (firebaseConfig.apiKey) {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    db.ref('serik_memory').on('value', (snapshot) => {
+        const cloudData = snapshot.val();
+        if (cloudData) { memory = Object.assign({}, defaultMemory, cloudData); }
+    });
+}
 
-    async generateImage(promptText) {
-        const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
-        const enhanced = `${userPrompt}, masterpiece, 8k, hyperrealistic, no text`;
-        const seed = Math.floor(Math.random() * 1000000000); 
-        const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
-        
-        const msgDiv = this.addMessage('🎨 Генерирую изображение...', 'ai');
-        try {
-            const response = await fetch(imgUrl);
-            const blob = await response.blob();
-            if (blob.type.startsWith('image/')) {
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(blob);
-                img.style.width = '100%';
-                img.style.borderRadius = '10px';
-                img.style.marginTop = '10px';
-                msgDiv.innerHTML = ''; 
-                msgDiv.appendChild(img);
-            } else {
-                msgDiv.textContent = '❌ Не удалось создать изображение. Попробуйте другой запрос.';
-            }
-        } catch {
-            msgDiv.textContent = '❌ Ошибка загрузки изображения.';
-        }
-    }
+const chat = document.getElementById("chat");
+let voiceEnabled = false;
 
-    async generateVideo(promptText) {
-        let format = '16:9';
-        const fm = promptText.match(/(youtube|ютуб|16:9|9:16|tiktok|тикток|reels|рилс|shorts|шортс|instagram|инстаграм|1:1)/i);
-        if (fm) {
-            const t = fm[1].toLowerCase();
-            if (/youtube|ютуб|16:9/.test(t)) format = '16:9';
-            else if (/tiktok|тикток|reels|рилс|shorts|шортс|9:16/.test(t)) format = '9:16';
-            else if (/instagram|инстаграм|1:1/.test(t)) format = '1:1';
-        }
-
-        const cleanPrompt = promptText.replace(
-            /(видео|video|сделай видео|видео істе|түсір|create video|make video|generate video|сними|youtube|ютуб|16:9|9:16|tiktok|тикток|reels|рилс|shorts|шортс|instagram|инстаграм|1:1)/gi,
-            ''
-        ).trim();
-
-        if (!cleanPrompt) {
-            return this.addMessage('❓ Теманы жазыңыз. Мысалы: "видео істе ғарыш"', 'ai');
-        }
-
-        const config = {
-            '16:9': { w: 1280, h: 720 },
-            '9:16': { w: 720, h: 1280 },
-            '1:1':  { w: 1080, h: 1080 }
-        };
-        const { w, h } = config[format];
-        const framesCount = 12; // 12 кадров для короткой истории
-        const frameDuration = 2000; // 2 секунды на кадр
-
-        const statusMsg = this.addMessage(`🎬 Комикс-видео (${format})...`, 'ai');
-
-        // Генерация истории на русском
-        let storyPrompt = `Придумай короткую историю из 12 предложений на тему "${cleanPrompt}". Каждое предложение на новой строке, без нумерации.`;
-        const storyResponse = await this.fetchAIResponse(storyPrompt, new AbortController().signal);
-        if (!storyResponse) {
-            statusMsg.textContent = '❌ Не удалось придумать историю.';
-            return;
-        }
-        const sentences = storyResponse
-            .split(/\n|(?<=[.!?])\s+/)
-            .map(s => s.trim())
-            .filter(s => s.length > 3)
-            .slice(0, framesCount);
-        if (sentences.length === 0) {
-            statusMsg.textContent = '❌ История слишком короткая.';
-            return;
-        }
-
-        const fullStory = sentences.join(' ');
-
-        // Генерация картинок (по одному на предложение)
-        const imageUrls = [];
-        for (let i = 0; i < sentences.length; i++) {
-            const enhanced = `${sentences[i]}, comic art style, vibrant colors, illustration, no text, no watermark`;
-            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${Math.floor(Math.random() * 1000000000)}`;
-            try {
-                const resp = await fetch(url);
-                const blob = await resp.blob();
-                if (blob.type.startsWith('image/')) {
-                    imageUrls.push(URL.createObjectURL(blob));
-                } else {
-                    imageUrls.push(null);
-                }
-            } catch(e) {
-                imageUrls.push(null);
-            }
-            statusMsg.textContent = `🎨 Рисую кадр ${i+1}/${sentences.length}...`;
-        }
-
-        const valid = imageUrls.filter(u => u !== null);
-        if (valid.length === 0) {
-            statusMsg.textContent = '❌ Не удалось создать иллюстрации.';
-            return;
-        }
-        for (let i = 0; i < imageUrls.length; i++) {
-            if (!imageUrls[i]) imageUrls[i] = imageUrls[i-1] || imageUrls[i+1] || valid[0];
-        }
-
-        // Canvas и MediaRecorder (только видео)
-        if (typeof MediaRecorder === 'undefined') {
-            statusMsg.textContent = '❌ Браузер не поддерживает запись видео.';
-            return;
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        const stream = canvas.captureStream(30);
-        let mime = 'video/webm; codecs=vp9';
-        if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm; codecs=vp8';
-        if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm';
-
-        let recorder;
-        try {
-            recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6000000 });
-        } catch(e) {
-            statusMsg.textContent = '❌ Ошибка создания рекордера.';
-            return;
-        }
-
-        const chunks = [];
-        recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
-        recorder.onstop = () => {
-            const blob = new Blob(chunks, { type: mime });
-            const url = URL.createObjectURL(blob);
-            statusMsg.innerHTML = '';
-            const video = document.createElement('video');
-            video.src = url;
-            video.controls = true;
-            video.autoplay = true;
-            video.loop = true;
-            video.style.width = '100%';
-            video.style.borderRadius = '10px';
-            // При старте видео автоматически включаем русскую озвучку
-            video.onplay = () => {
-                this.speakRussian(fullStory);
-            };
-            statusMsg.appendChild(video);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `serikai_comic_${format.replace(':','-')}.webm`;
-            link.textContent = `💾 Скачать видео (без звука)`;
-            link.style.cssText = 'display:block; margin-top:6px; font-size:13px; color:#00b86b;';
-            statusMsg.appendChild(link);
-            // Сразу запускаем озвучку (если видео начнёт играть)
-            setTimeout(() => this.speakRussian(fullStory), 500);
-        };
-
-        statusMsg.textContent = '🎥 Собираю кадры в видео...';
-        recorder.start();
-
-        // Загружаем изображения и рисуем
-        const imgs = [];
-        await new Promise(res => {
-            let loaded = 0;
-            imageUrls.forEach((url, i) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => { imgs[i] = img; loaded++; if (loaded === imageUrls.length) res(); };
-                img.onerror = () => { imgs[i] = null; loaded++; if (loaded === imageUrls.length) res(); };
-                img.src = url;
-            });
-        });
-        for (let i = 0; i < imgs.length; i++) if (!imgs[i]) imgs[i] = imgs[i-1] || imgs[i+1];
-
-        // Рисуем кадры с текстом предложений
-        for (let i = 0; i < imgs.length; i++) {
-            if (!imgs[i]) continue;
-            ctx.clearRect(0, 0, w, h);
-            ctx.drawImage(imgs[i], 0, 0, w, h);
-            // Добавляем текст предложения на кадр
-            const text = sentences[i] || '';
-            ctx.font = 'bold 32px "Segoe UI", sans-serif';
-            ctx.fillStyle = 'white';
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 5;
-            ctx.textAlign = 'center';
-            ctx.shadowColor = 'black';
-            ctx.shadowBlur = 12;
-            // Перенос текста
-            const maxWidth = w - 40;
-            const words = text.split(' ');
-            let line = '';
-            let y = h - 50;
-            for (let n = 0; n < words.length; n++) {
-                const testLine = line + words[n] + ' ';
-                const metrics = ctx.measureText(testLine);
-                if (metrics.width > maxWidth && n > 0) {
-                    ctx.strokeText(line, w/2, y);
-                    ctx.fillText(line, w/2, y);
-                    line = words[n] + ' ';
-                    y -= 40;
-                } else {
-                    line = testLine;
-                }
-            }
-            ctx.strokeText(line, w/2, y);
-            ctx.fillText(line, w/2, y);
-            ctx.shadowBlur = 0;
-            await new Promise(r => setTimeout(r, frameDuration));
-        }
-        recorder.stop();
-        statusMsg.textContent = '✅ Комикс-видео готово! Озвучка включится автоматически. 🔊';
-    }
-
-    speakRussian(text) {
-        if (!('speechSynthesis' in window)) return;
-        speechSynthesis.cancel();
-        const cleanText = text.replace(/[📋✅⚛️📜🔥💻🎬]/g, '');
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'ru-RU';
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-        const voices = speechSynthesis.getVoices();
-        if (voices.length > 0) {
-            const ruVoices = voices.filter(v => v.lang.startsWith('ru'));
-            if (ruVoices.length > 0) {
-                utterance.voice = ruVoices.find(v => /google|microsoft|natural|premium|enhanced/i.test(v.name)) || ruVoices[0];
-            }
-        }
-        speechSynthesis.speak(utterance);
-    }
-
-    async describeImage(url, question) {
-        try {
-            const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(question || 'Опиши')}?image=${encodeURIComponent(url)}&model=openai`);
-            return await res.text();
-        } catch {}
-        return null;
-    }
-
-    addMessage(text, sender, isHTML = false) {
-        const div = document.createElement('div');
-        div.className = `msg ${sender}`;
-        if (isHTML) {
-            div.innerHTML = text;
-        } else {
-            div.textContent = text;
-        }
-        if (sender === 'ai') {
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'copy-btn';
-            copyBtn.textContent = '📋';
-            copyBtn.onclick = () => {
-                navigator.clipboard.writeText(text);
-                copyBtn.textContent = '✅';
-                setTimeout(() => copyBtn.textContent = '📋', 1500);
-            };
-            div.appendChild(copyBtn);
-            this.lastAIMessage = div;
-        }
-        this.chat.appendChild(div);
-        this.chat.scrollTop = this.chat.scrollHeight;
-
-        if (sender === 'ai' && this.voiceEnabled && !isHTML && text.length < 500) {
-            this.speak(text);
-        }
-        return div;
-    }
-
-    clearChat() {
-        this.chat.innerHTML = '';
-        this.abortController?.abort();
-        this.messageCache.clear();
-        this.addMessage('Чат очищен. 😌', 'ai');
-    }
-
-    toggleVoice() {
-        this.voiceEnabled = !this.voiceEnabled;
-        this.voiceBtn.textContent = this.voiceEnabled ? '🔊 Голос: ВКЛ' : '🔇 Голос: ВЫКЛ';
-        if (!this.voiceEnabled) {
-            speechSynthesis.cancel();
-        } else {
-            if ('speechSynthesis' in window) {
-                const dummy = new SpeechSynthesisUtterance('');
-                dummy.volume = 0;
-                speechSynthesis.speak(dummy);
-            }
-        }
-    }
-
-    speak(text) {
-        if (!this.voiceEnabled || !('speechSynthesis' in window)) return;
-        speechSynthesis.cancel();
-        const cleanText = text.replace(/[📋✅⚛️📜🔥💻🎬]/g, '');
-        let lang = 'ru-RU';
-        if (/[әғқңөұүһіІ]/g.test(cleanText)) {
-            lang = 'kk-KZ';
-        } else if (/[a-zA-Z]{4,}/.test(cleanText) && !/[а-яё]/i.test(cleanText)) {
-            lang = 'en-US';
-        }
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = lang;
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-        const voices = speechSynthesis.getVoices();
-        if (voices.length > 0) {
-            const preferred = voices.filter(v => v.lang.startsWith(lang.split('-')[0]));
-            if (preferred.length > 0) {
-                const best = preferred.find(v => /google|microsoft|natural|premium|enhanced/i.test(v.name)) || preferred[0];
-                utterance.voice = best;
-            }
-        }
-        speechSynthesis.speak(utterance);
-    }
-
-    changeTheme() {
-        document.body.className = `theme-${this.themeSelect.value}`;
-    }
-
-    checkAdmin() {
-        this.adminPanel.style.display = this.adminPass.value === 'nurik777' ? 'block' : 'none';
-    }
-
-    bulkLearn() {
-        const lines = this.bulkTextarea.value.split('\n');
-        let count = 0;
-        for (let line of lines) {
-            const parts = line.split(' это ');
-            if (parts.length >= 2) {
-                const q = parts[0].trim().toLowerCase();
-                const a = parts.slice(1).join(' это ').trim();
-                if (q && a) {
-                    this.memory[q] = a;
-                    count++;
-                }
-            }
-        }
-        if (count > 0 && this.db) {
-            this.db.ref('serik_memory').set(this.memory);
-            alert(`✅ Сохранено ${count} записей в облако`);
-        }
-        this.bulkTextarea.value = '';
+function toggleSettings() {
+    let menu = document.getElementById("settingsMenu");
+    let btnSpan = document.querySelector("#menuToggle span");
+    if(menu.classList.contains("open")) {
+        menu.classList.remove("open");
+        btnSpan.innerText = "🔽";
+    } else {
+        menu.classList.add("open");
+        btnSpan.innerText = "🔼";
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new SerikAI();
-});
+function toggleVoice() {
+    voiceEnabled = !voiceEnabled;
+    let btn = document.getElementById("voiceBtn");
+    if (voiceEnabled) {
+        btn.innerText = "🔊 Голос: ВКЛ (Премиум)";
+        btn.classList.add("active");
+    } else {
+        btn.innerText = "🔇 Голос: ВЫКЛ";
+        btn.classList.remove("active");
+        window.speechSynthesis.cancel();
+    }
+}
+
+function speakText(text) {
+    if (!voiceEnabled) return;
+    window.speechSynthesis.cancel(); 
+
+    let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '');
+    cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ');
+    
+    let speech = new SpeechSynthesisUtterance(cleanText);
+    
+    if (/[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text)) {
+        speech.lang = 'kk-KZ';
+    } else {
+        speech.lang = 'ru-RU';
+    }
+    
+    let voices = window.speechSynthesis.getVoices();
+    let premiumVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]) && 
+        (/google|natural|premium|neural|microsoft|yuri|pavel/i.test(v.name))
+    );
+    
+    if (premiumVoice) {
+        speech.voice = premiumVoice;
+    } else {
+        let defaultLangVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]));
+        if (defaultLangVoice) speech.voice = defaultLangVoice;
+    }
+    
+    speech.pitch = 1.0; 
+    speech.rate = 1.05; 
+    window.speechSynthesis.speak(speech);
+}
+
+window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+
+let loadingIndicator = null;
+function showLoading() {
+    if(loadingIndicator) return;
+    loadingIndicator = document.createElement("div");
+    loadingIndicator.className = "msg ai";
+    loadingIndicator.innerHTML = `Серик думает <span class="loading-dots"><span>.</span><span>.</span><span>.</span></span> 🧠`;
+    chat.appendChild(loadingIndicator);
+    chat.scrollTop = chat.scrollHeight;
+}
+function hideLoading() {
+    if (loadingIndicator && chat.contains(loadingIndicator)) {
+        chat.removeChild(loadingIndicator);
+        loadingIndicator = null;
+    }
+}
+
+function add(text, type, instant = false){
+    let div = document.createElement("div");
+    div.className = "msg " + type;
+    
+    let textSpan = document.createElement("span");
+    div.appendChild(textSpan);
+
+    if (type === "ai") {
+        let copyBtn = document.createElement("button");
+        copyBtn.innerText = "📋";
+        copyBtn.className = "copy-btn";
+        copyBtn.onclick = function() {
+            navigator.clipboard.writeText(text);
+            copyBtn.innerText = "✅";
+            setTimeout(() => { copyBtn.innerText = "📋"; }, 2000);
+        };
+        div.appendChild(copyBtn);
+        chat.appendChild(div);
+
+        if (!instant) {
+            let chars = [...text];
+            let i = 0;
+            let chunkSize = chars.length > 400 ? 4 : 1;
+            
+            let timer = setInterval(() => {
+                if (i < chars.length) {
+                    textSpan.innerText += chars.slice(i, i + chunkSize).join('');
+                    i += chunkSize;
+                    chat.scrollTop = chat.scrollHeight;
+                } else {
+                    clearInterval(timer);
+                    if (text.length < 500) speakText(text);
+                }
+            }, 12);
+        } else {
+            textSpan.innerText = text;
+            if (text.length < 500) speakText(text);
+        }
+    } else {
+        textSpan.innerText = text;
+        chat.appendChild(div);
+    }
+
+    chat.scrollTop = chat.scrollHeight;
+    return div; 
+}
+
+if(chat.children.length === 0) {
+    add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос! ✨", "ai", false);
+}
+
+function levenshteinDistance(a, b) {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    let matrix = [];
+    for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
+    for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1, 
+                    Math.min(matrix[i][j - 1] + 1, 
+                    matrix[i - 1][j] + 1) 
+                );
+            }
+        }
+    }
+    return matrix[b.length][a.length];
+}
+
+function brain(text) {
+    let q = text.toLowerCase().trim();
+    let qNoSpace = q.replace(/\s+/g, ""); 
+    
+    if(memory[q]) return memory[q];
+
+    let bestMatch = null;
+    let minDistance = 3; 
+
+    for (let key in memory) {
+        let keyNoSpace = key.toLowerCase().replace(/\s+/g, "");
+        
+        if (qNoSpace === keyNoSpace) {
+            return memory[key];
+        }
+
+        let dist = levenshteinDistance(q, key.toLowerCase());
+        if (dist < minDistance) {
+            minDistance = dist;
+            bestMatch = key;
+        }
+    }
+    if (bestMatch) return memory[bestMatch];
+    return null;
+}
+
+function checkAdmin(){
+    let pass = document.getElementById("adminPass").value;
+    document.getElementById("adminPanel").style.display = (pass === "nurik777") ? "block" : "none";
+}
+
+function bulkLearn(){
+    let text = document.getElementById("bulk").value;
+    let lines = text.split("\n");
+    let count = 0;
+    let newMemory = Object.assign({}, memory);
+
+    for(let line of lines){
+        line = line.trim();
+        if(!line.includes(" это ")) continue;
+        let parts = line.split(" это ");
+        let q = parts[0].trim().toLowerCase();
+        let a = parts.slice(1).join(" это ").trim();
+        if(q && a){ newMemory[q] = a; count++; }
+    }
+    
+    if (count > 0) {
+        memory = newMemory;
+        if (db) {
+            db.ref('serik_memory').set(memory);
+            alert("✅ Успешно сохранено в облаке Firebase!");
+        }
+    }
+    document.getElementById("bulk").value = "";
+}
+
+function changeTheme() {
+    let theme = document.getElementById("themeSelect").value;
+    document.body.className = "theme-" + theme;
+}
+
+function generateText(prompt) {
+    document.getElementById("input").value = prompt;
+    send();
+}
+
+// --- ПОИСК В ВЕБЕ (WIKIPEDIA API С ФИЛЬТРОМ КОНТЕКСТА) ---
+async function searchWebFallback(queryText) {
+    try {
+        let cleanQuery = queryText.replace(/(пожалуйста|расскажи про|что такое|кто такой|найди|гугл|google|реферат|эссе|кратко|кім ол|не ол)/gi, "").trim();
+        let searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
+        let res = await fetch(searchUrl);
+        let data = await res.json();
+        
+        if (data.query.search.length > 0) {
+            let title = data.query.search[0].title;
+            let contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=0&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
+            let contentRes = await fetch(contentUrl);
+            let contentData = await contentRes.json();
+            let pages = contentData.query.pages;
+            let extract = pages[Object.keys(pages)[0]].extract;
+            
+            if (extract && extract.trim().length > 30) {
+                if(queryText.toLowerCase().includes("кратко")) {
+                    return `🤖 [Smart Web Search]: ${extract.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ")}`;
+                }
+                return `[Smart Web Search - ${title}]: ${extract.substring(0, 1800)}`;
+            }
+        }
+        return null;
+    } catch(e) { return null; }
+}
+
+// --- 3 МОДЕЛЬДІ (MULTI-AGENT) ИИ ЖҮЙЕСІ ---
+async function askSmartAI(queryText) {
+    chatHistory.push({ role: "user", content: queryText });
+    if (chatHistory.length > 10) chatHistory.shift();
+
+    try {
+        // -------------------------------------------------------------
+        // 1-ҚАДАМ: Llama 3.1 — Логика мен құрылымды дайындайды
+        // -------------------------------------------------------------
+        let llamaPrompt = [
+            { role: "system", content: "Ты — логический инженер. Разбери запрос пользователя, выдели суть и составь четкий план ответа или сценария." },
+            { role: "user", content: queryText }
+        ];
+
+        let llamaRes = await fetch("https://text.pollinations.ai/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: llamaPrompt, model: "llama", private: true })
+        });
+        let llamaOutput = await llamaRes.text();
+
+        // Егер 1-модель жауап берсе, логиканы араймыз, болмаса бастапқы текстті аламыз
+        let baseLogic = (llamaOutput && !llamaOutput.includes('"error"')) ? llamaOutput : queryText;
+
+        // -------------------------------------------------------------
+        // 2-ҚАДАМ: Qwen 2.5 — Қазақша көркем сөз, стиль және әңгіме
+        // -------------------------------------------------------------
+        let qwenPrompt = [
+            { 
+                role: "system", 
+                content: `Ты — Serik AI. Өте ақылды, бауырлас, құрметті ИИ-ассистентсің.
+Никогда не говори, что ты ChatGPT. Твое имя Serik AI, родом из Казахстана.
+Басты тапсырма: Берілген логиканы қазақша (немесе қолданушы тілінде) өте шынайы, көркем, достық рухта, мағыналы етіп жеткіз.` 
+            },
+            { role: "user", content: `Пайдаланушы сұрағы: "${queryText}"\nЛогикалық құрылым: "${baseLogic}"` }
+        ];
+
+        let qwenRes = await fetch("https://text.pollinations.ai/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: qwenPrompt, model: "qwen", private: true })
+        });
+        let qwenOutput = await qwenRes.text();
+
+        // -------------------------------------------------------------
+        // 3-ҚАДАМ: Gemma / Mistral — Тексеруші және сапа бақылаушысы
+        // -------------------------------------------------------------
+        let finalPrompt = [
+            { role: "system", content: "Ты — редактор сапасы. Мәтінді тексер, қателерін түзеп, ең әдемі әрі таза нұсқасын шығар." },
+            { role: "user", content: qwenOutput }
+        ];
+
+        let finalRes = await fetch("https://text.pollinations.ai/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messages: finalPrompt, model: "mistral", private: true })
+        });
+        let finalOutput = await finalRes.text();
+
+        // Қорытынды жауап
+        let resultText = (finalOutput && !finalOutput.includes('"error"')) ? finalOutput.trim() : qwenOutput.trim();
+
+        chatHistory.push({ role: "assistant", content: resultText });
+        return resultText;
+
+    } catch (e) {
+        console.error("3 ИИ жүйесінде қате шықты:", e);
+        return "ИИ перезагружен" 🔄;
+    }
+}
+
+
+// --- АСИНХРОННАЯ ФУНКЦИЯ ОТПРАВКИ ---
+async function send() {
+    let input = document.getElementById("input");
+    let text = input.value.trim();
+    if (!text) return;
+    
+    add(text, "user");
+    input.value = "";
+
+    // --- 1. МАТЕМАТИКА ---
+    if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
+        showLoading();
+        try {
+            let mathResult = eval(text);
+            setTimeout(() => { 
+                hideLoading();
+                add(`🧮 Ответ: ${mathResult}`, "ai");
+            }, 700);
+            return;
+        } catch(e) { }
+    }
+
+    // --- 2. ЛОКАЛЬНАЯ БАЗА ЗНАНИЙ (Brain) ---
+    let res = brain(text);
+    if (res) {
+        showLoading();
+        setTimeout(() => { 
+            hideLoading();
+            add(res, "ai");
+        }, 400);
+        return;
+    }
+
+    let lowerText = text.toLowerCase();
+
+    // --- 3. АНАЛИЗ ИЗОБРАЖЕНИЙ (Vision) ---
+    let imgUrlMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
+    if (imgUrlMatch) {
+        showLoading();
+        let detectedImageUrl = imgUrlMatch[0];
+        let cleanQuestion = text.replace(detectedImageUrl, "").trim() || "Что на этом изображении?";
+        
+        try {
+            let visionUrl = `https://text.pollinations.ai/${encodeURIComponent(cleanQuestion)}?image=${encodeURIComponent(detectedImageUrl)}&model=openai`;
+            let res = await fetch(visionUrl);
+            let responseText = await res.text();
+            
+            hideLoading();
+            add(`👁️ [Анализ изображения]:\n\n${responseText.trim()}`, "ai");
+            return;
+        } catch(e) {
+            console.error("Ошибка Vision API:", e);
+        }
+    }
+
+    // --- 4. ФОТОГЕНЕРАТОР (16K САПА ЖӘНЕ ШЕКСІЗ РАЗНЫЙ СУРЕТТЕР) ---
+    if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
+        showLoading();
+        
+        // 1. Пайдаланушының жазған сөзін тазалап аламыз
+        let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
+        
+        // 2. 16K САПА КӨТЕРУ: Артына нейрожелі түсінетін ең мықты сапа сөздерін қосамыз
+        let enhancedPrompt = userPrompt + ", exact object, pure clean focus, masterpiece, 16k resolution, ultra detailed, hyperrealistic, 8k uhd, cinematic lighting, no text, no artifacts";
+        
+        // 3. ШЕКСІЗ ВАРИАНТТАР: 1-ден 1 000 000 000-ға дейін кездейсоқ сан
+        let randomSeed = Math.floor(Math.random() * 1000000000);
+        
+        // 4. РАЗРЕШЕНИЕ: 2048x2048 (Бұл API көтере алатын ең максималды әрі қатып қалмайтын формат)
+        let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2048&height=2048&nologo=true&seed=${randomSeed}`;
+        
+        let img = document.createElement("img");
+        img.style.width = "100%";
+        img.style.borderRadius = "10px";
+        img.style.marginTop = "10px";
+        
+        img.onload = function() {
+            hideLoading();
+            let div = add("🎨 Міне, сен сұраған сурет (Ultra HD сапада):", "ai", true);
+            div.appendChild(img);
+            chat.scrollTop = chat.scrollHeight;
+        };
+        
+        img.onerror = function() {
+            hideLoading();
+            add("❌ Кешіріңіз, серверден сурет жүктелмеді. Сұранысты қайта жіберіп көріңіз.", "ai", true);
+        };
+
+        img.src = imageUrl;
+        return; 
+    }
+
+    // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
+    showLoading();
+    try {
+        let finalAnswer = await askSmartAI(text); 
+        hideLoading();
+        add(finalAnswer, "ai");
+    } catch (error) {
+        hideLoading();
+        console.error("Ошибка отправки:", error);
+        add("Извините, произошла ошибка сервера. Пожалуйста, попробуйте повторить запрос чуть позже ⚠️", "ai");
+    }
+}
 </script>
 </body>
     </html>
