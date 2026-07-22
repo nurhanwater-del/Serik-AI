@@ -578,6 +578,12 @@ async function send() {
         let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2048&height=2048&nologo=true&seed=${randomSeed}`;
         
         let img = document.createElement("img");
+        img.draggable = false;
+        img.oncontextmenu = (e) => e.preventDefault();
+        img.onselectstart = () => false;
+        img.style.userSelect = "none";
+        img.style.webkitUserSelect = "none";
+        img.style.webkitTouchCallout = "none";
         img.style.width = "100%";
         img.style.borderRadius = "10px";
         img.style.marginTop = "10px";
