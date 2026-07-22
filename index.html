@@ -517,74 +517,22 @@ async function searchWebFallback(queryText) {
     } catch(e) { return null; }
 }
 
-// --- СМАРТ ИИ С ЗАЩИТОЙ ОТ ПЕРЕГРУЗОК (POST-МЕТОД) ---
-async function askSmartAI(queryText) {
-    chatHistory.push({ role: "user", content: queryText });
-    if (chatHistory.length > 10) chatHistory.shift();
+hideLoading();
 
-    let textLower = queryText.toLowerCase().trim();
+add(`🔧 Технический перерыв
 
-    // Заглушка приветствий (на русском)
-    const shortPhrases = ["салем", "сәлем", "привет", "hi", "hello", "калайсын", "қалайсың", "как дела"];
-    if (shortPhrases.some(phrase => textLower === phrase || textLower.startsWith(phrase + " "))) {
-        let helloAnswer = "Привет! Как дела? Чем могу помочь? 😊";
-        chatHistory.push({ role: "assistant", content: helloAnswer });
-        return helloAnswer;
-    }
+Сейчас Serik AI проходит масштабное обновление.
 
-    // Жесткий фильтр веб-поиска (срабатывает только на конкретные поисковые триггеры)
-    let webContext = "";
-    if (textLower.startsWith("что такое") || textLower.startsWith("кто такой") || textLower.startsWith("кім ол") || textLower.startsWith("не ол") || textLower.startsWith("найди")) {
-        try {
-            let searchData = await searchWebFallback(queryText);
-            if (searchData && searchData.length > 10) {
-                webContext = `\n\n[Found Web Search Information]:\n${searchData}`;
-            }
-        } catch (e) {
-            console.log("Ошибка веб-поиска:", e);
-        }
-    }
+🚀 Оптимизация скорости
+🧠 Улучшение качества ответов
+🌍 Подготовка новых функций
 
-    let finalSystemInstruction = `${currentSystemPrompt}${webContext}`;
+⏳ Пожалуйста, немного подождите.
 
-    let apiMessages = [
-        { role: "system", content: finalSystemInstruction },
-        ...chatHistory
-    ];
+Совсем скоро Serik AI снова будет доступен! ❤️`, "ai");
 
-    let models = ["openai", "mistral", "llama"]; 
-    
-    for (let model of models) {
-        try {
-            let res = await fetch("https://text.pollinations.ai/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    messages: apiMessages,
-                    model: model,
-                    private: true
-                })
-            });
-
-            let text = await res.text();
-            
-            if (text && text.length > 1 && !text.includes('"error"') && !text.includes('Queue full')) {
-                let aiResponse = text.trim();
-                chatHistory.push({ role: "assistant", content: aiResponse });
-                return aiResponse;
-            }
-        } catch (e) {
-            console.error(`Ошибка модели ${model}, переключаюсь на следующую...`, e);
-        }
-    }
-
-        if (webContext) {
-        return `🌐 [Сервер перегружен, но найдено в Википедии]: ${webContext.replace('\n\n[Found Web Search Information]:\n', '')}`;
-    }
-
-    return "Извини, на сервере высокая нагрузка. Пожалуйста, отправь свой вопрос еще раз! 🔄";
-}
-
+return;
+  
 // --- АСИНХРОННАЯ ФУНКЦИЯ ОТПРАВКИ ---
 async function send() {
     let input = document.getElementById("input");
