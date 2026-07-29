@@ -1,0 +1,101 @@
+// api/chat.js
+export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Тек POST сұраныстар қабылданады' });
+    }
+
+    const { message } = req.body;
+    // Vercel-де Environment Variables ішіне өзіңнің тегін Groq API кілтіңді қоясың
+    const GROQ_API_KEY = process.env.GROQ_API_KEY; 
+
+    try {
+        // 1-ҚАДАМ: ФИЛЬТР (Бұл әңгіме ме, әлде іздеу керек пе?)
+        const checkIntent = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${GROQ_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: "llama3-8b-8192",
+                messages: [{
+                    role: "system",
+                    content: "Сен классификаторсың. Пайдаланушының жазғанын оқы. Егер ол жай сәлемдесу немесе әңгіме болса 'CHAT' деп жауап бер. Егер нақты факт, жаңалық немесе интернеттен ақпарат іздеуді қажет ететін сұрақ болса 'SEARCH' деп жауап бер. Тек бір сөзбен жауап бер."
+                }, {
+                    role: "user",
+                    content: message
+                }]
+            })
+        });
+
+        const intentData = await checkIntent.json();
+        const intent = intentData.choices[0].message.content.trim().toUpperCase();
+
+        console.log("Модельдің шешімі:", intent);
+
+        // 2-ҚАДАМ: ТАҢДАУ ЖАСАУ
+        if (intent.includes("SEARCH")) {
+            // ЕГЕР СҰРАҚ БОЛСА: Google/DuckDuckGo-дан іздейміз
+            // (Бұл жерде мысал ретінде қарапайым Wikipedia API қойдым, 
+            // кейін мұны нағыз Google Search API немесе SerpAPI-ға ауыстыра аласың)
+            const searchRes = await fetch(`https://ru.wikipedia.org/w/api.php?action=opensearch&search=${encodeURIComponent(message)}&limit=1&format=json`);
+            const searchData = await searchRes.json();
+            const searchResultText = searchData[2] ? searchData[2][0] : "Ақпарат табылмады.";
+
+            // 3-ҚАДАМ: Табылған ақпаратты қайтадан модельге беріп, әдемілеп жауап алу
+            const finalResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${GROQ_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: "llama3-8b-8192",
+                    messages: [{
+                        role: "system",
+                        content: "Сен көмекшісің. Мына интернеттен табылған ақпаратты қолданып, пайдаланушының сұрағына түсінікті әрі нақты қазақ тілінде жауап бер. Табылған ақпарат: " + searchResultText
+                    }, {
+                        role: "user",
+                        content: message
+                    }]
+                })
+            });
+
+            const finalData = await finalResponse.json();
+            return res.status(200).json({ 
+                reply: finalData.choices[0].message.content,
+                source: "search" 
+            });
+
+        } else {
+            // ЕГЕР ЖАЙ ӘҢГІМЕ БОЛСА: Іздемей-ақ тікелей жауап береді
+            const chatResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${GROQ_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: "llama3-8b-8192",
+                    messages: [{
+                        role: "system",
+                        content: "Сен достық ниеттегі көмекшісің. Қазақ тілінде қысқа әрі нұсқа жауап бер."
+                    }, {
+                        role: "user",
+                        content: message
+                    }]
+                })
+            });
+
+            const chatData = await chatResponse.json();
+            return res.status(200).json({ 
+                reply: chatData.choices[0].message.content,
+                source: "chat" 
+            });
+        }
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Серверде қате шықты.' });
+    }
+}
