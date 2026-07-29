@@ -742,21 +742,7 @@
             add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос! ✨", "ai", false);
         }
 
-        // Техникалық ескерту – «нарисуй» туралы сөйлем жоқ
-        hideLoading();
-        add(`🔧 Технический перерыв
-
-Текстовый ИИ временно недоступен из-за обновления серверов.
-
-🧠 Мы улучшаем качество ответов и производительность системы.
-
-⚔️ Вы также можете создавать эффектные изображения с красивыми памятниками, величественными мечами и многим другим.
-
-📸 Чтобы создать изображение, нажмите на три точки в левом верхнем углу, затем выберите пункт Images. После этого вы сможете создавать любые фотографии с помощью ИИ.
-⏳ Пожалуйста, попробуйте снова немного позже.
-
-💚 Спасибо за понимание!`, "ai");
-
+        
         function levenshteinDistance(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
@@ -1034,8 +1020,42 @@
                 return;
             }
 
+                    // --- ОСЫ ЖЕРДЕН БАСТАП VERCEL/GROQ-ҚА ЖІБЕРЕМІЗ ---
+        showLoading();
+        try {
+            let response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [
+                        { role: "system", content: "Ты Serik AI, умный, полезный и дружелюбный ИИ-ассистент." },
+                        { role: "user", content: text }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error("Серверден қате келді");
+            }
+
+            let data = await response.json();
             hideLoading();
-            add("Технический перерыв!. Попробуйте спросить иначе или перейдите во вкладку Images для генерации изображений.", "ai");
+            
+            // Егер бәрі дұрыс болса, жауапты шығарамыз
+            if (data.reply) {
+                add(data.reply, "ai");
+            } else if (data.error) {
+                add("⚠️ Ошибка вышло!: " + data.error, "ai");
+            } else {
+                add("⚠️ неясный ошибко!.", "ai");
+            }
+
+        } catch (error) {
+            hideLoading();
+            add("⚠️ Ищвините в сервере ошибка!. Проверяйте свой собщения.", "ai");
+            console.error("Chat қатесі:", error);
+        }
+
         }
 
         function toggleSidebar() {
