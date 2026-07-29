@@ -34,7 +34,6 @@
         .sidebar-tabs button { flex: 1; padding: 10px; background: #2b2b3a; border: 1px solid #444; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .sidebar-tabs button.active { background: #00b86b; border-color: #00b86b; color: #fff; }
 
-        /* Настройка мәзірінің стильдері */
         .settings-menu { display: none; flex-direction: column; gap: 10px; }
         .settings-menu.open { display: flex; }
 
@@ -86,12 +85,10 @@
         #generatedImageContainer { margin-top: 10px; text-align: center; }
         #generatedImageContainer img { max-width: 100%; border-radius: 12px; margin-bottom: 10px; }
 
-        /* Google Login */
         #googleLoginBtn { background: #4285f4 !important; color: white !important; width: 100%; margin-top: 5px; }
         #googleLoginBtn:hover { background: #357ae8 !important; }
         #userInfo { text-align: center; font-size: 12px; color: #aaa; margin-top: 5px; word-break: break-all; }
 
-        /* Темы */
         body.theme-hacker { background: #050505; color: #0f0; }
         body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; box-shadow: none; }
         body.theme-hacker .msg.ai { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; }
@@ -137,7 +134,6 @@
     <div class="sidebar" id="sidebar">
         <h3>🤖 Serik AI</h3>
 
-        <!-- Google Login -->
         <button id="googleLoginBtn" onclick="loginWithGoogle()">🔑 Войти через Google</button>
         <div id="userInfo"></div>
 
@@ -182,8 +178,8 @@
                     <input id="input" placeholder="Введите ваш вопрос..." onkeydown="if(event.key==='Enter') send()">
                     <button onclick="send()">Отправить</button>
                 </div>
-                <!-- Жазу өзгертілді -->
-                <div class="disclaimer">Serik AI • Pollinations AI (тегін, жылдам)</div>
+                <!-- Жазу қалпына келтірілді -->
+                <div class="disclaimer">Serik AI • ИИ Ассистент</div>
             </div>
         </div>
 
@@ -212,7 +208,6 @@
     </div>
 
     <script>
-        // ========== FIREBASE ==========
         const firebaseConfig = {
             apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
             authDomain: "serik-ai.firebaseapp.com",
@@ -225,7 +220,6 @@
         const auth = firebase.auth();
         const db = firebase.database();
 
-        // Google Login
         function loginWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider).then(result => {
@@ -247,7 +241,6 @@
             }
         });
 
-        // Память
         const defaultMemory = {
             "привет": "Привет! Я готов помочь. Задавай любой вопрос! 👋",
             "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю длинные и короткие вопросы, ищу информацию в сети, пишу эссе, рефераты! 🧠",
@@ -265,7 +258,7 @@
         let voiceEnabled = false;
         let chatHistory = [];
 
-        // ========== POLLINATIONS TEXT API (ТЕГІН, ТОКЕНСІЗ) ==========
+        // ТЕКСТКЕ АРНАЛҒАН ЖАҢАРТЫЛҒАН АПИ (ҚАТЕ БЕРМЕЙТІН НҰСҚА)
         async function queryPollinationsText(messages) {
             const response = await fetch("https://text.pollinations.ai/", {
                 method: "POST",
@@ -273,19 +266,17 @@
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    messages: messages,
-                    model: "openai" // "mistral" немесе "llama" деп ауыстыруға да болады
+                    messages: messages
                 })
             });
 
             if (!response.ok) {
-                throw new Error(`Сервер қатесі: ${response.status}`);
+                throw new Error(response.status);
             }
 
             return await response.text(); 
         }
 
-        // ========== UI ==========
         function toggleSettings() {
             let menu = document.getElementById("settingsMenu");
             let btnSpan = document.querySelector("#menuToggle span");
@@ -355,7 +346,7 @@
         }
 
         function add(text, type, instant = false) {
-            text = String(text); // Қателік алдын алу
+            text = String(text);
             let div = document.createElement("div");
             div.className = "msg " + type;
             let textSpan = document.createElement("span");
@@ -576,12 +567,11 @@
                 container.appendChild(downloadBtn);
             };
             img.onerror = function() {
-                container.innerHTML = '<p style="color:red;">Қате: суретті жүктеу мүмкін болмады.</p>';
+                container.innerHTML = '<p style="color:red;">Ошибка загрузки изображения.</p>';
             };
             img.src = imageUrl;
         }
 
-        // ========== ОТПРАВКА ==========
         async function send() {
             let input = document.getElementById("input");
             let text = input.value.trim();
@@ -591,7 +581,6 @@
             chatHistory.push({ role: "user", content: text });
             input.value = "";
 
-            // Математика
             if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
                 try {
                     let mathResult = eval(text);
@@ -602,7 +591,6 @@
                 } catch (e) {}
             }
 
-            // Локальная память
             let mem = brain(text);
             if (mem) {
                 add(mem, "ai");
@@ -610,7 +598,6 @@
                 return;
             }
 
-            // Vision API (Суретті оқу)
             let imgUrlMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
             if (imgUrlMatch) {
                 showLoading();
@@ -640,7 +627,6 @@
                 return;
             }
 
-            // Pollinations Text API (Токенсіз генерация)
             showLoading();
             try {
                 const messages = [
@@ -654,7 +640,8 @@
                 chatHistory.push({ role: "assistant", content: reply });
             } catch (error) {
                 hideLoading();
-                add("⚠️ Ошибка: " + error.message, "ai");
+                // ОШИБКА ЕНДІ ТАЗА ОРЫСША ШЫҒАДЫ
+                add("⚠️ Ошибка сервера: " + error.message + ". Попробуйте еще раз.", "ai");
                 chatHistory.push({ role: "assistant", content: "Ошибка" });
             }
         }
