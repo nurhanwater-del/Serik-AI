@@ -1,0 +1,10 @@
+{
+  "name": "serik-ai",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node api/tts.js"
+  },
+  "dependencies": {
+    "msedge-tts": "^1.1.7"
+  }
+}
