@@ -303,31 +303,24 @@
         }
 
         function speakText(text) {
-            if (!voiceEnabled) return;
-            window.speechSynthesis.cancel();
-            let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '');
-            cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ');
-            let speech = new SpeechSynthesisUtterance(cleanText);
-            if (/[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text)) {
-                speech.lang = 'kk-KZ';
-            } else {
-                speech.lang = 'ru-RU';
-            }
-            let voices = window.speechSynthesis.getVoices();
-            let premiumVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]) &&
-                (/google|natural|premium|neural|microsoft|yuri|pavel/i.test(v.name))
-            );
-            if (premiumVoice) {
-                speech.voice = premiumVoice;
-            } else {
-                let defaultLangVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]));
-                if (defaultLangVoice) speech.voice = defaultLangVoice;
-            }
-            speech.pitch = 1.0;
-            speech.rate = 1.05;
-            window.speechSynthesis.speak(speech);
-        }
-        window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+    if (!voiceEnabled) return;
+
+    // 1. Смайликтер мен артық белгілерді тазалау (дауысқа кедергі жасамау үшін)
+    let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '');
+    cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ').trim();
+    
+    if (!cleanText) return;
+
+    // 2. Қазақша әріптердің бар-жоғын тексеріп, тілді анықтау
+    let lang = /[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(cleanText) ? 'kk' : 'ru';
+    
+    // 3. Vercel-дегі біздің жаңа API-ге сұраныс жіберу
+    let audioUrl = `/api/tts?text=${encodeURIComponent(cleanText)}&lang=${lang}`;
+    let audio = new Audio(audioUrl);
+    
+    // 4. Дыбысты ойнату
+    audio.play().catch(e => console.error("Аудио ойнатуда қате шықты:", e));
+}
 
         let loadingIndicator = null;
         function showLoading() {
