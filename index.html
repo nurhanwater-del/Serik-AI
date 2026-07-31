@@ -132,7 +132,7 @@
     <button class="menu-toggle-btn" onclick="toggleSidebar()">⋮</button>
 
     <div class="sidebar" id="sidebar">
-        <h3>🤖 Serik AI</h3>
+        <h3>🤖 Serik AI Ваш Личный Помощник</h3>
 
         <button id="googleLoginBtn" onclick="loginWithGoogle()">🔑 Войти через Google</button>
         <div id="userInfo"></div>
@@ -305,38 +305,35 @@
         function speakText(text) {
     if (!voiceEnabled) return;
 
-    // 1. Смайликтер мен артық белгілерді тазалау
+    // Смайликтерді тазалау
     let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '');
     cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ').trim();
     
     if (!cleanText) return;
 
-    // Ұзын текстті кесу (тегін аудио қатып қалмауы үшін)
+    // Шектен тыс ұзын мәтінді кесу
     if (cleanText.length > 250) {
         cleanText = cleanText.substring(0, 250);
     }
 
-    // 2. Тілді анықтау (Қазақша әріптер бар ма?)
     let isKazakh = /[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(cleanText);
-    
     let audioUrl = "";
 
     if (isKazakh) {
-        // Қазақша үшін әзірге жалғыз тегін жұмыс істейтіні (Google TTS)
+        // Қазақша үшін Google
         audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=kk&client=tw-ob`;
     } else {
-        // Орысша үшін АДАМНЫҢ ШЫНАЙЫ ДАУЫСЫ (Amazon Polly - Максим дауысы)
+        // Орысша үшін ШЫНАЙЫ Максим дауысы (Amazon Polly)
         audioUrl = `https://api.streamelements.com/kappa/v2/speech?voice=Maxim&text=${encodeURIComponent(cleanText)}`;
     }
 
-    // 3. Браузерде аудионы іске қосу
-    let audio = new Audio(audioUrl);
-    
-    audio.play().catch(e => {
-        console.error("Аудио ойнату қатесі:", e);
+    // Алдын ала дайындалған жасырын плеерге сілтемені саламыз да, ойнатамыз
+    let player = document.getElementById("aiVoicePlayer");
+    player.src = audioUrl;
+    player.play().catch(e => {
+        console.error("Аудио ойнату қатесі (Телефон автоплей):", e);
     });
-}
-
+        }
 
         function add(text, type, instant = false) {
             text = String(text);
