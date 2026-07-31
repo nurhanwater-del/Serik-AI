@@ -305,38 +305,38 @@
         function speakText(text) {
     if (!voiceEnabled) return;
 
-    // 1. Смайликтер мен артық белгілерді тазалау (дауысқа кедергі жасамау үшін)
+    // 1. Смайликтер мен артық белгілерді тазалау
     let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '');
     cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ').trim();
     
     if (!cleanText) return;
 
-    // 2. Қазақша әріптердің бар-жоғын тексеріп, тілді анықтау
-    let lang = /[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(cleanText) ? 'kk' : 'ru';
+    // Ұзын текстті кесу (тегін аудио қатып қалмауы үшін)
+    if (cleanText.length > 250) {
+        cleanText = cleanText.substring(0, 250);
+    }
+
+    // 2. Тілді анықтау (Қазақша әріптер бар ма?)
+    let isKazakh = /[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(cleanText);
     
-    // 3. Vercel-дегі біздің жаңа API-ге сұраныс жіберу
-    let audioUrl = `/api/tts?text=${encodeURIComponent(cleanText)}&lang=${lang}`;
+    let audioUrl = "";
+
+    if (isKazakh) {
+        // Қазақша үшін әзірге жалғыз тегін жұмыс істейтіні (Google TTS)
+        audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=kk&client=tw-ob`;
+    } else {
+        // Орысша үшін АДАМНЫҢ ШЫНАЙЫ ДАУЫСЫ (Amazon Polly - Максим дауысы)
+        audioUrl = `https://api.streamelements.com/kappa/v2/speech?voice=Maxim&text=${encodeURIComponent(cleanText)}`;
+    }
+
+    // 3. Браузерде аудионы іске қосу
     let audio = new Audio(audioUrl);
     
-    // 4. Дыбысты ойнату
-    audio.play().catch(e => console.error("Аудио ойнатуда қате шықты:", e));
+    audio.play().catch(e => {
+        console.error("Аудио ойнату қатесі:", e);
+    });
 }
 
-        let loadingIndicator = null;
-        function showLoading() {
-            if (loadingIndicator) return;
-            loadingIndicator = document.createElement("div");
-            loadingIndicator.className = "msg ai";
-            loadingIndicator.innerHTML = `Серик думает <span class="loading-dots"><span>.</span><span>.</span><span>.</span></span> 🧠`;
-            chat.appendChild(loadingIndicator);
-            chat.scrollTop = chat.scrollHeight;
-        }
-        function hideLoading() {
-            if (loadingIndicator && chat.contains(loadingIndicator)) {
-                chat.removeChild(loadingIndicator);
-                loadingIndicator = null;
-            }
-        }
 
         function add(text, type, instant = false) {
             text = String(text);
