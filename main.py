@@ -1,47 +1,80 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 import os
+import requests
+from flask import Flask, request, jsonify
 from groq import Groq
+from duckduckgo_search import DDGS  # Тегін Google/Веб іздеу үшін
 
-app = FastAPI()
+app = Flask(__name__)
 
-# Сайттан сұраныс бөгетсіз өтуі үшін (CORS баптаулары)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=GROQ_API_KEY)
 
-class Query(BaseModel):
-    prompt: str
+# 1. Сұрақтың түрін анықтау (Әңгіме ме, әлде факт/іздеу ме?)
+def check_intent(user_prompt):
+    intent_prompt = f"""
+    Анализируй запрос пользователя: "{user_prompt}"
+    Если это просто разговор, приветствие, мнение или обсуждение — ответь "CHAT".
+    Если запрос требует свежих фактов, новостей, поиска информации или конкретных данных — ответь "SEARCH".
+    Отвечай ТОЛЬКО одним словом: CHAT или SEARCH.
+    """
+    
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": intent_prompt}],
+        max_tokens=5
+    )
+    return response.choices[0].message.content.strip()
 
-def get_system_prompt():
+# 2. Интернеттен ақпарат іздеу
+def search_web(query):
     try:
-        with open("system_prompt.txt", "r", encoding="utf-8") as f:
-            return f.read()
-    except Exception:
-        return "Сен — Serik-AI, ақылды әрі достық рухтағы ЖИ көмекшісің."
-
-@app.post("/api/chat")
-async def chat(query: Query):
-    system_instruction = get_system_prompt()
-    try:
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {"role": "system", "content": system_instruction},
-                {"role": "user", "content": query.prompt}
-            ],
-            model="llama-3.3-70b-versatile",
-            temperature=0.8,
-            max_tokens=1024,
-        )
-        answer = chat_completion.choices[0].message.content
-        return {"response": answer}
+        results = []
+        with DDGS() as ddgs:
+            for r in ddgs.text(query, max_results=3):
+                results.append(r['body'])
+        return "\n".join(results)
     except Exception as e:
-        return {"response": f"Қателік орын алды: {str(e)}"}
+        return ""
+
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    data = request.json
+    user_prompt = data.get('prompt', '')
+
+    if not user_prompt:
+        return jsonify({'response': 'Сұрақ бос.'})
+
+    # ФИЛЬТР: Сұрақты тексереміз
+    intent = check_intent(user_prompt)
+
+    context = ""
+    if "SEARCH" in intent:
+        # Егер іздеу керек болса — гуглдаймыз
+        search_data = search_web(user_prompt)
+        if search_data:
+            context = f"\n[Интернеттен алынған деректер]:\n{search_data}\nОсы деректерді қолданып жауап бер."
+
+    # Llama-ға дос ретиде жауап бергізу үшін System Prompt
+    system_instruction = (
+        "Сен — Serik-AI, қолданушының жақын досысың. "
+        "Сөйлесу мәнерің өте табиғи, бауыррмал, сыпайы, ақылды әрі достық рухта болсын. "
+        "Қазақша немесе орысша қолданушының тілінде кәдімгі сырдас дос сияқты еркін сөйлес. "
+        "Егер контексте интернеттен алынған мәлімет болса, оны өз сөзіңмен досыңа түсіндіргендей жеткіз."
+    )
+
+    messages = [
+        {"role": "system", "content": system_instruction},
+        {"role": "user", "content": f"{user_prompt}{context}"}
+    ]
+
+    # Llama 3.3-тен жауап алу
+    chat_completion = client.chat.completions.create(
+        messages=messages,
+        model="llama-3.3-70b-versatile",
+    )
+
+    reply = chat_completion.choices[0].message.content
+    return jsonify({'response': reply})
+
+if __name__ == '__main__':
+    app.run()
