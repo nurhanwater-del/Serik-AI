@@ -1,6 +1,3 @@
-groq
-fastapi
-uvicorn
-pydantic
 Flask
+groq
 duckduckgo_search
