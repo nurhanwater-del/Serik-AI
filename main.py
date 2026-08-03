@@ -1,50 +1,37 @@
 import os
-from flask import Flask, request, jsonify
 from groq import Groq
 
-app = Flask(__name__)
+# 1. Groq API клиентін баптау
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-# Vercel-дің Environment Variables-тен GROQ API KEY аламыз
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-
-@app.route('/api/chat', methods=['POST'])
-def chat():
+def get_system_prompt():
+    """Мінезін (System Prompt) файлдан оқып алу"""
     try:
-        if not GROQ_API_KEY:
-            return jsonify({'response': '⚠️ GROQ_API_KEY Vercel-де орнатылмаған!'}), 500
+        with open("system_prompt.txt", "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception:
+        return "Сен — Serik-AI, ақылды әрі достық рухтағы ЖИ көмекшісің."
 
-        client = Groq(api_key=GROQ_API_KEY)
-        data = request.get_json(silent=True) or {}
-        user_prompt = data.get('prompt', '')
-
-        if not user_prompt:
-            return jsonify({'response': 'Сұрақ бос.'})
-
-        # ИИ-ға дос ретінде сөйлесу нұсқаулығы
-        system_instruction = (
-            "Сен — Serik-AI, қолданушының жақын досысың, бауырысың. "
-            "Сөйлесу мәнерің өте табиғи, бауырмал, сыпайы, ақылды әрі достық рухта болсын. "
-            "Қазақша немесе орысша қолданушы қай тілде жазса, сонда кәдімгі сырдас дос сияқты еркін, жылы сөйлес. "
-            "Егер қолданушы сұрағында ақпарат іздеуді сұраса, білетін соңғы деректеріңмен дос сияқты түсіндіріп бер."
-        )
-
-        messages = [
+def ask_serik_ai(user_prompt):
+    system_instruction = get_system_prompt()
+    
+    # 2. ЖИ-ге сұраныс жіберу
+    chat_completion = client.chat.completions.create(
+        messages=[
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": user_prompt}
-        ]
+        ],
+        model="llama-3.3-70b-versatile", # Өте мощный әрі жылдам Llama моделі
+        temperature=0.8,                 # Бірдей жауап бермеу үшін креативтілік
+        max_tokens=1024,
+    )
+    
+    return chat_completion.choices[0].message.content
 
-        chat_completion = client.chat.completions.create(
-            messages=messages,
-            model="llama-3.3-70b-versatile",
-            timeout=8.0  # Vercel таймаутқа ұшырап қалмауы үшін
-        )
+if __name__ == "__main__":
+    # Тест жасау
+    question = "Сәлем, Serik-AI! Бүгінгі жоспар қалай?"
+    print(f"Сұрақ: {question}\n")
+    response = ask_serik_ai(question)
+    print(f"Serik-AI жауабы:\n{response}")
 
-        reply = chat_completion.choices[0].message.content
-        return jsonify({'response': reply})
-
-    except Exception as e:
-        print("Error details:", str(e))
-        return jsonify({'response': f'Қате орын алды: {str(e)}'}), 500
-
-if __name__ == '__main__':
-    app.run()
