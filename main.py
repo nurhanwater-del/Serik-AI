@@ -1,47 +1,45 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 import os
+from flask import Flask, request, jsonify
 from groq import Groq
 
-app = FastAPI()
+app = Flask(__name__)
 
-# Сайттан сұраныс бөгетсіз өтуі үшін (CORS баптаулары)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
-client = Groq(api_key=GROQ_API_KEY)
-
-class Query(BaseModel):
-    prompt: str
-
-def get_system_prompt():
+@app.route('/api/chat', methods=['POST'])
+def chat():
     try:
-        with open("system_prompt.txt", "r", encoding="utf-8") as f:
-            return f.read()
-    except Exception:
-        return "Сен — Serik-AI, ақылды әрі достық рухтағы ЖИ көмекшісің."
+        # Vercel-дегі GROQ API кілтін оқу
+        api_key = os.environ.get("GROQ_API_KEY")
+        if not api_key:
+            return jsonify({'response': '⚠️ GROQ_API_KEY Vercel-де табылмады! Settings-тен тексер.'}), 500
 
-@app.post("/api/chat")
-async def chat(query: Query):
-    system_instruction = get_system_prompt()
-    try:
+        client = Groq(api_key=api_key)
+        data = request.get_json(silent=True) or {}
+        user_prompt = data.get('prompt', '')
+
+        if not user_prompt:
+            return jsonify({'response': 'Сұрағың бос сияқты, бауырым!'})
+
+        # ИИ-ға өзін қалай ұстау керектігін үйретеміз (System Prompt)
+        system_instruction = (
+            "Сен — Serik-AI, қолданушының жақын досысың, бауырысың. "
+            "Сөйлесу мәнерің өте табиғи, бауырмал, сыпайы, ақылды әрі достық рухта болсын. "
+            "Қазақша немесе орысша қолданушы қай тілде жазса, сонда кәдімгі сырдас дос сияқты еркін, жылы сөйлес. "
+            "Өзіңді ешқашан қолданушымен шатастырма."
+        )
+
         chat_completion = client.chat.completions.create(
             messages=[
                 {"role": "system", "content": system_instruction},
-                {"role": "user", "content": query.prompt}
+                {"role": "user", "content": user_prompt}
             ],
-            model="llama-3.3-70b-versatile",
-            temperature=0.8,
-            max_tokens=1024,
+            model="llama-3.3-70b-versatile"
         )
-        answer = chat_completion.choices[0].message.content
-        return {"response": answer}
+
+        reply = chat_completion.choices[0].message.content
+        return jsonify({'response': reply})
+
     except Exception as e:
-        return {"response": f"Қателік орын алды: {str(e)}"}
+        return jsonify({'response': f'Кате шықты, брат: {str(e)}'}), 500
+
+if __name__ == '__main__':
+    app.run()
