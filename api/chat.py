@@ -66,8 +66,6 @@ class handler(BaseHTTPRequestHandler):
 4. СОҢҒЫ ЖАҢАЛЫҚТАР: Мына интернет мәліметтеріне сүйен:
 {search_results}"""
 
-Осы деректерді пайдалана отырып, қолданушының сұрағына , дәл, нақты әрі достық рухта жауап бер! Ескі жылдарды айтып қалма, қазіргі жағдайды жаз."""
-
             completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[
