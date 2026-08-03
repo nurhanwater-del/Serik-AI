@@ -2,3 +2,5 @@ groq
 fastapi
 uvicorn
 pydantic
+Flask
+duckduckgo_search
