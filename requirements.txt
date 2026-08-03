@@ -1,3 +1,2 @@
-Flask
 groq
 duckduckgo_search
