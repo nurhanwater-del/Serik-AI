@@ -190,6 +190,7 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
     <div class="chat" id="chat"></div>
     
     <div class="generators">
+        <button onclick="openImageModal()" style="background: linear-gradient(135deg, #FF5722, #FF9800); color: white; font-weight: bold; border: none;">🎨 Фотогенератор</button>
         <button onclick="generateText('Напиши мне эссе по истории за 10 класс')">📜 Эссе по истории</button>
         <button onclick="generateText('Собери основные формулы по физике')">⚛️ Formulas</button>
         <button onclick="generateText('Напиши подробный реферат про Искусственный Интеллект')">🤖 ИИ Реферат</button>
@@ -205,6 +206,29 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
         </div>
         <div class="disclaimer">Serik ai это ИИ. ИИ может ошибаться.</div>
     </div>
+</div>
+
+<!-- 🎨 PHOTO GENERATOR MODAL (БӨЛЕК СУРЕТ ГЕНЕРАТОРЫ) -->
+<div id="imageModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+  <div style="background:#1a1a24; padding:25px; border-radius:16px; width:90%; max-width:480px; border:1px solid #00b86b; box-shadow:0 0 25px rgba(0,184,107,0.3); position:relative; animation: fadeIn 0.3s ease;">
+    <span onclick="closeImageModal()" style="position:absolute; top:12px; right:18px; cursor:pointer; font-size:26px; color:#aaa; transition:0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">&times;</span>
+    
+    <h3 style="margin-top:0; color:#00b86b; text-align:center; font-size: 20px;">🎨 Serik AI Photo Generator</h3>
+    
+    <label style="font-size:13px; color:#ccc; font-weight: bold;">Сурет сипаттамасы (Промпт):</label>
+    <textarea id="imgPrompt" placeholder="Мысалы: Батыр атының үстінде, ғарыштағы қала..." style="width:100%; height:90px; margin:8px 0 15px 0; padding:12px; border-radius:8px; background:#111; color:white; border:1px solid #333; font-size:14px;"></textarea>
+    
+    <label style="font-size:13px; color:#ccc; font-weight: bold;">Сурет стилі:</label>
+    <select id="imgStyle" style="width:100%; margin:8px 0 20px 0; padding:12px; border-radius:8px; background:#111; color:white; border:1px solid #333; font-size:14px;">
+      <option value="photorealistic, 8k resolution, cinematic lighting, highly detailed">📸 Реализм (Ultra HD)</option>
+      <option value="anime style, studio ghibli, vibrant colors, detailed illustration">🎨 Аниме / Иллюстрация</option>
+      <option value="3d render, unreal engine 5, octane render, vivid detail">🧊 3D Графика</option>
+      <option value="cyberpunk style, neon lights, futuristic city, dark atmosphere">🌃 Киберпанк</option>
+      <option value="digital art, fantasy concept art, epic composition">🖌️ Фэнтези Арт</option>
+    </select>
+    
+    <button onclick="generateCustomImage()" style="width:100%; padding:14px; background:linear-gradient(135deg, #00b86b, #008f53); border:none; border-radius:8px; color:white; font-weight:bold; font-size:16px; cursor:pointer;">✨ Суретті жасау</button>
+  </div>
 </div>
 
 <script>
@@ -462,6 +486,72 @@ function generateText(prompt) {
     send();
 }
 
+/* --- ФОТОГЕНЕРАТОР МОДАЛЬДІ ТЕРЕЗЕСІНІҢ ФУНКЦИЯЛАРЫ --- */
+function openImageModal() {
+    document.getElementById("imageModal").style.display = "flex";
+}
+
+function closeImageModal() {
+    document.getElementById("imageModal").style.display = "none";
+}
+
+async function generateCustomImage() {
+    let promptText = document.getElementById("imgPrompt").value.trim();
+    let styleText = document.getElementById("imgStyle").value;
+    
+    if (!promptText) {
+        alert("Өтініш, суреттің сипаттамасын жазыңыз!");
+        return;
+    }
+    
+    closeImageModal();
+    
+    add(`🎨 Сурет генерациясы: "${promptText}"`, "user");
+    showLoading();
+    
+    let fullPrompt = `${promptText}, ${styleText}, masterwork, no blur, high quality`;
+    let seed = Math.floor(Math.random() * 1000000);
+    let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1280&height=1280&nologo=true&seed=${seed}`;
+    
+    let img = document.createElement("img");
+    img.style.maxWidth = "100%";
+    img.style.borderRadius = "12px";
+    img.style.marginTop = "10px";
+    img.style.boxShadow = "0 4px 15px rgba(0,0,0,0.5)";
+    
+    img.onload = function() {
+        hideLoading();
+        let div = add("✨ Сенің суретің дайын, бауырым:", "ai", true);
+        div.appendChild(img);
+        
+        let downloadBtn = document.createElement("button");
+        downloadBtn.innerText = "📥 Сақтап алу (Download)";
+        downloadBtn.style.marginTop = "10px";
+        downloadBtn.style.display = "block";
+        
+        downloadBtn.onclick = async function () {
+            const res = await fetch(imageUrl);
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `Serik_AI_${seed}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+        
+        div.appendChild(downloadBtn);
+    };
+    
+    img.onerror = function() {
+        hideLoading();
+        add("⚠️ Суретті генерациялау мүмкін болмады. Басқа сөздермен қайталап көр.", "ai");
+    };
+    
+    img.src = imageUrl;
+    document.getElementById("imgPrompt").value = "";
+}
+
 hideLoading();
 
 // --- АСИНХРОННАЯ ФУНКЦИЯ ОТПРАВКИ ---
@@ -519,20 +609,12 @@ async function send() {
         }
     }
 
-    // --- 4. ФОТОГЕНЕРАТОР (16K САПА ЖӘНЕ ШЕКСІЗ РАЗНЫЙ СУРЕТТЕР) ---
+    // --- 4. ТІКЕЛЕЙ ЧАТТАН ФОТОГЕНЕРАТОР ШАҚЫРУ ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
-        
-        // 1. Пайдаланушының жазған сөзін тазалап аламыз
         let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
-        
-        // 2. 16K САПА КӨТЕРУ: Артына нейрожелі түсінетін ең мықты сапа сөздерін қосамыз
         let enhancedPrompt = userPrompt + ", exact object, pure clean focus, masterpiece, 16k resolution, ultra detailed, hyperrealistic, 8k uhd, cinematic lighting, no text, no artifacts";
-        
-        // 3. ШЕКСІЗ ВАРИАНТТАР: 1-ден 1 000 000 000-ға дейін кездейсоқ сан
         let randomSeed = Math.floor(Math.random() * 1000000000);
-        
-        // 4. РАЗРЕШЕНИЕ: 2048x2048 (Бұл API көтере алатын ең максималды әрі қатып қалмайтын формат)
         let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2048&height=2048&nologo=true&seed=${randomSeed}`;
        
         let img = document.createElement("img");
@@ -542,7 +624,6 @@ async function send() {
 
         img.onload = function () {
             hideLoading();
-
             let div = add("🎨 Вот ваше изображение:", "ai", true);
             div.appendChild(img);
 
@@ -553,14 +634,11 @@ async function send() {
             downloadBtn.onclick = async function () {
                 const response = await fetch(imageUrl);
                 const blob = await response.blob();
-
                 const url = URL.createObjectURL(blob);
-
                 const a = document.createElement("a");
                 a.href = url;
                 a.download = "Serik_AI.png";
                 a.click();
-
                 URL.revokeObjectURL(url);
             };
 
@@ -576,7 +654,7 @@ async function send() {
         return;
     }
 
-    // --- 5. БІЗДІҢ Llama 3.3 (Groq API / main.py) МИЫМЫЗДЫ ШАҚЫРУ ---
+    // --- 5. Llama 3.3 (Groq API / main.py) МИЫМЫЗДЫ ШАҚЫРУ ---
     showLoading();
     try {
         let response = await fetch('/api/chat', {
