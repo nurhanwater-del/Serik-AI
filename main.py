@@ -1,11 +1,12 @@
 import os
 from groq import Groq
 
-# 1. Groq API клиентін баптау
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+# API кілтті қауіпсіз түрде беру
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
+
+client = Groq(api_key=GROQ_API_KEY)
 
 def get_system_prompt():
-    """Мінезін (System Prompt) файлдан оқып алу"""
     try:
         with open("system_prompt.txt", "r", encoding="utf-8") as f:
             return f.read()
@@ -15,23 +16,20 @@ def get_system_prompt():
 def ask_serik_ai(user_prompt):
     system_instruction = get_system_prompt()
     
-    # 2. ЖИ-ге сұраныс жіберу
     chat_completion = client.chat.completions.create(
         messages=[
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": user_prompt}
         ],
-        model="llama-3.3-70b-versatile", # Өте мощный әрі жылдам Llama моделі
-        temperature=0.8,                 # Бірдей жауап бермеу үшін креативтілік
+        model="llama-3.3-70b-versatile",
+        temperature=0.8,
         max_tokens=1024,
     )
     
     return chat_completion.choices[0].message.content
 
 if __name__ == "__main__":
-    # Тест жасау
-    question = "Сәлем, Serik-AI! Бүгінгі жоспар қалай?"
+    question = "Сәлем, Serik-AI! Бүгін қандай жаңалық бар?"
     print(f"Сұрақ: {question}\n")
     response = ask_serik_ai(question)
     print(f"Serik-AI жауабы:\n{response}")
-
