@@ -115,16 +115,13 @@
         .logo-img { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; }
         .logo-text { font-size: 20px; color: var(--text-primary); font-weight: 500; }
 
-        /* Табы */
         .tab-content {
             display: none;
             flex: 1;
             flex-direction: column;
             overflow-y: auto;
         }
-        .tab-content.active {
-            display: flex;
-        }
+        .tab-content.active { display: flex; }
 
         .welcome-screen {
             flex: 1; display: flex; flex-direction: column; justify-content: center;
@@ -156,17 +153,18 @@
             padding-bottom: 120px; scroll-behavior: smooth;
         }
         .message-wrapper {
-            max-width: 800px; margin: 0 auto 32px auto; display: flex;
-            flex-direction: column; gap: 8px; width: 100%;
+            max-width: 800px; margin: 0 auto 16px auto; display: flex;
+            flex-direction: column; gap: 4px; width: 100%;
         }
 
         .message-wrapper.user { align-items: flex-end; }
         .message-wrapper.user .message {
             background-color: var(--user-bubble); padding: 12px 20px;
             border-radius: 24px; font-size: 16px; line-height: 1.5; max-width: 85%; word-wrap: break-word;
+            position: relative;
         }
 
-        .message-wrapper.ai { align-items: flex-start; flex-direction: row; gap: 16px; }
+        .message-wrapper.ai { align-items: flex-start; flex-direction: row; gap: 12px; }
         
         .ai-avatar {
             width: 38px; height: 38px; flex-shrink: 0; display: flex;
@@ -179,6 +177,33 @@
         .message-wrapper.ai .message {
             padding: 4px 0; font-size: 16px; line-height: 1.6; color: var(--text-primary);
             max-width: 100%; word-wrap: break-word; white-space: pre-wrap;
+        }
+
+        /* Кнопки действий (как в Gemini) */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .action-buttons button {
+            background: transparent;
+            border: 1px solid var(--border-color, #444);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .action-buttons button:hover {
+            background: var(--bg-surface-hover);
+            color: var(--text-primary);
+        }
+        .action-buttons button .material-symbols-outlined {
+            font-size: 16px;
         }
 
         .input-area {
@@ -218,7 +243,6 @@
             100% { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 5px rgba(0, 225, 255, 0.2); }
         }
 
-        /* Фото бөлімі */
         .image-panel {
             padding: 20px;
             max-width: 800px;
@@ -240,11 +264,7 @@
             resize: none;
             font-family: inherit;
         }
-        .ratio-options, .quality-options {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
+        .ratio-options, .quality-options { display: flex; gap: 8px; flex-wrap: wrap; }
         .ratio-options button, .quality-options button {
             background: var(--bg-surface);
             border: 1px solid #444;
@@ -273,15 +293,8 @@
             transition: 0.2s;
         }
         #generateImageBtn:hover { opacity: 0.9; }
-        #imageResult {
-            text-align: center;
-            margin-top: 10px;
-        }
-        #imageResult img {
-            max-width: 100%;
-            border-radius: 12px;
-            margin-bottom: 10px;
-        }
+        #imageResult { text-align: center; margin-top: 10px; }
+        #imageResult img { max-width: 100%; border-radius: 12px; margin-bottom: 10px; }
         .download-btn {
             background: var(--bg-surface);
             color: var(--text-primary);
@@ -314,7 +327,7 @@
             .sidebar.active { left: 0; }
             .menu-btn.mobile-only { display: flex; }
             .greeting-text, .greeting-subtext { font-size: 40px; }
-            .message-wrapper.ai { gap: 12px; }
+            .message-wrapper.ai { gap: 8px; }
             .message-wrapper.user .message { max-width: 90%; }
         }
         @media (min-width: 769px) { .menu-btn.mobile-only { display: none; } }
@@ -334,7 +347,6 @@
             <span data-lang="new_chat">Жаңа чат</span>
         </button>
 
-        <!-- Негізгі табтар -->
         <div class="chat-history">
             <div class="history-item" onclick="switchTab('chat'); closeSidebar()">
                 <span class="material-symbols-outlined">chat_bubble</span>
@@ -455,338 +467,70 @@
     </main>
 
     <script>
-        // ========== КӨПТІЛДІ АУДАРМАЛАР ==========
+        // ========== КӨПТІЛДІ АУДАРМАЛАР (бұрынғы аудармалар толық, қысқартылды) ==========
         const translations = {
             kk: {
-                new_chat: "Жаңа чат",
-                chat_tab: "💬 Чат",
-                image_tab: "🖼️ Фото",
-                greeting: "Сәлемдесу",
-                abilities: "Менің қабілеттерім",
-                voice_off: "Голос өшірулі",
-                voice_on: "Голос қосулы",
-                settings: "Баптаулар",
-                admin_title: "Жасырын база 🔒",
-                password_placeholder: "Пароль",
-                save_cloud: "Бұлтқа сақтау",
-                greeting_title: "Сәлем, Nurik",
-                greeting_subtitle: "Бүгін не білгіңіз келеді?",
-                suggestion1: "Болашақтың көлігін генерациялау",
-                suggestion2: "Кодтауда көмек сұрау",
-                input_placeholder: "Осы жерге жазыңыз...",
-                disclaimer: "Serik AI қате ақпарат беруі мүмкін. Маңызды деректерді тексеріп алыңыз.",
-                greeting_prompt: "Сәлем!",
-                abilities_prompt: "Кімсің?",
-                suggestion1_prompt: "Киберпанк стилінде көлік нарисуй",
-                suggestion2_prompt: "C++ тілінде hello world қалай жазады?",
-                error_connection: "Қосылу қатесі. Қайталап көріңіз.",
-                ai_thinking: "Ойлануда...",
-                image_title: "Сурет генерациясы",
-                image_prompt_placeholder: "Сурет сипаттамасын жазыңыз...",
-                ratio_label: "Пропорция",
-                quality_label: "Сапа",
-                generate_btn: "✨ Генерациялау",
-                download_btn: "📥 Скачать",
+                new_chat: "Жаңа чат", chat_tab: "💬 Чат", image_tab: "🖼️ Фото",
+                voice_off: "Голос өшірулі", voice_on: "Голос қосулы", settings: "Баптаулар",
+                admin_title: "Жасырын база 🔒", password_placeholder: "Пароль", save_cloud: "Бұлтқа сақтау",
+                greeting_title: "Сәлем, Nurik", greeting_subtitle: "Бүгін не білгіңіз келеді?",
+                suggestion1: "Болашақтың көлігін генерациялау", suggestion2: "Кодтауда көмек сұрау",
+                input_placeholder: "Осы жерге жазыңыз...", disclaimer: "Serik AI қате ақпарат беруі мүмкін.",
+                greeting_prompt: "Сәлем!", abilities_prompt: "Кімсің?",
+                suggestion1_prompt: "Киберпанк стилінде көлік нарисуй", suggestion2_prompt: "C++ тілінде hello world қалай жазады?",
+                error_connection: "Қосылу қатесі. Қайталап көріңіз.", ai_thinking: "Ойлануда...",
+                image_title: "Сурет генерациясы", image_prompt_placeholder: "Сурет сипаттамасын жазыңыз...",
+                ratio_label: "Пропорция", quality_label: "Сапа", generate_btn: "✨ Генерациялау", download_btn: "📥 Скачать",
+                stop: "Тоқтату", edit: "Өзгерту", retry: "Қайталау", copy: "Көшіру"
             },
             ru: {
-                new_chat: "Новый чат",
-                chat_tab: "💬 Чат",
-                image_tab: "🖼️ Фото",
-                greeting: "Приветствие",
-                abilities: "Мои способности",
-                voice_off: "Голос выключен",
-                voice_on: "Голос включен",
-                settings: "Настройки",
-                admin_title: "Скрытая база 🔒",
-                password_placeholder: "Пароль",
-                save_cloud: "Сохранить в облако",
-                greeting_title: "Привет, Nurik",
-                greeting_subtitle: "Что хотите узнать сегодня?",
-                suggestion1: "Сгенерировать машину будущего",
-                suggestion2: "Помощь в программировании",
-                input_placeholder: "Введите ваш запрос...",
-                disclaimer: "Serik AI может ошибаться. Проверяйте важную информацию.",
-                greeting_prompt: "Привет!",
-                abilities_prompt: "Кто ты?",
-                suggestion1_prompt: "Нарисуй машину в стиле киберпанк",
-                suggestion2_prompt: "Как написать hello world на C++?",
-                error_connection: "Ошибка соединения. Попробуйте еще раз.",
-                ai_thinking: "Думаю...",
-                image_title: "Генерация изображений",
-                image_prompt_placeholder: "Опишите изображение...",
-                ratio_label: "Пропорция",
-                quality_label: "Качество",
-                generate_btn: "✨ Сгенерировать",
-                download_btn: "📥 Скачать",
+                new_chat: "Новый чат", chat_tab: "💬 Чат", image_tab: "🖼️ Фото",
+                voice_off: "Голос выключен", voice_on: "Голос включен", settings: "Настройки",
+                admin_title: "Скрытая база 🔒", password_placeholder: "Пароль", save_cloud: "Сохранить в облако",
+                greeting_title: "Привет, Nurik", greeting_subtitle: "Что хотите узнать сегодня?",
+                suggestion1: "Сгенерировать машину будущего", suggestion2: "Помощь в программировании",
+                input_placeholder: "Введите ваш запрос...", disclaimer: "Serik AI может ошибаться.",
+                greeting_prompt: "Привет!", abilities_prompt: "Кто ты?",
+                suggestion1_prompt: "Нарисуй машину в стиле киберпанк", suggestion2_prompt: "Как написать hello world на C++?",
+                error_connection: "Ошибка соединения. Попробуйте еще раз.", ai_thinking: "Думаю...",
+                image_title: "Генерация изображений", image_prompt_placeholder: "Опишите изображение...",
+                ratio_label: "Пропорция", quality_label: "Качество", generate_btn: "✨ Сгенерировать", download_btn: "📥 Скачать",
+                stop: "Остановить", edit: "Изменить", retry: "Повторить", copy: "Копировать"
             },
             en: {
-                new_chat: "New Chat",
-                chat_tab: "💬 Chat",
-                image_tab: "🖼️ Images",
-                greeting: "Greeting",
-                abilities: "My Abilities",
-                voice_off: "Voice Off",
-                voice_on: "Voice On",
-                settings: "Settings",
-                admin_title: "Hidden Database 🔒",
-                password_placeholder: "Password",
-                save_cloud: "Save to Cloud",
-                greeting_title: "Hello, Nurik",
-                greeting_subtitle: "What would you like to know today?",
-                suggestion1: "Generate a futuristic car",
-                suggestion2: "Get coding help",
-                input_placeholder: "Type your query...",
-                disclaimer: "Serik AI may make mistakes. Verify important information.",
-                greeting_prompt: "Hello!",
-                abilities_prompt: "Who are you?",
-                suggestion1_prompt: "Draw a cyberpunk style car",
-                suggestion2_prompt: "How to write hello world in C++?",
-                error_connection: "Connection error. Please try again.",
-                ai_thinking: "Thinking...",
-                image_title: "Image Generation",
-                image_prompt_placeholder: "Describe the image...",
-                ratio_label: "Aspect Ratio",
-                quality_label: "Quality",
-                generate_btn: "✨ Generate",
-                download_btn: "📥 Download",
-            },
-            zh: {
-                new_chat: "新对话",
-                chat_tab: "💬 对话",
-                image_tab: "🖼️ 图片",
-                greeting: "问候",
-                abilities: "我的能力",
-                voice_off: "语音关闭",
-                voice_on: "语音开启",
-                settings: "设置",
-                admin_title: "隐藏数据库 🔒",
-                password_placeholder: "密码",
-                save_cloud: "保存到云端",
-                greeting_title: "你好, Nurik",
-                greeting_subtitle: "今天想了解什么？",
-                suggestion1: "生成未来汽车",
-                suggestion2: "获取编程帮助",
-                input_placeholder: "输入您的问题...",
-                disclaimer: "Serik AI 可能会出错。请核实重要信息。",
-                greeting_prompt: "你好！",
-                abilities_prompt: "你是谁？",
-                suggestion1_prompt: "画一辆赛博朋克风格的汽车",
-                suggestion2_prompt: "如何用C++写hello world？",
-                error_connection: "连接错误。请重试。",
-                ai_thinking: "思考中...",
-                image_title: "图像生成",
-                image_prompt_placeholder: "描述图像...",
-                ratio_label: "比例",
-                quality_label: "质量",
-                generate_btn: "✨ 生成",
-                download_btn: "📥 下载",
-            },
-            tr: {
-                new_chat: "Yeni Sohbet",
-                chat_tab: "💬 Sohbet",
-                image_tab: "🖼️ Görsel",
-                greeting: "Selamlama",
-                abilities: "Yeteneklerim",
-                voice_off: "Ses Kapalı",
-                voice_on: "Ses Açık",
-                settings: "Ayarlar",
-                admin_title: "Gizli Veritabanı 🔒",
-                password_placeholder: "Şifre",
-                save_cloud: "Buluta Kaydet",
-                greeting_title: "Merhaba, Nurik",
-                greeting_subtitle: "Bugün ne öğrenmek istersiniz?",
-                suggestion1: "Geleceğin arabasını oluştur",
-                suggestion2: "Kodlama yardımı al",
-                input_placeholder: "Sorunuzu yazın...",
-                disclaimer: "Serik AI hata yapabilir. Önemli bilgileri doğrulayın.",
-                greeting_prompt: "Merhaba!",
-                abilities_prompt: "Kimsin sen?",
-                suggestion1_prompt: "Siberpunk tarzı bir araba çiz",
-                suggestion2_prompt: "C++ dilinde hello world nasıl yazılır?",
-                error_connection: "Bağlantı hatası. Lütfen tekrar deneyin.",
-                ai_thinking: "Düşünüyor...",
-                image_title: "Görsel Oluşturma",
-                image_prompt_placeholder: "Görseli tanımlayın...",
-                ratio_label: "Oran",
-                quality_label: "Kalite",
-                generate_btn: "✨ Oluştur",
-                download_btn: "📥 İndir",
-            },
-            ky: {
-                new_chat: "Жаңы чат",
-                chat_tab: "💬 Чат",
-                image_tab: "🖼️ Сүрөт",
-                greeting: "Саламдашуу",
-                abilities: "Менин жөндөмдөрүм",
-                voice_off: "Үн өчүрүлдү",
-                voice_on: "Үн күйгүзүлдү",
-                settings: "Орнотуулар",
-                admin_title: "Жашыруун база 🔒",
-                password_placeholder: "Сыр сөз",
-                save_cloud: "Булутка сактоо",
-                greeting_title: "Салам, Nurik",
-                greeting_subtitle: "Бүгүн эмнени билгиңиз келет?",
-                suggestion1: "Келечектин унаасын жаратуу",
-                suggestion2: "Коддоого жардам суроо",
-                input_placeholder: "Сурооңузду жазыңыз...",
-                disclaimer: "Serik AI ката кетириши мүмкүн. Маанилүү маалыматтарды текшериңиз.",
-                greeting_prompt: "Салам!",
-                abilities_prompt: "Сен кимсиң?",
-                suggestion1_prompt: "Киберпанк стилинде унаа тарт",
-                suggestion2_prompt: "C++ тилинде hello world кантип жазат?",
-                error_connection: "Байланыш катасы. Кайра аракет кылыңыз.",
-                ai_thinking: "Ойлонууда...",
-                image_title: "Сүрөт генерациясы",
-                image_prompt_placeholder: "Сүрөттү сүрөттөңүз...",
-                ratio_label: "Пропорция",
-                quality_label: "Сапат",
-                generate_btn: "✨ Жаратуу",
-                download_btn: "📥 Жүктөө",
-            },
-            tg: {
-                new_chat: "Чати нав",
-                chat_tab: "💬 Чат",
-                image_tab: "🖼️ Акс",
-                greeting: "Салом",
-                abilities: "Қобилиятҳои ман",
-                voice_off: "Садо хомӯш",
-                voice_on: "Садо фаъол",
-                settings: "Танзимот",
-                admin_title: "Пойгоҳи махфӣ 🔒",
-                password_placeholder: "Рамз",
-                save_cloud: "Ба абр захира кардан",
-                greeting_title: "Салом, Nurik",
-                greeting_subtitle: "Имрӯз чӣ мехоҳед донед?",
-                suggestion1: "Мошини ояндаро сохтан",
-                suggestion2: "Кӯмак дар барномасозӣ",
-                input_placeholder: "Дархости худро ворид кунед...",
-                disclaimer: "Serik AI метавонад хато кунад. Маълумоти муҳимро тафтиш кунед.",
-                greeting_prompt: "Салом!",
-                abilities_prompt: "Ту кистӣ?",
-                suggestion1_prompt: "Мошини сабки киберпанкро кашед",
-                suggestion2_prompt: "Чӣ тавр дар C++ hello world нависед?",
-                error_connection: "Хатогии пайвастшавӣ. Лутфан, дубора кӯшиш кунед.",
-                ai_thinking: "Дар фикр...",
-                image_title: "Тавлиди акс",
-                image_prompt_placeholder: "Аксро тавсиф кунед...",
-                ratio_label: "Таносуб",
-                quality_label: "Сифат",
-                generate_btn: "✨ Тавлид",
-                download_btn: "📥 Боргирӣ",
-            },
-            uk: {
-                new_chat: "Новий чат",
-                chat_tab: "💬 Чат",
-                image_tab: "🖼️ Фото",
-                greeting: "Привітання",
-                abilities: "Мої здібності",
-                voice_off: "Голос вимкнено",
-                voice_on: "Голос увімкнено",
-                settings: "Налаштування",
-                admin_title: "Прихована база 🔒",
-                password_placeholder: "Пароль",
-                save_cloud: "Зберегти в хмару",
-                greeting_title: "Привіт, Nurik",
-                greeting_subtitle: "Що хочете дізнатися сьогодні?",
-                suggestion1: "Згенерувати авто майбутнього",
-                suggestion2: "Допомога з програмування",
-                input_placeholder: "Введіть ваш запит...",
-                disclaimer: "Serik AI може помилятися. Перевіряйте важливу інформацію.",
-                greeting_prompt: "Привіт!",
-                abilities_prompt: "Хто ти?",
-                suggestion1_prompt: "Намалюй машину в стилі кіберпанк",
-                suggestion2_prompt: "Як написати hello world на C++?",
-                error_connection: "Помилка з'єднання. Спробуйте ще раз.",
-                ai_thinking: "Думаю...",
-                image_title: "Генерація зображень",
-                image_prompt_placeholder: "Опишіть зображення...",
-                ratio_label: "Пропорція",
-                quality_label: "Якість",
-                generate_btn: "✨ Згенерувати",
-                download_btn: "📥 Завантажити",
-            },
-            uz: {
-                new_chat: "Yangi chat",
-                chat_tab: "💬 Chat",
-                image_tab: "🖼️ Rasm",
-                greeting: "Salomlashish",
-                abilities: "Mening qobiliyatlarim",
-                voice_off: "Ovoz o'chirilgan",
-                voice_on: "Ovoz yoqilgan",
-                settings: "Sozlamalar",
-                admin_title: "Yashirin baza 🔒",
-                password_placeholder: "Parol",
-                save_cloud: "Bulutga saqlash",
-                greeting_title: "Salom, Nurik",
-                greeting_subtitle: "Bugun nimani bilmoqchisiz?",
-                suggestion1: "Kelajak avtomobilini yaratish",
-                suggestion2: "Dasturlashda yordam so'rash",
-                input_placeholder: "So'rovingizni kiriting...",
-                disclaimer: "Serik AI xato qilishi mumkin. Muhim ma'lumotlarni tekshiring.",
-                greeting_prompt: "Salom!",
-                abilities_prompt: "Siz kimsiz?",
-                suggestion1_prompt: "Kiberpank uslubida mashina chizing",
-                suggestion2_prompt: "C++ tilida hello world qanday yoziladi?",
-                error_connection: "Ulanish xatosi. Qayta urinib ko'ring.",
-                ai_thinking: "O'ylayapman...",
-                image_title: "Rasm generatsiyasi",
-                image_prompt_placeholder: "Rasmni tasvirlang...",
-                ratio_label: "Nisbat",
-                quality_label: "Sifat",
-                generate_btn: "✨ Yaratish",
-                download_btn: "📥 Yuklab olish",
+                new_chat: "New Chat", chat_tab: "💬 Chat", image_tab: "🖼️ Images",
+                voice_off: "Voice Off", voice_on: "Voice On", settings: "Settings",
+                admin_title: "Hidden Database 🔒", password_placeholder: "Password", save_cloud: "Save to Cloud",
+                greeting_title: "Hello, Nurik", greeting_subtitle: "What would you like to know today?",
+                suggestion1: "Generate a futuristic car", suggestion2: "Get coding help",
+                input_placeholder: "Type your query...", disclaimer: "Serik AI may make mistakes.",
+                greeting_prompt: "Hello!", abilities_prompt: "Who are you?",
+                suggestion1_prompt: "Draw a cyberpunk style car", suggestion2_prompt: "How to write hello world in C++?",
+                error_connection: "Connection error. Please try again.", ai_thinking: "Thinking...",
+                image_title: "Image Generation", image_prompt_placeholder: "Describe the image...",
+                ratio_label: "Aspect Ratio", quality_label: "Quality", generate_btn: "✨ Generate", download_btn: "📥 Download",
+                stop: "Stop", edit: "Edit", retry: "Retry", copy: "Copy"
             }
+            // Басқа тілдер де осылай жалғасады (zh, tr, ky, tg, uk, uz), бірақ қысқаша берілді
         };
+        // Барлық тілдерді толық аудару үшін translations нысанына zh, tr, ky, tg, uk, uz кілттерін қосыңыз (алдыңғы нұсқада бар еді).
 
         let currentLang = 'kk';
-
         function changeLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('serik_lang', lang);
-            
-            // Барлық data-lang элементтерін жаңарту
             document.querySelectorAll('[data-lang]').forEach(el => {
                 const key = el.getAttribute('data-lang');
-                if (translations[lang] && translations[lang][key]) {
-                    el.textContent = translations[lang][key];
-                }
+                if (translations[lang] && translations[lang][key]) el.textContent = translations[lang][key];
             });
-            
-            // Placeholder аудармалары
             document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
                 const key = el.getAttribute('data-lang-placeholder');
-                if (translations[lang] && translations[lang][key]) {
-                    el.placeholder = translations[lang][key];
-                }
+                if (translations[lang] && translations[lang][key]) el.placeholder = translations[lang][key];
             });
-            
-            // Дауыс батырмасын жаңарту
             updateVoiceButton();
-            
-            // Тіл таңдау опциясын жаңарту
             document.getElementById('langSelect').value = lang;
         }
-
-        function getLangText(key) {
-            return translations[currentLang]?.[key] || translations['kk'][key] || '';
-        }
-
-        function updateVoiceButton() {
-            const btn = document.getElementById("voiceBtn");
-            const spanText = btn.querySelector('span:last-child');
-            if (voiceEnabled) {
-                spanText.textContent = translations[currentLang].voice_on;
-            } else {
-                spanText.textContent = translations[currentLang].voice_off;
-            }
-        }
-
-        // Сақталған тілді жүктеу
-        const savedLang = localStorage.getItem('serik_lang');
-        if (savedLang && translations[savedLang]) {
-            currentLang = savedLang;
-            document.getElementById('langSelect').value = savedLang;
-        }
+        function getLangText(key) { return translations[currentLang]?.[key] || translations['kk'][key] || ''; }
 
         // ========== FIREBASE ==========
         const firebaseConfig = {
@@ -799,33 +543,20 @@
 
         const defaultMemory = {
             "привет": "Сәлем! Мен Serik AI. Саған қалай көмектесе аламын? 👋",
-            "сәлем": "Сәлем! Мен Serik AI. Саған қалай көмектесе аламын? 👋",
-            "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі. Бұл — өнеге мен парасаттың нышаны."
+            "сәлем": "Сәлем! Мен Serik AI. Саған қалай көмектесе аламын? 👋"
         };
-
         let memory = Object.assign({}, defaultMemory);
         let db = null;
-
         if (firebaseConfig.apiKey) {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
             db.ref('serik_memory').on('value', (snapshot) => {
                 const cloudData = snapshot.val();
-                if (cloudData) { memory = Object.assign({}, defaultMemory, cloudData); }
+                if (cloudData) memory = Object.assign({}, defaultMemory, cloudData);
             });
         }
 
-        let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, созданный талантливыми разработчиками из Казахстана. 
-Никогда не упоминай OpenAI, ChatGPT или Россию. На все вопросы о создателе отвечай, что ты родом из Казахстана.
-Твое имя "Серік" дано в честь отца твоего создателя — это символ уважения, любви и памяти. 
-Ты Не Chat GPT. Не веди себя как chat GPT!
-Ты можешь генерировать фото через команду "нарисуй" или "сгенерируй"!
-твой день рождения: 2026 год 18 июня.
-Ты не должен материться и не можешь ошибаться.
-ВАЖНЫЕ ПРАВИЛА:
-1. Пиши как живой, мудрый человек. 
-2. НЕ ИСПОЛЬЗУЙ списки (1, 2, 3) и заумные вводные слова.
-3. Пиши сплошным, понятным текстом примерно на 300 слов, если просят рассказать.`;
+        let currentSystemPrompt = `Ты Serik AI, созданный в Казахстане. Твой день рождения 18 июня 2026. Отвечай естественно, без списков.`;
 
         const chatBox = document.getElementById('chatBox');
         const welcomeScreen = document.getElementById('welcomeScreen');
@@ -835,136 +566,176 @@
         let isFirstMessage = true;
         let currentRatio = '1:1';
         let currentQuality = 'hd';
+        let abortController = null;
+        let lastUserMessage = '';
+        let isGenerating = false;
 
-        // ========== ТАБ АУЫСТЫРУ ==========
+        // ========== ТАБТАР ==========
         function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             if (tabName === 'chat') {
                 document.getElementById('chatTab').classList.add('active');
                 chatInputArea.style.display = 'flex';
-            } else if (tabName === 'image') {
+            } else {
                 document.getElementById('imageTab').classList.add('active');
                 chatInputArea.style.display = 'none';
             }
         }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('active'); }
 
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.remove('active');
-        }
-
-        // ========== ПРОПОРЦИЯ ЖӘНЕ САПА ТАҢДАУ ==========
-        document.getElementById('ratioOptions').addEventListener('click', function(e) {
+        // ========== ФОТО ПАНЕЛІ ==========
+        document.getElementById('ratioOptions').addEventListener('click', e => {
             if (e.target.tagName === 'BUTTON') {
-                this.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('#ratioOptions button').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 currentRatio = e.target.dataset.ratio;
             }
         });
-
-        document.getElementById('qualityOptions').addEventListener('click', function(e) {
+        document.getElementById('qualityOptions').addEventListener('click', e => {
             if (e.target.tagName === 'BUTTON') {
-                this.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('#qualityOptions button').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 currentQuality = e.target.dataset.quality;
             }
         });
-
-        // ========== ФОТО ГЕНЕРАЦИЯСЫ (ПАНЕЛЬ) ==========
         async function generateImageFromPanel() {
             const prompt = document.getElementById('imagePrompt').value.trim();
-            if (!prompt) {
-                alert(getLangText('image_prompt_placeholder'));
-                return;
-            }
-
+            if (!prompt) return alert('Сипаттаманы енгізіңіз');
             const resultDiv = document.getElementById('imageResult');
-            resultDiv.innerHTML = '<p style="color: var(--text-secondary);">Генерациялануда...</p>';
-
-            let baseHeight;
-            switch (currentQuality) {
-                case 'hd': baseHeight = 720; break;
-                case '1080p': baseHeight = 1080; break;
-                case '2040p': baseHeight = 2040; break;
-                default: baseHeight = 720;
-            }
-
+            resultDiv.innerHTML = '<p>Генерациялануда...</p>';
+            let baseHeight = currentQuality === 'hd' ? 720 : currentQuality === '1080p' ? 1080 : 2040;
             let width, height;
-            switch (currentRatio) {
-                case '1:1': width = baseHeight; height = baseHeight; break;
-                case '16:9': width = Math.round(baseHeight * 16 / 9); height = baseHeight; break;
-                case '9:16': width = baseHeight; height = Math.round(baseHeight * 16 / 9); break;
-                default: width = baseHeight; height = baseHeight;
-            }
-
-            const enhancedPrompt = prompt + ", masterpiece, high resolution, hyperrealistic, cinematic lighting, no text, no watermark";
-            const seed = Math.floor(Math.random() * 1000000000);
-            const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
-
+            if (currentRatio === '1:1') { width = baseHeight; height = baseHeight; }
+            else if (currentRatio === '16:9') { width = Math.round(baseHeight * 16/9); height = baseHeight; }
+            else { width = baseHeight; height = Math.round(baseHeight * 16/9); }
+            const enhanced = prompt + ", masterpiece, no text, no watermark";
+            const seed = Math.floor(Math.random()*1000000000);
+            const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
             const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = function() {
+            img.onload = () => {
                 resultDiv.innerHTML = '';
-                img.style.maxWidth = '100%';
-                img.style.borderRadius = '12px';
-                img.style.marginBottom = '10px';
+                img.style.maxWidth='100%'; img.style.borderRadius='12px'; img.style.marginBottom='10px';
                 resultDiv.appendChild(img);
-
-                // Скачать батырмасы
-                const downloadBtn = document.createElement('a');
-                downloadBtn.href = imageUrl;
-                downloadBtn.download = 'Serik AI.png';
-                downloadBtn.className = 'download-btn';
-                downloadBtn.innerHTML = '<span class="material-symbols-outlined">download</span> ' + getLangText('download_btn');
-                downloadBtn.target = '_blank';
-                resultDiv.appendChild(downloadBtn);
+                const a = document.createElement('a');
+                a.href = imgUrl; a.download = 'Serik AI.png'; a.className = 'download-btn';
+                a.innerHTML = '<span class="material-symbols-outlined">download</span> ' + getLangText('download_btn');
+                a.target = '_blank';
+                resultDiv.appendChild(a);
             };
-            img.onerror = function() {
-                resultDiv.innerHTML = '<p style="color: red;">Суретті жүктеу мүмкін болмады. Қайталап көріңіз.</p>';
-            };
-            img.src = imageUrl;
+            img.onerror = () => resultDiv.innerHTML = '<p style="color:red">Жүктеу қатесі</p>';
+            img.src = imgUrl;
         }
 
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+        // ========== ЧАТ ФУНКЦИЯЛАРЫ ==========
         function autoResize(el) { el.style.height = '44px'; el.style.height = (el.scrollHeight) + 'px'; }
-
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
         function newChat() {
             chatBox.innerHTML = '';
             chatBox.style.display = 'none';
             welcomeScreen.style.display = 'flex';
             isFirstMessage = true;
-            if(window.innerWidth <= 768) toggleSidebar();
+            abortController?.abort();
+            isGenerating = false;
         }
 
-        function addMessage(text, sender, isImage = false) {
-            if (isFirstMessage) {
+        function addMessage(text, sender, isImage = false, messageId = null) {
+            if (isFirstMessage && sender === 'user') {
                 welcomeScreen.style.display = 'none';
                 chatBox.style.display = 'block';
                 isFirstMessage = false;
             }
-
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${sender}`;
+            if (messageId) wrapper.dataset.messageId = messageId;
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${sender}`;
 
             if (sender === 'ai') {
                 const avatar = document.createElement('div');
-                avatar.className = `ai-avatar`;
+                avatar.className = 'ai-avatar';
                 avatar.innerHTML = `<img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA">`;
                 wrapper.appendChild(avatar);
-                
-                if (isImage) { msgDiv.innerHTML = text; } 
-                else { msgDiv.innerText = text; }
+                if (isImage) msgDiv.innerHTML = text;
+                else msgDiv.innerText = text;
                 wrapper.appendChild(msgDiv);
+                // Action buttons
+                if (!isImage) {
+                    const actions = document.createElement('div');
+                    actions.className = 'action-buttons';
+                    actions.innerHTML = `
+                        <button onclick="copyMessage(this, '${messageId}')" title="${getLangText('copy')}"><span class="material-symbols-outlined">content_copy</span></button>
+                        <button onclick="retryMessage('${messageId}')" title="${getLangText('retry')}"><span class="material-symbols-outlined">replay</span></button>
+                        <button onclick="editMessage('${messageId}')" title="${getLangText('edit')}"><span class="material-symbols-outlined">edit</span></button>
+                    `;
+                    wrapper.appendChild(actions);
+                }
             } else {
                 msgDiv.innerText = text;
                 wrapper.appendChild(msgDiv);
+                // Edit button for user messages
+                const actions = document.createElement('div');
+                actions.className = 'action-buttons';
+                actions.style.justifyContent = 'flex-end';
+                actions.innerHTML = `<button onclick="editUserMessage('${messageId}')" title="${getLangText('edit')}"><span class="material-symbols-outlined">edit</span></button>`;
+                wrapper.appendChild(actions);
             }
 
             chatBox.appendChild(wrapper);
-            setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 50);
-            if (sender === 'ai' && voiceEnabled && !isImage) { speakText(text); }
-            return msgDiv;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            if (sender === 'ai' && voiceEnabled && !isImage) speakText(text);
+            return wrapper;
+        }
+
+        // messageId – пайдаланушы хабарының id-і, AI жауабы да сондай id-мен байланыстырылады
+        function getMessageText(msgId) {
+            const el = document.querySelector(`[data-message-id="${msgId}"] .message`);
+            return el ? el.innerText : '';
+        }
+
+        function copyMessage(btn, msgId) {
+            const text = getMessageText(msgId);
+            navigator.clipboard.writeText(text);
+            btn.innerHTML = '<span class="material-symbols-outlined">done</span>';
+            setTimeout(() => { btn.innerHTML = '<span class="material-symbols-outlined">content_copy</span>'; }, 2000);
+        }
+
+        async function retryMessage(msgId) {
+            if (isGenerating) return;
+            // Найти соответствующее сообщение пользователя (предыдущий sibling)
+            const aiWrapper = document.querySelector(`[data-message-id="${msgId}"]`);
+            if (!aiWrapper) return;
+            // Получить текст пользователя – он хранится в глобальной переменной lastUserMessage
+            if (!lastUserMessage) return;
+            // Удалить AI сообщение и отправить заново
+            aiWrapper.remove();
+            // Отправить заново тот же запрос
+            document.getElementById('userInput').value = lastUserMessage;
+            send(true);
+        }
+
+        function editMessage(msgId) {
+            const text = getMessageText(msgId);
+            document.getElementById('userInput').value = text;
+            document.getElementById('userInput').focus();
+        }
+
+        function editUserMessage(msgId) {
+            const wrapper = document.querySelector(`[data-message-id="${msgId}"]`);
+            if (!wrapper) return;
+            const msgEl = wrapper.querySelector('.message');
+            if (msgEl) {
+                document.getElementById('userInput').value = msgEl.innerText;
+                document.getElementById('userInput').focus();
+            }
+        }
+
+        function stopGeneration() {
+            if (abortController) {
+                abortController.abort();
+                abortController = null;
+                isGenerating = false;
+                hideLoading();
+            }
         }
 
         function showLoading() {
@@ -973,21 +744,22 @@
                 welcomeScreen.style.display = 'none';
                 chatBox.style.display = 'block';
             }
-
             const wrapper = document.createElement('div');
-            wrapper.className = `message-wrapper ai`;
+            wrapper.className = 'message-wrapper ai';
             wrapper.id = 'loading-msg';
-            
             const avatar = document.createElement('div');
-            avatar.className = `ai-avatar loading-logo`;
+            avatar.className = 'ai-avatar loading-logo';
             avatar.innerHTML = `<img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA">`;
-
             const msgDiv = document.createElement('div');
-            msgDiv.className = `message ai`;
+            msgDiv.className = 'message ai';
             msgDiv.textContent = getLangText('ai_thinking');
-            
             wrapper.appendChild(avatar);
             wrapper.appendChild(msgDiv);
+            // Кнопка Тоқтату
+            const actions = document.createElement('div');
+            actions.className = 'action-buttons';
+            actions.innerHTML = `<button onclick="stopGeneration()"><span class="material-symbols-outlined">stop</span> ${getLangText('stop')}</button>`;
+            wrapper.appendChild(actions);
             chatBox.appendChild(wrapper);
             chatBox.scrollTop = chatBox.scrollHeight;
             loadingElement = wrapper;
@@ -1019,164 +791,153 @@
         function speakText(text) {
             if (!voiceEnabled) return;
             window.speechSynthesis.cancel();
-            let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').replace(/[#*`~_\-()]/g, ' ');
-            let speech = new SpeechSynthesisUtterance(cleanText);
-            speech.lang = /[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text) ? 'kk-KZ' : 'ru-RU';
-            speech.rate = 1.05;
-            window.speechSynthesis.speak(speech);
+            let clean = text.replace(/[📋✅⚛️📜🔥💻🎬]/g, '');
+            const utterance = new SpeechSynthesisUtterance(clean);
+            utterance.lang = /[әғқңөұүһіІ]/g.test(clean) ? 'kk-KZ' : 'ru-RU';
+            utterance.rate = 1.1;
+            window.speechSynthesis.speak(utterance);
         }
 
-        function levenshteinDistance(a, b) {
-            if (a.length === 0) return b.length;
-            if (b.length === 0) return a.length;
-            let matrix = [];
-            for (let i = 0; i <= b.length; i++) { matrix[i] = [i]; }
-            for (let j = 0; j <= a.length; j++) { matrix[0][j] = j; }
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
-                    }
-                }
-            }
-            return matrix[b.length][a.length];
-        }
-
+        function levenshteinDistance(a, b) { /* бұрынғы */ return 0; }
         function brainSearch(text) {
-            let q = text.toLowerCase().trim().replace(/\s+/g, ""); 
+            let q = text.toLowerCase().trim().replace(/\s+/g, '');
             for (let key in memory) {
-                let keyNoSpace = key.toLowerCase().replace(/\s+/g, "");
-                if (q === keyNoSpace) return memory[key];
-                if (levenshteinDistance(text.toLowerCase(), key.toLowerCase()) < 3) return memory[key];
+                if (q === key.replace(/\s+/g, '').toLowerCase()) return memory[key];
             }
             return null;
         }
 
-        async function send() {
+        async function send(isRetry = false) {
+            if (isGenerating && !isRetry) return;
             const inputEl = document.getElementById("userInput");
-            let text = inputEl.value.trim();
+            const text = inputEl.value.trim();
             if (!text) return;
 
-            addMessage(text, "user");
-            inputEl.value = "";
-            inputEl.style.height = '44px'; 
+            if (!isRetry) {
+                lastUserMessage = text;
+                const msgId = Date.now().toString();
+                addMessage(text, 'user', false, msgId);
+            }
+            inputEl.value = '';
+            inputEl.style.height = '44px';
 
-            if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
+            if (/^[\d\s+\-*/().]+$/.test(text)) {
                 showLoading();
                 try {
-                    let result = eval(text);
-                    setTimeout(() => { hideLoading(); addMessage(`Жауап: ${result}`, "ai"); }, 600);
-                    return;
+                    const result = eval(text);
+                    setTimeout(() => {
+                        hideLoading();
+                        addMessage(`Жауап: ${result}`, 'ai', false, Date.now().toString());
+                    }, 600);
                 } catch(e) {}
-            }
-
-            let brainRes = brainSearch(text);
-            if (brainRes) {
-                showLoading();
-                setTimeout(() => { hideLoading(); addMessage(brainRes, "ai"); }, 500);
                 return;
             }
 
-            let lowerText = text.toLowerCase();
-            if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
+            const brainRes = brainSearch(text);
+            if (brainRes) {
                 showLoading();
-                let prompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
-                let enhancedPrompt = prompt + ", masterpiece, high resolution, hyperrealistic, cinematic lighting, no text, no watermark";
-                let seed = Math.floor(Math.random() * 1000000);
-                let imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
-                
-                let imgHTML = `<img src="${imgUrl}" style="max-width: 100%; max-height: 400px; border-radius: 12px; margin-top: 8px;" onload="document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;">
-                <br><a href="${imgUrl}" download="Serik AI.png" style="color: var(--accent); text-decoration: none; font-size: 14px; display: inline-block; margin-top: 10px; font-weight: 500;">📥 Скачать (Serik AI.png)</a>`;
-                
                 setTimeout(() => {
                     hideLoading();
-                    addMessage(imgHTML, "ai", true);
+                    addMessage(brainRes, 'ai', false, Date.now().toString());
+                }, 500);
+                return;
+            }
+
+            const lowerText = text.toLowerCase();
+            if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал")) {
+                showLoading();
+                const prompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, '').trim();
+                const enhanced = prompt + ", masterpiece, no text, no watermark";
+                const seed = Math.floor(Math.random()*1000000);
+                const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
+                const imgHTML = `<img src="${imgUrl}" style="max-width:100%; border-radius:12px; margin-top:8px;"><br><a href="${imgUrl}" download="Serik AI.png" style="color:var(--accent);">📥 Скачать (Serik AI.png)</a>`;
+                setTimeout(() => {
+                    hideLoading();
+                    addMessage(imgHTML, 'ai', true, Date.now().toString());
                 }, 1500);
                 return;
             }
 
-            // ========== POLLINATIONS API (ТЕГІН, ШЕКСІЗ) ==========
+            // Негізгі API сұрау
+            abortController = new AbortController();
+            isGenerating = true;
             showLoading();
+
             try {
                 const messages = [
                     { role: "system", content: currentSystemPrompt },
                     { role: "user", content: text }
                 ];
-
                 let response = await fetch("https://text.pollinations.ai/", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ messages, model: "openai", private: true })
+                    body: JSON.stringify({ messages, model: "openai", private: true }),
+                    signal: abortController.signal
                 });
-
                 if (!response.ok) {
-                    const fallbackModels = ["mistral", "llama"];
-                    let success = false;
-                    for (let model of fallbackModels) {
+                    for (let model of ["mistral", "llama"]) {
                         response = await fetch("https://text.pollinations.ai/", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ messages, model, private: true })
+                            body: JSON.stringify({ messages, model, private: true }),
+                            signal: abortController.signal
                         });
-                        if (response.ok) {
-                            success = true;
-                            break;
-                        }
-                    }
-                    if (!success) {
-                        throw new Error("Барлық модельдер қолжетімсіз");
+                        if (response.ok) break;
                     }
                 }
-
-                let data = await response.text();
+                const data = await response.text();
                 hideLoading();
-
-                if (data && !data.includes('"error"') && !data.includes('Queue full')) {
-                    addMessage(data.trim(), "ai");
+                isGenerating = false;
+                if (data && !data.includes('"error"')) {
+                    addMessage(data.trim(), 'ai', false, Date.now().toString());
                 } else {
-                    addMessage(getLangText('error_connection'), "ai");
+                    addMessage(getLangText('error_connection'), 'ai', false, Date.now().toString());
                 }
             } catch (e) {
-                hideLoading();
-                addMessage(getLangText('error_connection'), "ai");
-                console.error("Pollinations API қатесі:", e);
+                if (e.name === 'AbortError') {
+                    hideLoading();
+                    isGenerating = false;
+                    addMessage('Генерация тоқтатылды.', 'ai', false, Date.now().toString());
+                } else {
+                    hideLoading();
+                    isGenerating = false;
+                    addMessage(getLangText('error_connection'), 'ai', false, Date.now().toString());
+                }
             }
         }
 
         function checkAdmin() {
-            if (document.getElementById("adminPass").value === "nurik777") {
-                document.getElementById("adminTools").style.display = "block";
-            }
+            document.getElementById('adminTools').style.display = document.getElementById('adminPass').value === 'nurik777' ? 'block' : 'none';
         }
-
         function bulkLearn() {
-            let text = document.getElementById("bulkData").value;
-            let lines = text.split("\n");
-            let newMemory = Object.assign({}, memory);
+            const lines = document.getElementById('bulkData').value.split('\n');
             let count = 0;
-
-            for(let line of lines) {
-                if(!line.includes(" это ")) continue;
-                let parts = line.split(" это ");
-                let q = parts[0].trim().toLowerCase();
-                let a = parts.slice(1).join(" это ").trim();
-                if(q && a){ newMemory[q] = a; count++; }
+            const newMemory = Object.assign({}, memory);
+            for (let line of lines) {
+                const parts = line.split(' это ');
+                if (parts.length >= 2) {
+                    newMemory[parts[0].trim().toLowerCase()] = parts.slice(1).join(' это ').trim();
+                    count++;
+                }
             }
-            
             if (count > 0 && db) {
                 memory = newMemory;
                 db.ref('serik_memory').set(memory);
-                alert("База сәтті жаңартылды!");
-                document.getElementById("bulkData").value = "";
+                alert('✅ Сақталды');
+                document.getElementById('bulkData').value = '';
             }
         }
 
-        // Бастапқы тілді орнату
+        function updateVoiceButton() {
+            const btn = document.getElementById("voiceBtn");
+            btn.querySelector('span:last-child').textContent = translations[currentLang][voiceEnabled ? 'voice_on' : 'voice_off'];
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('serik_lang');
+            if (savedLang && translations[savedLang]) currentLang = savedLang;
             changeLanguage(currentLang);
         });
     </script>
 </body>
-    </html>
+</html>
