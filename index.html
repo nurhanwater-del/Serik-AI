@@ -527,40 +527,13 @@ async function send() {
 
     let lowerText = text.toLowerCase();
 
-    // --- 3. АНАЛИЗ ИЗОБРАЖЕНИЙ (Vision) ---
-    let imgUrlMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
-    if (imgUrlMatch) {
-        showLoading();
-        let detectedImageUrl = imgUrlMatch[0];
-        let cleanQuestion = text.replace(detectedImageUrl, "").trim() || "Что на этом изображении?";
-        
-        try {
-            let visionUrl = `https://text.pollinations.ai/${encodeURIComponent(cleanQuestion)}?image=${encodeURIComponent(detectedImageUrl)}&model=openai`;
-            let res = await fetch(visionUrl);
-            let responseText = await res.text();
-            
-            hideLoading();
-            add(`👁️ [Анализ изображения]:\n\n${responseText.trim()}`, "ai");
-            return;
-        } catch(e) {
-            console.error("Ошибка Vision API:", e);
-        }
-    }
-
-    // --- 4. ФОТОГЕНЕРАТОР (16K САПА ЖӘНЕ ШЕКСІЗ РАЗНЫЙ СУРЕТТЕР) ---
+    // --- 3. ФОТОГЕНЕРАТОР ---
     if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
         showLoading();
         
-        // 1. Пайдаланушының жазған сөзін тазалап аламыз
         let userPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
-        
-        // 2. 16K САПА КӨТЕРУ: Артына нейрожелі түсінетін ең мықты сапа сөздерін қосамыз
         let enhancedPrompt = userPrompt + ", exact object, pure clean focus, masterpiece, 16k resolution, ultra detailed, hyperrealistic, 8k uhd, cinematic lighting, no text, no artifacts";
-        
-        // 3. ШЕКСІЗ ВАРИАНТТАР: 1-ден 1 000 000 000-ға дейін кездейсоқ сан
         let randomSeed = Math.floor(Math.random() * 1000000000);
-        
-        // 4. РАЗРЕШЕНИЕ: 2048x2048 (Бұл API көтере алатын ең максималды әрі қатып қалмайтын формат)
         let imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=2048&height=2048&nologo=true&seed=${randomSeed}`;
        
         let img = document.createElement("img");
@@ -581,14 +554,11 @@ async function send() {
             downloadBtn.onclick = async function () {
                 const response = await fetch(imageUrl);
                 const blob = await response.blob();
-
                 const url = URL.createObjectURL(blob);
-
                 const a = document.createElement("a");
                 a.href = url;
                 a.download = "Serik_AI.png";
                 a.click();
-
                 URL.revokeObjectURL(url);
             };
 
@@ -604,10 +574,11 @@ async function send() {
         return;
     }
 
-        // --- 5. ТЕКСТОВЫЙ ИИ (ӨЗІҢНІҢ ЖЕКЕ RENDER СЕРВЕРІҢ) ---
+    // --- 4. МӘТІНДІК ИИ (ӨЗІМІЗДІҢ ЖЕКЕ СЕРВЕРІМІЗ) ---
     showLoading();
     try {
-        let response = await fetch("https://СЕНІҢ_RENDER_СІЛТЕМЕҢ.onrender.com/chat", {
+        // Осы жерге Render-дегі өз серверіңнің сілтемесін қоясың:
+        let response = await fetch("https://СЕНІҢ_RENDER_СІЛТЕМЕҢ.onrender.com/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -622,12 +593,13 @@ async function send() {
         if (data.response) {
             add(data.response.trim(), "ai");
         } else {
-            add("⚠️ Жауап алу мүмкін болмады.", "ai");
+            add("⚠️ Серверден жауап алу мүмкін болмады.", "ai");
         }
     } catch (e) {
         hideLoading();
-        add("⚠️ Өз серверіңізге қосылу қатесі.", "ai");
+        add("⚠️ Өз серверіңізге қосылу қатесі. Сервер іске қосулы тұрғанын тексеріңіз.", "ai");
     }
+}
 
 }
 </script>
