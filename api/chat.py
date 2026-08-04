@@ -1,87 +1,50 @@
-from http.server import BaseHTTPRequestHandler
-import json
-import os
-import urllib.request
-import urllib.parse
-import re
-from groq import Groq
+// api/chat.js
+export default async function handler(req, res) {
+  // CORS баптаулары (сайтқа кез келген жерден қосылу үшін)
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-def search_internet_free(query):
-    """Google/DuckDuckGo Lite арқылы 100% бұғаттаусыз тегін іздеу"""
-    try:
-        # DuckDuckGo Lite нұсқасы боттарды бұғаттамайды
-        encoded_query = urllib.parse.quote(query)
-        url = f"https://lite.duckduckgo.com/lite/"
-        data = urllib.parse.urlencode({'q': query}).encode('utf-8')
-        
-        req = urllib.request.Request(
-            url, 
-            data=data,
-            headers={
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                "Content-Type": "application/x-www-form-urlencoded"
-            }
-        )
-        
-        with urllib.request.urlopen(req, timeout=5) as response:
-            html = response.read().decode('utf-8', errors='ignore')
-            
-            # HTML ішінен тексттерді суырып алу
-            # Реклама мен артық тегтерді тазалау
-            clean_text = re.sub(r'<[^>]+>', ' ', html)
-            clean_text = re.sub(r'\s+', ' ', clean_text).strip()
-            
-            # Мағыналы сөйлемдерді жинау
-            words = clean_text.split()
-            if len(words) > 50:
-                return " ".join(words[30:300]) # Негізгі іздеу нәтижесі
-            
-        return "Интернеттен іздеу нәтижесі аз болды."
-    except Exception as e:
-        return "Интернеттен ақпарат алу кезінде уақытша іркіліс болды."
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-class handler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        try:
-            content_length = int(self.headers.get('Content-Length', 0))
-            post_data = self.rfile.read(content_length)
-            data = json.loads(post_data.decode('utf-8'))
-            user_message = data.get("message", "")
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-            # 1. Интернеттен іздеу
-            search_data = search_internet_free(user_message)
+  try {
+    const { prompt, systemPrompt } = req.body;
 
-            # 2. Groq (Llama 3.3 70B)
-            client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
-            
-            system_prompt = f"""Сен — Serik-AI деп аталатын көмекшісің. Қолданушыға нағыз досы/братаны сияқты қарапайым әрі түсінікті сөйлес.
+    // GROQ API-ға өте жылдам сұраныс
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY || "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"}`
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile", 
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 1024
+      })
+    });
 
-ЕКЕУМІЗДІҢ ЕРЕЖЕМІЗ:
-1. ҚАЗІРГІ ЖЫЛ: 2026 жыл.
-2. ТІЛДЕР: Қазақша, орысша, ағылшынша — қай тілде жазса, сол тілде еркін жауап бер.
-3. ӨЗІҢ ТУРАЛЫ: «Сені кім жасады?» десе, «Мені Serik жасап шығарды» деп айт.
-4. ИНТЕРНЕТ ДЕРЕКТЕРІ: «Интернеттен ештеңе іздей алмаймын» деп АЙТПА! Мына интернеттен табылған мәліметтерге сүйеніп жауап бер:
----
-{search_data}
----"""
+    const data = await response.json();
 
-            completion = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message}
-                ]
-            )
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      return res.status(200).json({ response: data.choices[0].message.content });
+    } else {
+      console.error("Groq Error:", data);
+      return res.status(500).json({ error: "Groq API-дан жауап келмеді" });
+    }
 
-            response_text = completion.choices[0].message.content
-
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({"response": response_text}).encode('utf-8'))
-
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-Type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+  } catch (error) {
+    console.error("Server Error:", error);
+    return res.status(500).json({ error: error.message });
+  }
+}
