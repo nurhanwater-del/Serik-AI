@@ -1,6 +1,6 @@
 // api/chat.js
 export default async function handler(req, res) {
-  // CORS баптаулары (сайтқа кез келген жерден қосылу үшін)
+  // CORS баптаулары (кез келген жерден қосылу үшін)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -16,15 +16,17 @@ export default async function handler(req, res) {
   try {
     const { prompt, systemPrompt } = req.body;
 
-    // GROQ API-ға өте жылдам сұраныс
+    // GROQ API арқылы Llama 3.3 70B моделіне сұраныс (өте жылдам)
+    // АРАЛЫҚ СЕРВЕР ЖОҚ — Vercel-дің өзі лезде іске қосылады!
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.GROQ_API_KEY || "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"}`
+        // Groq сайтынан алған тегін API кілтіңді осы жерге қоясың:
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY || "СЕНІҢ_GROQ_API_KEY_КІЛТІҢ"}`
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile", 
+        model: "llama-3.3-70b-versatile", // немесе "llama-3.1-8b-instant"
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt }
@@ -36,15 +38,14 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    if (data.choices && data.choices[0] && data.choices[0].message) {
+    if (data.choices && data.choices[0]) {
       return res.status(200).json({ response: data.choices[0].message.content });
     } else {
-      console.error("Groq Error:", data);
-      return res.status(500).json({ error: "Groq API-дан жауап келмеді" });
+      return res.status(500).json({ error: "Groq API жауап бермеді" });
     }
 
   } catch (error) {
-    console.error("Server Error:", error);
     return res.status(500).json({ error: error.message });
   }
 }
+
