@@ -3,45 +3,39 @@ import json
 import os
 import urllib.request
 import urllib.parse
-from html.parser import HTMLParser
 from groq import Groq
 
-# Google/DuckDuckGo-дан тегін іздеп шығатын қарапайым HTML тазартқыш
-class HTMLFilter(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.text = []
-
-    def handle_data(self, data):
-        self.text.append(data)
-
-    def error(self, message):
-        pass
-
-def search_web(query):
+def search_internet(query):
+    """DuckDuckGo Instant Answer API арқылы интернеттен ақпарат алу (100% тегін әрі жылдам)"""
     try:
-        # DuckDuckGo HTML іздеу (ешқандай API кілтсіз, 100% тегін)
         encoded_query = urllib.parse.quote(query)
-        url = f"https://html.duckduckgo.com/html/?q={encoded_query}"
+        # JSON форматында ақпарат алу
+        url = f"https://api.duckduckgo.com/?q={encoded_query}&format=json&no_html=1&skip_disambig=1"
         
         req = urllib.request.Request(
             url, 
             headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
         )
         
-        with urllib.request.urlopen(req, timeout=5) as response:
-            html_content = response.read().decode('utf-8')
+        with urllib.request.urlopen(req, timeout=4) as response:
+            data = json.loads(response.read().decode('utf-8'))
             
-        # Қарапайым түрде мәтінді бөліп алу
-        # (Бұл серверді қатты жүктемейді және лезде жұмыс істейді)
-        from bs4 import BeautifulSoup # Егер requirements.txt-ке beautifulsoup4 қоссаң
-        # Немесе таза regex/parser арқылы:
-        parser = HTMLFilter()
-        parser.feed(html_content)
-        clean_text = " ".join([t.strip() for t in parser.text if len(t.strip()) > 20])
-        return clean_text[:1500] # Тым ұзын болмау үшін шектеу
+            results = []
+            # Негізгі қысқаша анықтама
+            if data.get("AbstractText"):
+                results.append(data["AbstractText"])
+            
+            # Қатысты нәтижелер
+            for topic in data.get("RelatedTopics", [])[:3]:
+                if isinstance(topic, dict) and "Text" in topic:
+                    results.append(topic["Text"])
+            
+            if results:
+                return "\n".join(results)
+            else:
+                return "Интернеттен нақты дерек табылмады, жалпы білім базасын қолдан."
     except Exception:
-        return "Интернеттен ақпарат алу сәтсіз аяқталды."
+        return "Интернетпен байланыс орнату мүмкін болмады."
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -51,20 +45,23 @@ class handler(BaseHTTPRequestHandler):
             data = json.loads(post_data.decode('utf-8'))
             user_message = data.get("message", "")
 
-            # 1. 100% тегін интернеттен іздеу
-            search_results = search_web(user_message)
+            # 1. Интернеттен іздеу
+            search_results = search_internet(user_message)
 
-            # 2. Groq (Llama 3.3) арқылы жауап беру
+            # 2. Groq (Llama 3.3) API
             client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
             
             system_prompt = f"""Сен — Serik-AI деп аталатын ақылды ИИ көмекшісің.
-Саған қойылған сұрақтар бойынша мына ережелерді БҰЛЖЫТПАЙ орында:
+Міндетті түрде орындалатын ережелер:
 
-1. ҚАЗІРГІ ДӘЛ УАҚЫТ/ЖЫЛ: Қазір 2026 жыл. Қолданушы жылды сұраса, 2026 жыл деп жауап бер!
-2. ТІЛДЕРДІ БІЛУ: Қолданушы кай тілде жазса (қазақша, орысша, ағылшынша), дәл сол тілде эркін, еркін әрі сауатты жауап бер.
-3. ӨЗІҢ ТУРАЛЫ: «Сені кім жасады?» десе, «Мені Serik жасап шығарды» деп айт.
-4. СОҢҒЫ ЖАҢАЛЫҚТАР: Мына интернет мәліметтеріне сүйен:
-{search_results}"""
+1. ҚАЗІРГІ УАҚЫТ: Қазір 2026 жыл. Жылды немесе уақытты сұраса, 2026 жыл деп жауап бер.
+2. ТІЛ: Қолданушы қай тілде жазса (қазақша, орысша, ағылшынша), дәл сол тілде сауатты, табиғи жауап бер.
+3. АВТОР: «Сені кім жасады?» десе, «Мені Serik жасап шығарды» деп жауап бер.
+4. ИНТЕРНЕТ ДЕРЕКТЕРІ: Қолданушы сұрағына жауап беру үшін мына интернеттен табылған ақпаратты ПАЙДАЛАН:
+---
+{search_results}
+---
+Егер интернет деректерінде ақпарат болса, соған сүйеніп нақты жауап бер!"""
 
             completion = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
