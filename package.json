@@ -1,10 +1,13 @@
 {
-  "name": "serik-ai",
+  "name": "serik-ai-backend",
   "version": "1.0.0",
+  "main": "index.js",
   "scripts": {
-    "start": "node api/tts.js"
+    "start": "node index.js"
   },
   "dependencies": {
-    "msedge-tts": "^1.1.7"
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.7"
   }
 }
