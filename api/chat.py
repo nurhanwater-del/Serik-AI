@@ -1,26 +1,44 @@
 from http.server import BaseHTTPRequestHandler
 import json
 import os
+import urllib.request
+import urllib.parse
+import re
 from groq import Groq
-from duckduckgo_search import DDGS
 
-def search_web_real(query):
-    """Google/DuckDuckGo арқылы бұғаттаусыз іздеу"""
+def search_internet_free(query):
+    """Google/DuckDuckGo Lite арқылы 100% бұғаттаусыз тегін іздеу"""
     try:
-        results_text = []
-        # DDGS арқылы іздеу (Cloudflare мен 403 қатесін өзі айналып өтеді)
-        with DDGS() as ddgs:
-            results = list(ddgs.text(query, max_results=3))
-            for r in results:
-                title = r.get('title', '')
-                body = r.get('body', '')
-                results_text.append(f"Сайт: {title}\nМәлімет: {body}")
+        # DuckDuckGo Lite нұсқасы боттарды бұғаттамайды
+        encoded_query = urllib.parse.quote(query)
+        url = f"https://lite.duckduckgo.com/lite/"
+        data = urllib.parse.urlencode({'q': query}).encode('utf-8')
         
-        if results_text:
-            return "\n\n".join(results_text)
-        return "Интернеттен нақты мәлімет табылмады."
+        req = urllib.request.Request(
+            url, 
+            data=data,
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+        )
+        
+        with urllib.request.urlopen(req, timeout=5) as response:
+            html = response.read().decode('utf-8', errors='ignore')
+            
+            # HTML ішінен тексттерді суырып алу
+            # Реклама мен артық тегтерді тазалау
+            clean_text = re.sub(r'<[^>]+>', ' ', html)
+            clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+            
+            # Мағыналы сөйлемдерді жинау
+            words = clean_text.split()
+            if len(words) > 50:
+                return " ".join(words[30:300]) # Негізгі іздеу нәтижесі
+            
+        return "Интернеттен іздеу нәтижесі аз болды."
     except Exception as e:
-        return f"Іздеу кезінде іркіліс болды: {str(e)}"
+        return "Интернеттен ақпарат алу кезінде уақытша іркіліс болды."
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -30,8 +48,8 @@ class handler(BaseHTTPRequestHandler):
             data = json.loads(post_data.decode('utf-8'))
             user_message = data.get("message", "")
 
-            # 1. Гуглдан/Интернеттен ақпаратты қарпып алу
-            search_data = search_web_real(user_message)
+            # 1. Интернеттен іздеу
+            search_data = search_internet_free(user_message)
 
             # 2. Groq (Llama 3.3 70B)
             client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
@@ -42,7 +60,7 @@ class handler(BaseHTTPRequestHandler):
 1. ҚАЗІРГІ ЖЫЛ: 2026 жыл.
 2. ТІЛДЕР: Қазақша, орысша, ағылшынша — қай тілде жазса, сол тілде еркін жауап бер.
 3. ӨЗІҢ ТУРАЛЫ: «Сені кім жасады?» десе, «Мені Serik жасап шығарды» деп айт.
-4. ИНТЕРНЕТ ДЕРЕКТЕРІ: Төменде интернеттегі сайттардан алынған ДӘЛ ҚАЗІРГІ СОҢҒЫ МӘЛІМЕТТЕР бар. Осыған сүйеніп сұраққа нақты жауап бер:
+4. ИНТЕРНЕТ ДЕРЕКТЕРІ: «Интернеттен ештеңе іздей алмаймын» деп АЙТПА! Мына интернеттен табылған мәліметтерге сүйеніп жауап бер:
 ---
 {search_data}
 ---"""
