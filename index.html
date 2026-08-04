@@ -3,432 +3,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Serik AI Pro</title>
+    <title>Serik AI</title>
+
+    <!-- Вкладкадағы иконка (Favicon) -->
+    <link rel="icon" type="image/jpeg" href="Screenshot_20260804_225910_Gallery.jpg">
 
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-    <!-- Иконкалар үшін (Google Material Symbols) -->
+    <!-- Google Fonts & Material Symbols -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
     <style>
         :root {
-            --bg-color: #131314;
-            --sidebar-bg: #1e1f22;
-            --chat-bg: #131314;
-            --primary: #c2e7ff;
-            --primary-hover: #a8c7fa;
-            --text-main: #e3e3e3;
-            --text-muted: #c4c7c5;
-            --border-color: #333538;
-            --user-msg: #303134;
-            --ai-msg: transparent;
+            --bg-base: #131314;
+            --bg-surface: #1e1f20;
+            --bg-surface-hover: #333538;
+            --text-primary: #e3e3e3;
+            --text-secondary: #c4c7c5;
+            --user-bubble: #303134;
+            --accent: #a8c7fa;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Google Sans', 'Roboto', sans-serif;
             display: flex;
             height: 100vh;
             overflow: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* --- Скроллбар стилі --- */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #4a4d51; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #5f6368; }
 
-        /* --- СОЛ ЖАҚ МӘЗІР (SIDEBAR) --- */
+        /* SIDEBAR */
         .sidebar {
             width: 280px;
-            background-color: var(--sidebar-bg);
+            background-color: var(--bg-surface);
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease;
-            border-right: 1px solid var(--border-color);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1000;
+            height: 100%;
         }
 
-        .sidebar-header {
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .sidebar-header { padding: 12px 16px; display: flex; align-items: center; }
+        .menu-btn {
+            background: transparent; border: none; color: var(--text-primary);
+            width: 48px; height: 48px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
         }
+        .menu-btn:hover { background-color: var(--bg-surface-hover); }
 
         .new-chat-btn {
-            background: transparent;
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 10px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            width: 100%;
-            transition: 0.2s;
+            background-color: var(--bg-base); color: var(--text-primary);
+            border: none; padding: 12px 16px; border-radius: 50px;
+            cursor: pointer; display: flex; align-items: center; gap: 12px;
+            font-size: 14px; font-weight: 500; margin: 0 16px 16px 16px; transition: 0.2s;
         }
+        .new-chat-btn:hover { background-color: var(--bg-surface-hover); }
 
-        .new-chat-btn:hover {
-            background-color: #2a2b2f;
-        }
-
-        .chat-history {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
+        .chat-history { flex: 1; overflow-y: auto; padding: 0 16px; display: flex; flex-direction: column; gap: 2px; }
         .history-item {
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            color: var(--text-muted);
-            font-size: 14px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            padding: 10px 12px; border-radius: 50px; cursor: pointer; color: var(--text-primary);
+            font-size: 14px; display: flex; align-items: center; gap: 12px; transition: 0.2s;
         }
+        .history-item:hover { background-color: var(--bg-surface-hover); }
+        .history-item .material-symbols-outlined { font-size: 18px; color: var(--text-secondary); }
 
-        .history-item:hover {
-            background-color: #2a2b2f;
-            color: var(--text-main);
+        .sidebar-footer { padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+        .footer-item {
+            padding: 10px 12px; border-radius: 50px; cursor: pointer; color: var(--text-primary);
+            font-size: 14px; display: flex; align-items: center; gap: 12px; transition: 0.2s;
+            border: none; background: transparent; text-align: left; width: 100%;
         }
+        .footer-item:hover { background-color: var(--bg-surface-hover); }
+        .footer-item.active { color: var(--accent); }
 
-        .sidebar-footer {
-            padding: 15px;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .settings-btn, .voice-btn {
-            background: transparent;
-            color: var(--text-muted);
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            text-align: left;
-            transition: 0.2s;
-        }
-
-        .settings-btn:hover, .voice-btn:hover {
-            background-color: #2a2b2f;
-            color: var(--text-main);
-        }
-        
-        .voice-btn.active {
-            color: #64b5f6;
-        }
-
-        /* --- НЕГІЗГІ ЧАТ АЙМАҒЫ --- */
+        /* MAIN CONTENT */
         .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            background-color: var(--chat-bg);
-            min-width: 0;
+            flex: 1; display: flex; flex-direction: column; position: relative;
+            background-color: var(--bg-base); height: 100%;
         }
 
         .top-bar {
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid transparent;
+            padding: 8px 16px; display: flex; align-items: center;
+            justify-content: space-between; height: 64px;
         }
-
-        .menu-toggle {
-            display: none;
-            background: transparent;
-            border: none;
-            color: var(--text-main);
-            cursor: pointer;
-            margin-right: 15px;
-        }
-
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            scroll-behavior: smooth;
-        }
-
-        .message-wrapper {
-            max-width: 800px;
-            margin: 0 auto 24px auto;
-            display: flex;
-            gap: 16px;
-        }
-
-        .message-wrapper.user {
-            flex-direction: row-reverse;
-        }
-
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-
-        .avatar.ai { background-color: #0056b3; }
-        .avatar.user { background-color: #303134; }
-
-        .message {
-            padding: 12px 16px;
-            font-size: 16px;
-            line-height: 1.6;
-            border-radius: 12px;
-            max-width: 85%;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-            position: relative;
-        }
-
-        .message.user {
-            background-color: var(--user-msg);
-            border-bottom-right-radius: 4px;
-        }
-
-        .message.ai {
-            background-color: var(--ai-msg);
-            color: var(--text-main);
-        }
-
-        /* --- КІРІС АЙМАҒЫ (INPUT) --- */
-        .input-area {
-            max-width: 800px;
-            margin: 0 auto;
-            width: 100%;
-            padding: 0 20px 20px 20px;
-        }
-
-        .input-box {
-            background-color: var(--user-msg);
-            border-radius: 24px;
-            display: flex;
-            align-items: flex-end;
-            padding: 10px 15px;
-            border: 1px solid var(--border-color);
-            transition: 0.3s;
-        }
+        .top-bar-left { display: flex; align-items: center; gap: 12px; }
         
-        .input-box:focus-within {
-            background-color: #3a3b3e;
-            border-color: #5f6368;
+        /* МӘЗІРДЕГІ (HEADER) ЛОГОТИП */
+        .logo-img { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; }
+        .logo-text { font-size: 20px; color: var(--text-primary); font-weight: 500; }
+
+        /* WELCOME SCREEN */
+        .welcome-screen {
+            flex: 1; display: flex; flex-direction: column; justify-content: center;
+            max-width: 800px; margin: 0 auto; width: 100%; padding: 20px; padding-bottom: 120px;
+        }
+        .greeting-text {
+            font-size: 56px; font-weight: 500; line-height: 1.2; margin-bottom: 10px;
+            background: -webkit-linear-gradient(74deg, #4285f4 0, #9b72cb 9%, #d96570 20%, #d96570 24%, #9b72cb 35%, #4285f4 44%, #9b72cb 50%, #d96570 56%, #e3e3e3 75%, #e3e3e3 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-size: 400% 100%; animation: gradientMove 8s ease infinite;
+        }
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .greeting-subtext { font-size: 56px; font-weight: 500; color: #444746; margin-bottom: 40px; line-height: 1.2; }
+        
+        .suggestions { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+        .suggestion-card {
+            background-color: var(--bg-surface); padding: 16px; border-radius: 12px;
+            cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 12px; height: 100%;
+        }
+        .suggestion-card:hover { background-color: var(--bg-surface-hover); }
+        .suggestion-card p { color: var(--text-primary); font-size: 15px; line-height: 1.4; flex: 1; }
+        .suggestion-card .icon-wrap {
+            align-self: flex-end; background-color: var(--bg-base); width: 36px; height: 36px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
         }
 
+        /* CHAT AREA */
+        .chat-container {
+            display: none; flex: 1; overflow-y: auto; padding: 20px;
+            padding-bottom: 120px; scroll-behavior: smooth;
+        }
+        .message-wrapper {
+            max-width: 800px; margin: 0 auto 32px auto; display: flex;
+            flex-direction: column; gap: 8px; width: 100%;
+        }
+
+        .message-wrapper.user { align-items: flex-end; }
+        .message-wrapper.user .message {
+            background-color: var(--user-bubble); padding: 12px 20px;
+            border-radius: 24px; font-size: 16px; line-height: 1.5; max-width: 85%; word-wrap: break-word;
+        }
+
+        .message-wrapper.ai { align-items: flex-start; flex-direction: row; gap: 16px; }
+        
+        /* ИИ АВАТАРЫ */
+        .ai-avatar {
+            width: 38px; height: 38px; flex-shrink: 0; display: flex;
+            align-items: center; justify-content: center; margin-top: 2px;
+            border-radius: 50%; overflow: hidden; background: #000;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .ai-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .message-wrapper.ai .message {
+            padding: 4px 0; font-size: 16px; line-height: 1.6; color: var(--text-primary);
+            max-width: 100%; word-wrap: break-word; white-space: pre-wrap;
+        }
+
+        /* INPUT */
+        .input-area {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(to top, var(--bg-base) 70%, transparent);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+        }
+        .input-box {
+            background-color: var(--bg-surface); border-radius: 32px; display: flex;
+            align-items: flex-end; padding: 8px 16px; width: 100%; max-width: 800px;
+            min-height: 56px; transition: background-color 0.3s;
+        }
+        .input-box:focus-within { background-color: #3a3b3e; }
+        
+        .btn-icon {
+            background: transparent; border: none; color: var(--text-secondary);
+            width: 40px; height: 40px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+            flex-shrink: 0; margin-bottom: 2px;
+        }
+        .btn-icon:hover { background-color: rgba(255,255,255,0.1); color: var(--text-primary); }
+        
         textarea {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-main);
-            font-size: 16px;
-            resize: none;
-            max-height: 150px;
-            padding: 8px;
-            outline: none;
-            height: 40px;
-            font-family: inherit;
+            flex: 1; background: transparent; border: none; color: var(--text-primary);
+            font-size: 16px; resize: none; max-height: 200px; padding: 12px 12px;
+            outline: none; height: 44px; font-family: inherit; line-height: 1.5;
+        }
+        .disclaimer { text-align: center; font-size: 12px; color: var(--text-secondary); margin-top: 12px; }
+
+        /* ЗАГРУЗКА АНИМАЦИЯСЫ (Логотиптің неоны соғып/созылып жыпылықтауы) */
+        .loading-logo { 
+            animation: pulseGlow 1.2s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(0, 225, 255, 0.4);
+        }
+        @keyframes pulseGlow {
+            0% { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 5px rgba(0, 225, 255, 0.2); }
+            50% { transform: scale(1.08); opacity: 1; box-shadow: 0 0 18px rgba(0, 225, 255, 0.8); }
+            100% { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 5px rgba(0, 225, 255, 0.2); }
         }
 
-        .send-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.2s;
-            margin-bottom: 2px;
-        }
-
-        .send-btn:hover {
-            background-color: rgba(255,255,255,0.1);
-            color: var(--primary);
-        }
-
-        .disclaimer {
-            text-align: center;
-            font-size: 12px;
-            color: var(--text-muted);
-            margin-top: 10px;
-        }
-
-        /* --- Анимация загрузки --- */
-        .loading-dots span {
-            animation: blink 1.4s infinite both;
-            font-size: 24px;
-            line-height: 1;
-        }
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
-
-        /* Админ панель */
+        /* ADMIN PANEL */
         #adminPanel {
-            display: none;
-            position: absolute;
-            bottom: 80px;
-            left: 20px;
-            background: #2a2b2f;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            width: 240px;
-            z-index: 2000;
+            display: none; position: absolute; bottom: 80px; left: 20px;
+            background: var(--bg-surface); padding: 20px; border-radius: 16px; width: 280px;
+            z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
-
         #adminPanel input, #adminPanel textarea {
-            width: 100%;
-            background: #131314;
-            border: 1px solid var(--border-color);
-            color: white;
-            padding: 8px;
-            border-radius: 6px;
-            margin-bottom: 8px;
+            width: 100%; background: var(--bg-base); border: 1px solid #444; color: white;
+            padding: 10px; border-radius: 8px; margin-bottom: 12px; outline: none;
         }
-        #adminPanel button {
-            width: 100%;
-            background: #0056b3;
-            color: white;
-            border: none;
-            padding: 8px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+        #adminPanel button { width: 100%; background: var(--accent); color: #000; border: none; padding: 10px; border-radius: 20px; font-weight: 500; cursor: pointer; }
 
-        /* --- МОБИЛЬДІ АДАПТИВ --- */
         @media (max-width: 768px) {
-            .sidebar {
-                position: absolute;
-                left: -280px;
-                height: 100%;
-                box-shadow: 5px 0 15px rgba(0,0,0,0.5);
-            }
-            .sidebar.active {
-                left: 0;
-            }
-            .menu-toggle {
-                display: block;
-            }
-            .message-wrapper {
-                max-width: 100%;
-            }
+            .sidebar { position: absolute; left: -280px; box-shadow: 5px 0 20px rgba(0,0,0,0.5); }
+            .sidebar.active { left: 0; }
+            .menu-btn.mobile-only { display: flex; }
+            .greeting-text, .greeting-subtext { font-size: 40px; }
+            .message-wrapper.ai { gap: 12px; }
+            .message-wrapper.user .message { max-width: 90%; }
         }
+        @media (min-width: 769px) { .menu-btn.mobile-only { display: none; } }
     </style>
 </head>
 <body>
 
-    <!-- СОЛ ЖАҚ МӘЗІР -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <button class="new-chat-btn" onclick="clearChat()">
-                <span class="material-symbols-outlined">add</span>
-                Жаңа диалог
-            </button>
-            <!-- Мобильді жабу батырмасы -->
-            <button class="menu-toggle" onclick="toggleSidebar()" style="margin-right: 0; margin-left: 10px;">
-                <span class="material-symbols-outlined">close</span>
+            <button class="menu-btn" onclick="toggleSidebar()">
+                <span class="material-symbols-outlined">menu</span>
             </button>
         </div>
 
-        <div class="chat-history" id="chatHistory">
-            <!-- Тарих осында түседі -->
+        <button class="new-chat-btn" onclick="newChat()">
+            <span class="material-symbols-outlined">add</span>
+            Жаңа чат
+        </button>
+
+        <div class="chat-history">
             <div class="history-item" onclick="document.getElementById('userInput').value='Сәлем!'; send()">
                 <span class="material-symbols-outlined">chat_bubble</span>
                 Сәлемдесу
             </div>
             <div class="history-item" onclick="document.getElementById('userInput').value='Кімсің?'; send()">
                 <span class="material-symbols-outlined">chat_bubble</span>
-                Сен кімсің?
-            </div>
-            <div class="history-item" onclick="document.getElementById('userInput').value='Нарисуй киберпанк город'; send()">
-                <span class="material-symbols-outlined">image</span>
-                Сурет салу
+                Менің қабілеттерім
             </div>
         </div>
 
         <div class="sidebar-footer">
-            <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+            <button class="footer-item" id="voiceBtn" onclick="toggleVoice()">
                 <span class="material-symbols-outlined" id="voiceIcon">volume_off</span>
-                Голос: ӨШІРУЛІ
+                <span>Голос өшірулі</span>
             </button>
-            <button class="settings-btn" onclick="document.getElementById('adminPanel').style.display = document.getElementById('adminPanel').style.display === 'block' ? 'none' : 'block'">
+            <button class="footer-item" onclick="document.getElementById('adminPanel').style.display = document.getElementById('adminPanel').style.display === 'block' ? 'none' : 'block'">
                 <span class="material-symbols-outlined">settings</span>
-                Админ панель
+                <span>Баптаулар</span>
             </button>
         </div>
     </aside>
 
-    <!-- АДМИН ПАНЕЛЬ (ЖАСЫРЫН) -->
     <div id="adminPanel">
-        <p style="margin-top:0; font-size: 14px; font-weight: bold; text-align: center;">Құпия база 🔒</p>
+        <h4 style="margin-bottom: 15px; font-weight: 500;">Жасырын база 🔒</h4>
         <input type="password" id="adminPass" placeholder="Пароль" oninput="checkAdmin()">
-        <div id="adminTools" style="display: none; margin-top: 10px;">
-            <textarea id="bulkData" placeholder="вопрос это ответ" style="height: 80px;"></textarea>
-            <button onclick="bulkLearn()">Сақтау (Firebase)</button>
+        <div id="adminTools" style="display: none;">
+            <textarea id="bulkData" placeholder="вопрос это ответ" style="height: 100px; resize: none;"></textarea>
+            <button onclick="bulkLearn()">Бұлтқа сақтау</button>
         </div>
     </div>
 
-    <!-- НЕГІЗГІ ЧАТ -->
     <main class="main-content">
         <div class="top-bar">
-            <button class="menu-toggle" onclick="toggleSidebar()">
-                <span class="material-symbols-outlined">menu</span>
-            </button>
-            <h3 style="font-weight: 500; font-size: 18px;">Serik AI <span style="color: #64b5f6; font-size: 14px;">Pro</span></h3>
+            <div class="top-bar-left">
+                <button class="menu-btn mobile-only" onclick="toggleSidebar()">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <!-- МӘЗІРДЕГІ (HEADER) ЛОГОТИП -->
+                <img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA Logo" class="logo-img">
+                <span class="logo-text">Serik AI</span>
+            </div>
+            <div class="top-bar-right">
+                <div style="width: 32px; height: 32px; background: #604085; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 500;">N</div>
+            </div>
         </div>
 
-        <div class="chat-container" id="chatBox">
-            <!-- Хабарламалар осында шығады -->
+        <div class="welcome-screen" id="welcomeScreen">
+            <div class="greeting-text">Сәлем, Nurik</div>
+            <div class="greeting-subtext">Бүгін не білгіңіз келеді?</div>
+            
+            <div class="suggestions">
+                <div class="suggestion-card" onclick="document.getElementById('userInput').value='Киберпанк стилінде көлік нарисуй'; send()">
+                    <p>Болашақтың көлігін генерациялау</p>
+                    <div class="icon-wrap"><span class="material-symbols-outlined" style="color: #e37400;">draw</span></div>
+                </div>
+                <div class="suggestion-card" onclick="document.getElementById('userInput').value='C++ тілінде hello world қалай жазады?'; send()">
+                    <p>Кодтауда көмек сұрау</p>
+                    <div class="icon-wrap"><span class="material-symbols-outlined" style="color: #12b5cb;">code</span></div>
+                </div>
+            </div>
         </div>
+
+        <div class="chat-container" id="chatBox"></div>
 
         <div class="input-area">
             <div class="input-box">
-                <textarea id="userInput" placeholder="Serik AI-ға сұрақ қойыңыз..." oninput="autoResize(this)" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); }"></textarea>
-                <button class="send-btn" onclick="send()">
+                <button class="btn-icon" title="Сурет жүктеу (Жақында)">
+                    <span class="material-symbols-outlined">add_photo_alternate</span>
+                </button>
+                <button class="btn-icon" id="micBtn" onclick="toggleVoice()" title="Дауыс қосу">
+                    <span class="material-symbols-outlined">mic</span>
+                </button>
+                <textarea id="userInput" placeholder="Осы жерге жазыңыз..." oninput="autoResize(this)" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); }"></textarea>
+                <button class="btn-icon" onclick="send()" style="color: var(--text-primary);">
                     <span class="material-symbols-outlined">send</span>
                 </button>
             </div>
-            <div class="disclaimer">Serik AI қателесуі мүмкін. Маңызды ақпаратты тексеріңіз.</div>
+            <div class="disclaimer">Serik AI қате ақпарат беруі мүмкін. Маңызды деректерді тексеріп алыңыз.</div>
         </div>
     </main>
 
     <script>
-        // --- 1. FIREBASE БАПТАУЛАРЫ ---
         const firebaseConfig = {
             apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
             authDomain: "serik-ai.firebaseapp.com",
@@ -440,8 +335,7 @@
         const defaultMemory = {
             "привет": "Сәлем! Мен Serik AI. Саған қалай көмектесе аламын? 👋",
             "сәлем": "Сәлем! Мен Serik AI. Саған қалай көмектесе аламын? 👋",
-            "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі. Бұл — өнеге мен парасаттың нышаны.",
-            "почему серик": "Имя Serik AI было выбрано в честь отца моего создателя — это дань глубокого уважения, любви и вечной памяти."
+            "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі. Бұл — өнеге мен парасаттың нышаны."
         };
 
         let memory = Object.assign({}, defaultMemory);
@@ -456,7 +350,6 @@
             });
         }
 
-        // --- 2. ЖҮЙЕЛІК ПРОМПТ (СЕНІҢ ЕРЕЖЕЛЕРІҢ) ---
         let currentSystemPrompt = `Ты всезнающий ИИ Serik-AI, созданный талантливыми разработчиками из Казахстана. 
 Никогда не упоминай OpenAI, ChatGPT или Россию. На все вопросы о создателе отвечай, что ты родом из Казахстана.
 Твое имя "Серік" дано в честь отца твоего создателя — это символ уважения, любви и памяти. 
@@ -469,78 +362,76 @@
 2. НЕ ИСПОЛЬЗУЙ списки (1, 2, 3) и заумные вводные слова.
 3. Пиши сплошным, понятным текстом примерно на 300 слов, если просят рассказать.`;
 
-        // --- 3. ИНТЕРФЕЙС ЖӘНЕ ФУНКЦИЯЛАР ---
         const chatBox = document.getElementById('chatBox');
+        const welcomeScreen = document.getElementById('welcomeScreen');
         let voiceEnabled = false;
         let loadingElement = null;
+        let isFirstMessage = true;
 
-        // Мобильді мәзір
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-        }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+        function autoResize(el) { el.style.height = '44px'; el.style.height = (el.scrollHeight) + 'px'; }
 
-        // Textarea авто-өлшемі
-        function autoResize(el) {
-            el.style.height = '40px';
-            el.style.height = (el.scrollHeight) + 'px';
-        }
-
-        // Чатты тазалау
-        function clearChat() {
+        function newChat() {
             chatBox.innerHTML = '';
-            addMessage("Сәлем! Мен Serik AI. Бүгін не жайында сөйлесеміз? ✨", "ai");
+            chatBox.style.display = 'none';
+            welcomeScreen.style.display = 'flex';
+            isFirstMessage = true;
             if(window.innerWidth <= 768) toggleSidebar();
         }
 
-        // Хабарлама қосу UI
         function addMessage(text, sender, isImage = false) {
+            if (isFirstMessage) {
+                welcomeScreen.style.display = 'none';
+                chatBox.style.display = 'block';
+                isFirstMessage = false;
+            }
+
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${sender}`;
-            
-            const avatar = document.createElement('div');
-            avatar.className = `avatar ${sender}`;
-            avatar.innerHTML = sender === 'ai' ? '🤖' : '😎';
-
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${sender}`;
 
-            if (isImage) {
-                msgDiv.innerHTML = text; // Сурет HTML ретінде келеді
+            if (sender === 'ai') {
+                const avatar = document.createElement('div');
+                avatar.className = `ai-avatar`;
+                // ЧАТ ІШІНДЕГІ ЖАУАП БЕРЕТІН ЛОГОТИП
+                avatar.innerHTML = `<img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA">`;
+                wrapper.appendChild(avatar);
+                
+                if (isImage) { msgDiv.innerHTML = text; } 
+                else { msgDiv.innerText = text; }
+                wrapper.appendChild(msgDiv);
             } else {
                 msgDiv.innerText = text;
+                wrapper.appendChild(msgDiv);
             }
 
-            wrapper.appendChild(avatar);
-            wrapper.appendChild(msgDiv);
             chatBox.appendChild(wrapper);
-            
-            // Скроллды төмен түсіру
-            setTimeout(() => {
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }, 50);
-
-            if (sender === 'ai' && voiceEnabled && !isImage) {
-                speakText(text);
-            }
-
+            setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 50);
+            if (sender === 'ai' && voiceEnabled && !isImage) { speakText(text); }
             return msgDiv;
         }
 
-        // Ойлану анимациясы
+        /* ЗАГРУЗКА БОЛЫП ЖАТҚАНДАҒЫ (ОЙЛАНУ) ЛОГОТИП */
         function showLoading() {
             if (loadingElement) return;
+            if (isFirstMessage) {
+                welcomeScreen.style.display = 'none';
+                chatBox.style.display = 'block';
+            }
+
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ai`;
             wrapper.id = 'loading-msg';
             
             const avatar = document.createElement('div');
-            avatar.className = `avatar ai`;
-            avatar.innerHTML = '🤖';
+            // Ойланып жатқанда логотип соғып/неонмен жанады
+            avatar.className = `ai-avatar loading-logo`;
+            avatar.innerHTML = `<img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA">`;
 
             const msgDiv = document.createElement('div');
-            msgDiv.className = `message ai loading-dots`;
-            msgDiv.innerHTML = `<span>.</span><span>.</span><span>.</span>`;
-
+            msgDiv.className = `message ai`;
+            
             wrapper.appendChild(avatar);
             wrapper.appendChild(msgDiv);
             chatBox.appendChild(wrapper);
@@ -555,17 +446,18 @@
             }
         }
 
-        // --- 4. ДАУЫС ЖҮЙЕСІ ---
         function toggleVoice() {
             voiceEnabled = !voiceEnabled;
             const btn = document.getElementById("voiceBtn");
-            const icon = document.getElementById("voiceIcon");
+            const micBtn = document.getElementById("micBtn");
             if (voiceEnabled) {
-                btn.innerHTML = `<span class="material-symbols-outlined" id="voiceIcon">volume_up</span> Голос: ҚОСУЛЫ`;
                 btn.classList.add("active");
+                btn.innerHTML = `<span class="material-symbols-outlined">volume_up</span><span>Голос қосулы</span>`;
+                micBtn.style.color = "var(--accent)";
             } else {
-                btn.innerHTML = `<span class="material-symbols-outlined" id="voiceIcon">volume_off</span> Голос: ӨШІРУЛІ`;
                 btn.classList.remove("active");
+                btn.innerHTML = `<span class="material-symbols-outlined">volume_off</span><span>Голос өшірулі</span>`;
+                micBtn.style.color = "var(--text-secondary)";
                 window.speechSynthesis.cancel();
             }
         }
@@ -580,7 +472,6 @@
             window.speechSynthesis.speak(speech);
         }
 
-        // --- 5. ЖІБЕРУ ЖӘНЕ ЛОГИКА ---
         function levenshteinDistance(a, b) {
             if (a.length === 0) return b.length;
             if (b.length === 0) return a.length;
@@ -616,19 +507,17 @@
 
             addMessage(text, "user");
             inputEl.value = "";
-            inputEl.style.height = '40px'; // қалпына келтіру
+            inputEl.style.height = '44px'; 
 
-            // 1. Математика
             if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
                 showLoading();
                 try {
                     let result = eval(text);
-                    setTimeout(() => { hideLoading(); addMessage(`🧮 Жауап: ${result}`, "ai"); }, 600);
+                    setTimeout(() => { hideLoading(); addMessage(`Жауап: ${result}`, "ai"); }, 600);
                     return;
                 } catch(e) {}
             }
 
-            // 2. Локальді база (Firebase/Memory)
             let brainRes = brainSearch(text);
             if (brainRes) {
                 showLoading();
@@ -636,17 +525,16 @@
                 return;
             }
 
-            // 3. Сурет генерациясы (Pollinations AI)
             let lowerText = text.toLowerCase();
             if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
                 showLoading();
                 let prompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
-                let enhancedPrompt = prompt + ", masterpiece, high resolution, hyperrealistic";
+                let enhancedPrompt = prompt + ", masterpiece, high resolution, hyperrealistic, cinematic lighting";
                 let seed = Math.floor(Math.random() * 1000000);
                 let imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
                 
-                let imgHTML = `<p>🎨 Міне, сіздің суретіңіз:</p><img src="${imgUrl}" style="max-width: 100%; border-radius: 8px; margin-top: 10px;" onload="document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;">
-                <br><a href="${imgUrl}" target="_blank" download style="color: #64b5f6; text-decoration: none; display: inline-block; margin-top: 10px;">📥 Толық көлемде ашу</a>`;
+                let imgHTML = `<img src="${imgUrl}" style="max-width: 100%; max-height: 400px; border-radius: 12px; margin-top: 8px;" onload="document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;">
+                <br><a href="${imgUrl}" target="_blank" download style="color: var(--accent); text-decoration: none; font-size: 14px; display: inline-block; margin-top: 10px; font-weight: 500;">Толық көлемде жүктеу</a>`;
                 
                 setTimeout(() => {
                     hideLoading();
@@ -655,33 +543,25 @@
                 return;
             }
 
-            // 4. Өз серверіңнен жауап алу (Render API)
             showLoading();
             try {
                 let response = await fetch("https://serik-ai-1.onrender.com/api/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        prompt: text,
-                        systemPrompt: currentSystemPrompt
-                    })
+                    body: JSON.stringify({ prompt: text, systemPrompt: currentSystemPrompt })
                 });
 
                 let data = await response.json();
                 hideLoading();
 
-                if (data.response) {
-                    addMessage(data.response.trim(), "ai");
-                } else {
-                    addMessage("⚠️ Серверден жауап келмеді.", "ai");
-                }
+                if (data.response) { addMessage(data.response.trim(), "ai"); } 
+                else { addMessage("Кешіріңіз, серверден жауап келмеді.", "ai"); }
             } catch (e) {
                 hideLoading();
-                addMessage("⚠️ Өз серверіңізге қосылу қатесі. Render сервері ұйқыда болуы мүмкін, сәл күте тұрыңыз (1-2 минут).", "ai");
+                addMessage("Қосылу қатесі. Render сервері ұйқыда болуы мүмкін, 1-2 минут күте тұрыңыз.", "ai");
             }
         }
 
-        // Админ панель функциялары
         function checkAdmin() {
             if (document.getElementById("adminPass").value === "nurik777") {
                 document.getElementById("adminTools").style.display = "block";
@@ -705,15 +585,10 @@
             if (count > 0 && db) {
                 memory = newMemory;
                 db.ref('serik_memory').set(memory);
-                alert("✅ Firebase-ке сәтті сақталды!");
+                alert("База сәтті жаңартылды!");
                 document.getElementById("bulkData").value = "";
             }
         }
-
-        // Бастапқы хабарлама
-        window.onload = () => {
-            clearChat();
-        };
     </script>
 </body>
 </html>
