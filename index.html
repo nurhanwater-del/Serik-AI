@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="kk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -26,7 +26,7 @@
             --accent: #a8c7fa;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background-color: var(--bg-base);
@@ -38,11 +38,11 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #4a4d51; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #4a4d51; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #5f6368; }
 
-        /* SIDEBAR */
         .sidebar {
             width: 280px;
             background-color: var(--bg-surface);
@@ -58,80 +58,92 @@
             background: transparent; border: none; color: var(--text-primary);
             width: 48px; height: 48px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: background 0.2s, transform 0.1s;
+            cursor: pointer; transition: 0.2s;
         }
-        .menu-btn:active { transform: scale(0.92); background-color: rgba(255,255,255,0.1); }
         .menu-btn:hover { background-color: var(--bg-surface-hover); }
 
         .new-chat-btn {
             background-color: var(--bg-base); color: var(--text-primary);
             border: none; padding: 12px 16px; border-radius: 50px;
             cursor: pointer; display: flex; align-items: center; gap: 12px;
-            font-size: 14px; font-weight: 500; margin: 0 16px 16px 16px; 
-            transition: background 0.2s, transform 0.1s;
+            font-size: 14px; font-weight: 500; margin: 0 16px 16px 16px; transition: 0.2s;
         }
-        .new-chat-btn:active { transform: scale(0.97); }
         .new-chat-btn:hover { background-color: var(--bg-surface-hover); }
 
-        .chat-history { flex: 1; overflow-y: auto; padding: 0 16px; display: flex; flex-direction: column; gap: 4px; }
+        .chat-history { flex: 1; overflow-y: auto; padding: 0 16px; display: flex; flex-direction: column; gap: 2px; }
         .history-item {
-            padding: 12px 16px; border-radius: 50px; cursor: pointer; color: var(--text-primary);
-            font-size: 14px; display: flex; align-items: center; gap: 12px; 
-            transition: background 0.2s, transform 0.1s;
+            padding: 10px 12px; border-radius: 50px; cursor: pointer; color: var(--text-primary);
+            font-size: 14px; display: flex; align-items: center; gap: 12px; transition: 0.2s;
         }
-        .history-item:active { transform: scale(0.98); background-color: rgba(255,255,255,0.15); }
         .history-item:hover { background-color: var(--bg-surface-hover); }
         .history-item .material-symbols-outlined { font-size: 18px; color: var(--text-secondary); }
 
-        .sidebar-footer { padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+        .sidebar-footer { padding: 16px; display: flex; flex-direction: column; gap: 4px; }
         .footer-item {
-            padding: 12px 16px; border-radius: 50px; cursor: pointer; color: var(--text-primary);
-            font-size: 14px; display: flex; align-items: center; gap: 12px; 
-            transition: background 0.2s, transform 0.1s;
+            padding: 10px 12px; border-radius: 50px; cursor: pointer; color: var(--text-primary);
+            font-size: 14px; display: flex; align-items: center; gap: 12px; transition: 0.2s;
             border: none; background: transparent; text-align: left; width: 100%;
         }
-        .footer-item:active { transform: scale(0.98); background-color: rgba(255,255,255,0.15); }
         .footer-item:hover { background-color: var(--bg-surface-hover); }
         .footer-item.active { color: var(--accent); }
 
-        /* MAIN CONTENT */
+        .lang-select {
+            background: var(--bg-base);
+            color: var(--text-primary);
+            border: 1px solid #444;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 4px;
+            outline: none;
+        }
+        .lang-select:hover { border-color: var(--accent); }
+
         .main-content {
             flex: 1; display: flex; flex-direction: column; position: relative;
-            background-color: var(--bg-base); height: 100%; overflow: hidden;
+            background-color: var(--bg-base); height: 100%;
         }
 
         .top-bar {
             padding: 8px 16px; display: flex; align-items: center;
-            justify-content: space-between; height: 64px; flex-shrink: 0;
+            justify-content: space-between; height: 64px;
         }
         .top-bar-left { display: flex; align-items: center; gap: 12px; }
         
         .logo-img { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; }
         .logo-text { font-size: 20px; color: var(--text-primary); font-weight: 500; }
 
-        /* WELCOME SCREEN */
+        /* Табы */
+        .tab-content {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .tab-content.active {
+            display: flex;
+        }
+
         .welcome-screen {
             flex: 1; display: flex; flex-direction: column; justify-content: center;
             max-width: 800px; margin: 0 auto; width: 100%; padding: 20px; padding-bottom: 120px;
-            overflow-y: auto;
         }
         .greeting-text {
-            font-size: 48px; font-weight: 500; line-height: 1.2; margin-bottom: 10px;
+            font-size: 56px; font-weight: 500; line-height: 1.2; margin-bottom: 10px;
             background: -webkit-linear-gradient(74deg, #4285f4 0, #9b72cb 9%, #d96570 20%, #d96570 24%, #9b72cb 35%, #4285f4 44%, #9b72cb 50%, #d96570 56%, #e3e3e3 75%, #e3e3e3 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             background-size: 400% 100%; animation: gradientMove 8s ease infinite;
         }
         @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-        .greeting-subtext { font-size: 48px; font-weight: 500; color: #444746; margin-bottom: 30px; line-height: 1.2; }
+        .greeting-subtext { font-size: 56px; font-weight: 500; color: #444746; margin-bottom: 40px; line-height: 1.2; }
         
-        .suggestions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+        .suggestions { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
         .suggestion-card {
-            background-color: var(--bg-surface); padding: 18px; border-radius: 16px;
-            cursor: pointer; transition: background 0.2s, transform 0.1s; 
-            display: flex; flex-direction: column; gap: 12px; height: 100%;
-            border: 1px solid rgba(255,255,255,0.03);
+            background-color: var(--bg-surface); padding: 16px; border-radius: 12px;
+            cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 12px; height: 100%;
         }
-        .suggestion-card:active { transform: scale(0.97); }
         .suggestion-card:hover { background-color: var(--bg-surface-hover); }
         .suggestion-card p { color: var(--text-primary); font-size: 15px; line-height: 1.4; flex: 1; }
         .suggestion-card .icon-wrap {
@@ -139,20 +151,19 @@
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
         }
 
-        /* CHAT AREA */
         .chat-container {
-            display: none; flex: 1; overflow-y: auto; padding: 20px;
+            flex: 1; overflow-y: auto; padding: 20px;
             padding-bottom: 120px; scroll-behavior: smooth;
         }
         .message-wrapper {
-            max-width: 800px; margin: 0 auto 24px auto; display: flex;
+            max-width: 800px; margin: 0 auto 32px auto; display: flex;
             flex-direction: column; gap: 8px; width: 100%;
         }
 
         .message-wrapper.user { align-items: flex-end; }
         .message-wrapper.user .message {
-            background-color: var(--user-bubble); padding: 14px 20px;
-            border-radius: 20px; font-size: 16px; line-height: 1.5; max-width: 85%; word-wrap: break-word;
+            background-color: var(--user-bubble); padding: 12px 20px;
+            border-radius: 24px; font-size: 16px; line-height: 1.5; max-width: 85%; word-wrap: break-word;
         }
 
         .message-wrapper.ai { align-items: flex-start; flex-direction: row; gap: 16px; }
@@ -170,39 +181,33 @@
             max-width: 100%; word-wrap: break-word; white-space: pre-wrap;
         }
 
-        /* INPUT */
         .input-area {
             position: absolute; bottom: 0; left: 0; width: 100%;
-            background: linear-gradient(to top, var(--bg-base) 75%, transparent);
-            padding: 16px 20px 20px 20px; display: flex; flex-direction: column; align-items: center;
-            z-index: 10;
+            background: linear-gradient(to top, var(--bg-base) 70%, transparent);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
         }
         .input-box {
             background-color: var(--bg-surface); border-radius: 32px; display: flex;
-            align-items: flex-end; padding: 8px 12px; width: 100%; max-width: 800px;
+            align-items: flex-end; padding: 8px 16px; width: 100%; max-width: 800px;
             min-height: 56px; transition: background-color 0.3s;
-            border: 1px solid rgba(255,255,255,0.05);
         }
-        .input-box:focus-within { background-color: #2b2c2e; border-color: rgba(168, 199, 250, 0.3); }
+        .input-box:focus-within { background-color: #3a3b3e; }
         
         .btn-icon {
             background: transparent; border: none; color: var(--text-secondary);
             width: 40px; height: 40px; border-radius: 50%; display: flex;
-            align-items: center; justify-content: center; cursor: pointer; 
-            transition: background 0.2s, color 0.2s, transform 0.1s;
+            align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
             flex-shrink: 0; margin-bottom: 2px;
         }
-        .btn-icon:active { transform: scale(0.9); }
         .btn-icon:hover { background-color: rgba(255,255,255,0.1); color: var(--text-primary); }
         
         textarea {
             flex: 1; background: transparent; border: none; color: var(--text-primary);
-            font-size: 16px; resize: none; max-height: 150px; padding: 10px 8px;
+            font-size: 16px; resize: none; max-height: 200px; padding: 12px 12px;
             outline: none; height: 44px; font-family: inherit; line-height: 1.5;
         }
-        .disclaimer { text-align: center; font-size: 11px; color: var(--text-secondary); margin-top: 10px; }
+        .disclaimer { text-align: center; font-size: 12px; color: var(--text-secondary); margin-top: 12px; }
 
-        /* ЗАГРУЗКА АНИМАЦИЯСЫ */
         .loading-logo { 
             animation: pulseGlow 1.2s infinite ease-in-out;
             box-shadow: 0 0 10px rgba(0, 225, 255, 0.4);
@@ -213,36 +218,102 @@
             100% { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 5px rgba(0, 225, 255, 0.2); }
         }
 
-        /* ADMIN PANEL */
+        /* Фото бөлімі */
+        .image-panel {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .image-panel h3 { font-weight: 500; margin-bottom: 8px; }
+        .image-panel textarea {
+            background: var(--bg-surface);
+            border: 1px solid #444;
+            color: var(--text-primary);
+            border-radius: 12px;
+            padding: 12px;
+            height: 80px;
+            width: 100%;
+            resize: none;
+            font-family: inherit;
+        }
+        .ratio-options, .quality-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .ratio-options button, .quality-options button {
+            background: var(--bg-surface);
+            border: 1px solid #444;
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .ratio-options button.active, .quality-options button.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            font-weight: 600;
+        }
+        #generateImageBtn {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 12px;
+            border-radius: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+        #generateImageBtn:hover { opacity: 0.9; }
+        #imageResult {
+            text-align: center;
+            margin-top: 10px;
+        }
+        #imageResult img {
+            max-width: 100%;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        .download-btn {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border: 1px solid #444;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+        .download-btn:hover { background: var(--bg-surface-hover); }
+
         #adminPanel {
-            display: none; position: absolute; bottom: 85px; left: 20px;
+            display: none; position: absolute; bottom: 80px; left: 20px;
             background: var(--bg-surface); padding: 20px; border-radius: 16px; width: 280px;
-            z-index: 2000; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.1);
+            z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
         #adminPanel input, #adminPanel textarea {
             width: 100%; background: var(--bg-base); border: 1px solid #444; color: white;
-            padding: 10px; border-radius: 8px; margin-bottom: 12px; outline: none; font-family: inherit;
+            padding: 10px; border-radius: 8px; margin-bottom: 12px; outline: none;
         }
-        #adminPanel button { 
-            width: 100%; background: var(--accent); color: #000; border: none; padding: 10px; 
-            border-radius: 20px; font-weight: 500; cursor: pointer; transition: transform 0.1s; 
-        }
-        #adminPanel button:active { transform: scale(0.97); }
-
-        /* OVERLAY FOR MOBILE SIDEBAR */
-        .sidebar-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 999; backdrop-filter: blur(2px);
-            opacity: 0; transition: opacity 0.3s;
-        }
-        .sidebar-overlay.active { display: block; opacity: 1; }
+        #adminPanel button { width: 100%; background: var(--accent); color: #000; border: none; padding: 10px; border-radius: 20px; font-weight: 500; cursor: pointer; }
 
         @media (max-width: 768px) {
-            .sidebar { position: fixed; left: -280px; box-shadow: 5px 0 25px rgba(0,0,0,0.7); }
+            .sidebar { position: absolute; left: -280px; box-shadow: 5px 0 20px rgba(0,0,0,0.5); }
             .sidebar.active { left: 0; }
             .menu-btn.mobile-only { display: flex; }
-            .greeting-text, .greeting-subtext { font-size: 34px; }
+            .greeting-text, .greeting-subtext { font-size: 40px; }
             .message-wrapper.ai { gap: 12px; }
             .message-wrapper.user .message { max-width: 90%; }
         }
@@ -250,8 +321,6 @@
     </style>
 </head>
 <body>
-
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -262,38 +331,51 @@
 
         <button class="new-chat-btn" onclick="newChat()">
             <span class="material-symbols-outlined">add</span>
-            Новый чат
+            <span data-lang="new_chat">Жаңа чат</span>
         </button>
 
+        <!-- Негізгі табтар -->
         <div class="chat-history">
-            <div class="history-item" onclick="selectHistory('Привет!')">
+            <div class="history-item" onclick="switchTab('chat'); closeSidebar()">
                 <span class="material-symbols-outlined">chat_bubble</span>
-                Приветствие
+                <span data-lang="chat_tab">💬 Чат</span>
             </div>
-            <div class="history-item" onclick="selectHistory('Кто ты?')">
-                <span class="material-symbols-outlined">chat_bubble</span>
-                Мои возможности
+            <div class="history-item" onclick="switchTab('image'); closeSidebar()">
+                <span class="material-symbols-outlined">image</span>
+                <span data-lang="image_tab">🖼️ Фото</span>
             </div>
         </div>
 
         <div class="sidebar-footer">
+            <select class="lang-select" id="langSelect" onchange="changeLanguage(this.value)">
+                <option value="kk">🇰🇿 Қазақша</option>
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="zh">🇨🇳 中文</option>
+                <option value="tr">🇹🇷 Türkçe</option>
+                <option value="ky">🇰🇬 Кыргызча</option>
+                <option value="tg">🇹🇯 Тоҷикӣ</option>
+                <option value="uk">🇺🇦 Українська</option>
+                <option value="uz">🇺🇿 O'zbekcha</option>
+            </select>
+
             <button class="footer-item" id="voiceBtn" onclick="toggleVoice()">
                 <span class="material-symbols-outlined" id="voiceIcon">volume_off</span>
-                <span>Голос выключен</span>
+                <span data-lang="voice_off">Голос өшірулі</span>
             </button>
-            <button class="footer-item" onclick="toggleAdminPanel()">
+            <button class="footer-item" onclick="document.getElementById('adminPanel').style.display = document.getElementById('adminPanel').style.display === 'block' ? 'none' : 'block'">
                 <span class="material-symbols-outlined">settings</span>
-                <span>Настройки</span>
+                <span data-lang="settings">Баптаулар</span>
             </button>
         </div>
     </aside>
 
     <div id="adminPanel">
-        <h4 style="margin-bottom: 15px; font-weight: 500;">Скрытая база 🔒</h4>
-        <input type="password" id="adminPass" placeholder="Пароль" oninput="checkAdmin()">
+        <h4 style="margin-bottom: 15px; font-weight: 500;" data-lang="admin_title">Жасырын база 🔒</h4>
+        <input type="password" id="adminPass" data-lang-placeholder="password_placeholder" placeholder="Пароль" oninput="checkAdmin()">
         <div id="adminTools" style="display: none;">
             <textarea id="bulkData" placeholder="вопрос это ответ" style="height: 100px; resize: none;"></textarea>
-            <button onclick="bulkLearn()">Сохранить в облако</button>
+            <button onclick="bulkLearn()" data-lang="save_cloud">Бұлтқа сақтау</button>
         </div>
     </div>
 
@@ -307,46 +389,406 @@
                 <span class="logo-text">Serik AI</span>
             </div>
             <div class="top-bar-right">
-                <div style="width: 32px; height: 32px; background: #604085; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 500; font-size: 14px;">N</div>
+                <div style="width: 32px; height: 32px; background: #604085; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 500;">N</div>
             </div>
         </div>
 
-        <div class="welcome-screen" id="welcomeScreen">
-            <div class="greeting-text">Привет, Nurik</div>
-            <div class="greeting-subtext">Что вы хотите узнать сегодня?</div>
-            
-            <div class="suggestions">
-                <div class="suggestion-card" onclick="selectSuggestion('Киберпанк стилінде көлік нарисуй')">
-                    <p>Генерация автомобиля будущего</p>
-                    <div class="icon-wrap"><span class="material-symbols-outlined" style="color: #e37400;">draw</span></div>
+        <!-- Чат табы -->
+        <div id="chatTab" class="tab-content active">
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="greeting-text" data-lang="greeting_title">Сәлем, Nurik</div>
+                <div class="greeting-subtext" data-lang="greeting_subtitle">Бүгін не білгіңіз келеді?</div>
+                <div class="suggestions">
+                    <div class="suggestion-card" onclick="document.getElementById('userInput').value=getLangText('suggestion1_prompt'); send()">
+                        <p data-lang="suggestion1">Болашақтың көлігін генерациялау</p>
+                        <div class="icon-wrap"><span class="material-symbols-outlined" style="color: #e37400;">draw</span></div>
+                    </div>
+                    <div class="suggestion-card" onclick="document.getElementById('userInput').value=getLangText('suggestion2_prompt'); send()">
+                        <p data-lang="suggestion2">Кодтауда көмек сұрау</p>
+                        <div class="icon-wrap"><span class="material-symbols-outlined" style="color: #12b5cb;">code</span></div>
+                    </div>
                 </div>
-                <div class="suggestion-card" onclick="selectSuggestion('C++ тілінде hello world қалай жазады?')">
-                    <p>Помощь в написании кода</p>
-                    <div class="icon-wrap"><span class="material-symbols-outlined" style="color: #12b5cb;">code</span></div>
+            </div>
+            <div class="chat-container" id="chatBox"></div>
+            <div class="input-area" id="chatInputArea">
+                <div class="input-box">
+                    <button class="btn-icon" title="Сурет жүктеу (Жақында)">
+                        <span class="material-symbols-outlined">add_photo_alternate</span>
+                    </button>
+                    <button class="btn-icon" id="micBtn" onclick="toggleVoice()" title="Дауыс қосу">
+                        <span class="material-symbols-outlined">mic</span>
+                    </button>
+                    <textarea id="userInput" data-lang-placeholder="input_placeholder" placeholder="Осы жерге жазыңыз..." oninput="autoResize(this)" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); }"></textarea>
+                    <button class="btn-icon" onclick="send()" style="color: var(--text-primary);">
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
                 </div>
+                <div class="disclaimer" data-lang="disclaimer">Serik AI қате ақпарат беруі мүмкін. Маңызды деректерді тексеріп алыңыз.</div>
             </div>
         </div>
 
-        <div class="chat-container" id="chatBox"></div>
-
-        <div class="input-area">
-            <div class="input-box">
-                <button class="btn-icon" title="Загрузить фото (Скоро)" onclick="alert('Эта функция скоро будет добавлена!')">
-                    <span class="material-symbols-outlined">add_photo_alternate</span>
-                </button>
-                <button class="btn-icon" id="micBtn" onclick="toggleVoice()" title="Включить голос">
-                    <span class="material-symbols-outlined">mic</span>
-                </button>
-                <textarea id="userInput" placeholder="Напишите сюда..." oninput="autoResize(this)" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); }"></textarea>
-                <button class="btn-icon" onclick="send()" style="color: var(--text-primary);" title="Отправить">
-                    <span class="material-symbols-outlined">send</span>
-                </button>
+        <!-- Фото табы -->
+        <div id="imageTab" class="tab-content">
+            <div class="image-panel">
+                <h3 data-lang="image_title">Сурет генерациясы</h3>
+                <textarea id="imagePrompt" data-lang-placeholder="image_prompt_placeholder" placeholder="Сурет сипаттамасын жазыңыз..."></textarea>
+                <div>
+                    <p style="margin-bottom: 8px; color: var(--text-secondary);" data-lang="ratio_label">Пропорция</p>
+                    <div class="ratio-options" id="ratioOptions">
+                        <button class="active" data-ratio="1:1">1:1</button>
+                        <button data-ratio="16:9">16:9</button>
+                        <button data-ratio="9:16">9:16</button>
+                    </div>
+                </div>
+                <div>
+                    <p style="margin-bottom: 8px; color: var(--text-secondary);" data-lang="quality_label">Сапа</p>
+                    <div class="quality-options" id="qualityOptions">
+                        <button class="active" data-quality="hd">HD</button>
+                        <button data-quality="1080p">1080p60</button>
+                        <button data-quality="2040p">2040p60</button>
+                    </div>
+                </div>
+                <button id="generateImageBtn" onclick="generateImageFromPanel()" data-lang="generate_btn">✨ Генерациялау</button>
+                <div id="imageResult"></div>
             </div>
-            <div class="disclaimer">Serik AI может выдавать неверную информацию. Проверяйте важные данные.</div>
         </div>
     </main>
 
     <script>
+        // ========== КӨПТІЛДІ АУДАРМАЛАР ==========
+        const translations = {
+            kk: {
+                new_chat: "Жаңа чат",
+                chat_tab: "💬 Чат",
+                image_tab: "🖼️ Фото",
+                greeting: "Сәлемдесу",
+                abilities: "Менің қабілеттерім",
+                voice_off: "Голос өшірулі",
+                voice_on: "Голос қосулы",
+                settings: "Баптаулар",
+                admin_title: "Жасырын база 🔒",
+                password_placeholder: "Пароль",
+                save_cloud: "Бұлтқа сақтау",
+                greeting_title: "Сәлем, Nurik",
+                greeting_subtitle: "Бүгін не білгіңіз келеді?",
+                suggestion1: "Болашақтың көлігін генерациялау",
+                suggestion2: "Кодтауда көмек сұрау",
+                input_placeholder: "Осы жерге жазыңыз...",
+                disclaimer: "Serik AI қате ақпарат беруі мүмкін. Маңызды деректерді тексеріп алыңыз.",
+                greeting_prompt: "Сәлем!",
+                abilities_prompt: "Кімсің?",
+                suggestion1_prompt: "Киберпанк стилінде көлік нарисуй",
+                suggestion2_prompt: "C++ тілінде hello world қалай жазады?",
+                error_connection: "Қосылу қатесі. Қайталап көріңіз.",
+                ai_thinking: "Ойлануда...",
+                image_title: "Сурет генерациясы",
+                image_prompt_placeholder: "Сурет сипаттамасын жазыңыз...",
+                ratio_label: "Пропорция",
+                quality_label: "Сапа",
+                generate_btn: "✨ Генерациялау",
+                download_btn: "📥 Скачать",
+            },
+            ru: {
+                new_chat: "Новый чат",
+                chat_tab: "💬 Чат",
+                image_tab: "🖼️ Фото",
+                greeting: "Приветствие",
+                abilities: "Мои способности",
+                voice_off: "Голос выключен",
+                voice_on: "Голос включен",
+                settings: "Настройки",
+                admin_title: "Скрытая база 🔒",
+                password_placeholder: "Пароль",
+                save_cloud: "Сохранить в облако",
+                greeting_title: "Привет, Nurik",
+                greeting_subtitle: "Что хотите узнать сегодня?",
+                suggestion1: "Сгенерировать машину будущего",
+                suggestion2: "Помощь в программировании",
+                input_placeholder: "Введите ваш запрос...",
+                disclaimer: "Serik AI может ошибаться. Проверяйте важную информацию.",
+                greeting_prompt: "Привет!",
+                abilities_prompt: "Кто ты?",
+                suggestion1_prompt: "Нарисуй машину в стиле киберпанк",
+                suggestion2_prompt: "Как написать hello world на C++?",
+                error_connection: "Ошибка соединения. Попробуйте еще раз.",
+                ai_thinking: "Думаю...",
+                image_title: "Генерация изображений",
+                image_prompt_placeholder: "Опишите изображение...",
+                ratio_label: "Пропорция",
+                quality_label: "Качество",
+                generate_btn: "✨ Сгенерировать",
+                download_btn: "📥 Скачать",
+            },
+            en: {
+                new_chat: "New Chat",
+                chat_tab: "💬 Chat",
+                image_tab: "🖼️ Images",
+                greeting: "Greeting",
+                abilities: "My Abilities",
+                voice_off: "Voice Off",
+                voice_on: "Voice On",
+                settings: "Settings",
+                admin_title: "Hidden Database 🔒",
+                password_placeholder: "Password",
+                save_cloud: "Save to Cloud",
+                greeting_title: "Hello, Nurik",
+                greeting_subtitle: "What would you like to know today?",
+                suggestion1: "Generate a futuristic car",
+                suggestion2: "Get coding help",
+                input_placeholder: "Type your query...",
+                disclaimer: "Serik AI may make mistakes. Verify important information.",
+                greeting_prompt: "Hello!",
+                abilities_prompt: "Who are you?",
+                suggestion1_prompt: "Draw a cyberpunk style car",
+                suggestion2_prompt: "How to write hello world in C++?",
+                error_connection: "Connection error. Please try again.",
+                ai_thinking: "Thinking...",
+                image_title: "Image Generation",
+                image_prompt_placeholder: "Describe the image...",
+                ratio_label: "Aspect Ratio",
+                quality_label: "Quality",
+                generate_btn: "✨ Generate",
+                download_btn: "📥 Download",
+            },
+            zh: {
+                new_chat: "新对话",
+                chat_tab: "💬 对话",
+                image_tab: "🖼️ 图片",
+                greeting: "问候",
+                abilities: "我的能力",
+                voice_off: "语音关闭",
+                voice_on: "语音开启",
+                settings: "设置",
+                admin_title: "隐藏数据库 🔒",
+                password_placeholder: "密码",
+                save_cloud: "保存到云端",
+                greeting_title: "你好, Nurik",
+                greeting_subtitle: "今天想了解什么？",
+                suggestion1: "生成未来汽车",
+                suggestion2: "获取编程帮助",
+                input_placeholder: "输入您的问题...",
+                disclaimer: "Serik AI 可能会出错。请核实重要信息。",
+                greeting_prompt: "你好！",
+                abilities_prompt: "你是谁？",
+                suggestion1_prompt: "画一辆赛博朋克风格的汽车",
+                suggestion2_prompt: "如何用C++写hello world？",
+                error_connection: "连接错误。请重试。",
+                ai_thinking: "思考中...",
+                image_title: "图像生成",
+                image_prompt_placeholder: "描述图像...",
+                ratio_label: "比例",
+                quality_label: "质量",
+                generate_btn: "✨ 生成",
+                download_btn: "📥 下载",
+            },
+            tr: {
+                new_chat: "Yeni Sohbet",
+                chat_tab: "💬 Sohbet",
+                image_tab: "🖼️ Görsel",
+                greeting: "Selamlama",
+                abilities: "Yeteneklerim",
+                voice_off: "Ses Kapalı",
+                voice_on: "Ses Açık",
+                settings: "Ayarlar",
+                admin_title: "Gizli Veritabanı 🔒",
+                password_placeholder: "Şifre",
+                save_cloud: "Buluta Kaydet",
+                greeting_title: "Merhaba, Nurik",
+                greeting_subtitle: "Bugün ne öğrenmek istersiniz?",
+                suggestion1: "Geleceğin arabasını oluştur",
+                suggestion2: "Kodlama yardımı al",
+                input_placeholder: "Sorunuzu yazın...",
+                disclaimer: "Serik AI hata yapabilir. Önemli bilgileri doğrulayın.",
+                greeting_prompt: "Merhaba!",
+                abilities_prompt: "Kimsin sen?",
+                suggestion1_prompt: "Siberpunk tarzı bir araba çiz",
+                suggestion2_prompt: "C++ dilinde hello world nasıl yazılır?",
+                error_connection: "Bağlantı hatası. Lütfen tekrar deneyin.",
+                ai_thinking: "Düşünüyor...",
+                image_title: "Görsel Oluşturma",
+                image_prompt_placeholder: "Görseli tanımlayın...",
+                ratio_label: "Oran",
+                quality_label: "Kalite",
+                generate_btn: "✨ Oluştur",
+                download_btn: "📥 İndir",
+            },
+            ky: {
+                new_chat: "Жаңы чат",
+                chat_tab: "💬 Чат",
+                image_tab: "🖼️ Сүрөт",
+                greeting: "Саламдашуу",
+                abilities: "Менин жөндөмдөрүм",
+                voice_off: "Үн өчүрүлдү",
+                voice_on: "Үн күйгүзүлдү",
+                settings: "Орнотуулар",
+                admin_title: "Жашыруун база 🔒",
+                password_placeholder: "Сыр сөз",
+                save_cloud: "Булутка сактоо",
+                greeting_title: "Салам, Nurik",
+                greeting_subtitle: "Бүгүн эмнени билгиңиз келет?",
+                suggestion1: "Келечектин унаасын жаратуу",
+                suggestion2: "Коддоого жардам суроо",
+                input_placeholder: "Сурооңузду жазыңыз...",
+                disclaimer: "Serik AI ката кетириши мүмкүн. Маанилүү маалыматтарды текшериңиз.",
+                greeting_prompt: "Салам!",
+                abilities_prompt: "Сен кимсиң?",
+                suggestion1_prompt: "Киберпанк стилинде унаа тарт",
+                suggestion2_prompt: "C++ тилинде hello world кантип жазат?",
+                error_connection: "Байланыш катасы. Кайра аракет кылыңыз.",
+                ai_thinking: "Ойлонууда...",
+                image_title: "Сүрөт генерациясы",
+                image_prompt_placeholder: "Сүрөттү сүрөттөңүз...",
+                ratio_label: "Пропорция",
+                quality_label: "Сапат",
+                generate_btn: "✨ Жаратуу",
+                download_btn: "📥 Жүктөө",
+            },
+            tg: {
+                new_chat: "Чати нав",
+                chat_tab: "💬 Чат",
+                image_tab: "🖼️ Акс",
+                greeting: "Салом",
+                abilities: "Қобилиятҳои ман",
+                voice_off: "Садо хомӯш",
+                voice_on: "Садо фаъол",
+                settings: "Танзимот",
+                admin_title: "Пойгоҳи махфӣ 🔒",
+                password_placeholder: "Рамз",
+                save_cloud: "Ба абр захира кардан",
+                greeting_title: "Салом, Nurik",
+                greeting_subtitle: "Имрӯз чӣ мехоҳед донед?",
+                suggestion1: "Мошини ояндаро сохтан",
+                suggestion2: "Кӯмак дар барномасозӣ",
+                input_placeholder: "Дархости худро ворид кунед...",
+                disclaimer: "Serik AI метавонад хато кунад. Маълумоти муҳимро тафтиш кунед.",
+                greeting_prompt: "Салом!",
+                abilities_prompt: "Ту кистӣ?",
+                suggestion1_prompt: "Мошини сабки киберпанкро кашед",
+                suggestion2_prompt: "Чӣ тавр дар C++ hello world нависед?",
+                error_connection: "Хатогии пайвастшавӣ. Лутфан, дубора кӯшиш кунед.",
+                ai_thinking: "Дар фикр...",
+                image_title: "Тавлиди акс",
+                image_prompt_placeholder: "Аксро тавсиф кунед...",
+                ratio_label: "Таносуб",
+                quality_label: "Сифат",
+                generate_btn: "✨ Тавлид",
+                download_btn: "📥 Боргирӣ",
+            },
+            uk: {
+                new_chat: "Новий чат",
+                chat_tab: "💬 Чат",
+                image_tab: "🖼️ Фото",
+                greeting: "Привітання",
+                abilities: "Мої здібності",
+                voice_off: "Голос вимкнено",
+                voice_on: "Голос увімкнено",
+                settings: "Налаштування",
+                admin_title: "Прихована база 🔒",
+                password_placeholder: "Пароль",
+                save_cloud: "Зберегти в хмару",
+                greeting_title: "Привіт, Nurik",
+                greeting_subtitle: "Що хочете дізнатися сьогодні?",
+                suggestion1: "Згенерувати авто майбутнього",
+                suggestion2: "Допомога з програмування",
+                input_placeholder: "Введіть ваш запит...",
+                disclaimer: "Serik AI може помилятися. Перевіряйте важливу інформацію.",
+                greeting_prompt: "Привіт!",
+                abilities_prompt: "Хто ти?",
+                suggestion1_prompt: "Намалюй машину в стилі кіберпанк",
+                suggestion2_prompt: "Як написати hello world на C++?",
+                error_connection: "Помилка з'єднання. Спробуйте ще раз.",
+                ai_thinking: "Думаю...",
+                image_title: "Генерація зображень",
+                image_prompt_placeholder: "Опишіть зображення...",
+                ratio_label: "Пропорція",
+                quality_label: "Якість",
+                generate_btn: "✨ Згенерувати",
+                download_btn: "📥 Завантажити",
+            },
+            uz: {
+                new_chat: "Yangi chat",
+                chat_tab: "💬 Chat",
+                image_tab: "🖼️ Rasm",
+                greeting: "Salomlashish",
+                abilities: "Mening qobiliyatlarim",
+                voice_off: "Ovoz o'chirilgan",
+                voice_on: "Ovoz yoqilgan",
+                settings: "Sozlamalar",
+                admin_title: "Yashirin baza 🔒",
+                password_placeholder: "Parol",
+                save_cloud: "Bulutga saqlash",
+                greeting_title: "Salom, Nurik",
+                greeting_subtitle: "Bugun nimani bilmoqchisiz?",
+                suggestion1: "Kelajak avtomobilini yaratish",
+                suggestion2: "Dasturlashda yordam so'rash",
+                input_placeholder: "So'rovingizni kiriting...",
+                disclaimer: "Serik AI xato qilishi mumkin. Muhim ma'lumotlarni tekshiring.",
+                greeting_prompt: "Salom!",
+                abilities_prompt: "Siz kimsiz?",
+                suggestion1_prompt: "Kiberpank uslubida mashina chizing",
+                suggestion2_prompt: "C++ tilida hello world qanday yoziladi?",
+                error_connection: "Ulanish xatosi. Qayta urinib ko'ring.",
+                ai_thinking: "O'ylayapman...",
+                image_title: "Rasm generatsiyasi",
+                image_prompt_placeholder: "Rasmni tasvirlang...",
+                ratio_label: "Nisbat",
+                quality_label: "Sifat",
+                generate_btn: "✨ Yaratish",
+                download_btn: "📥 Yuklab olish",
+            }
+        };
+
+        let currentLang = 'kk';
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('serik_lang', lang);
+            
+            // Барлық data-lang элементтерін жаңарту
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                const key = el.getAttribute('data-lang');
+                if (translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+            
+            // Placeholder аудармалары
+            document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-lang-placeholder');
+                if (translations[lang] && translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+            
+            // Дауыс батырмасын жаңарту
+            updateVoiceButton();
+            
+            // Тіл таңдау опциясын жаңарту
+            document.getElementById('langSelect').value = lang;
+        }
+
+        function getLangText(key) {
+            return translations[currentLang]?.[key] || translations['kk'][key] || '';
+        }
+
+        function updateVoiceButton() {
+            const btn = document.getElementById("voiceBtn");
+            const spanText = btn.querySelector('span:last-child');
+            if (voiceEnabled) {
+                spanText.textContent = translations[currentLang].voice_on;
+            } else {
+                spanText.textContent = translations[currentLang].voice_off;
+            }
+        }
+
+        // Сақталған тілді жүктеу
+        const savedLang = localStorage.getItem('serik_lang');
+        if (savedLang && translations[savedLang]) {
+            currentLang = savedLang;
+            document.getElementById('langSelect').value = savedLang;
+        }
+
+        // ========== FIREBASE ==========
         const firebaseConfig = {
             apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
             authDomain: "serik-ai.firebaseapp.com",
@@ -356,7 +798,7 @@
         };
 
         const defaultMemory = {
-            "привет": "Привет! Я Serik AI. Чем могу помочь? 👋",
+            "привет": "Сәлем! Мен Serik AI. Саған қалай көмектесе аламын? 👋",
             "сәлем": "Сәлем! Мен Serik AI. Саған қалай көмектесе аламын? 👋",
             "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі. Бұл — өнеге мен парасаттың нышаны."
         };
@@ -387,23 +829,103 @@
 
         const chatBox = document.getElementById('chatBox');
         const welcomeScreen = document.getElementById('welcomeScreen');
+        const chatInputArea = document.getElementById('chatInputArea');
         let voiceEnabled = false;
         let loadingElement = null;
         let isFirstMessage = true;
+        let currentRatio = '1:1';
+        let currentQuality = 'hd';
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            sidebar.classList.toggle('active');
-            if (window.innerWidth <= 768) {
-                overlay.classList.toggle('active');
+        // ========== ТАБ АУЫСТЫРУ ==========
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            if (tabName === 'chat') {
+                document.getElementById('chatTab').classList.add('active');
+                chatInputArea.style.display = 'flex';
+            } else if (tabName === 'image') {
+                document.getElementById('imageTab').classList.add('active');
+                chatInputArea.style.display = 'none';
             }
         }
 
-        function autoResize(el) { 
-            el.style.height = '44px'; 
-            el.style.height = (el.scrollHeight) + 'px'; 
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('active');
         }
+
+        // ========== ПРОПОРЦИЯ ЖӘНЕ САПА ТАҢДАУ ==========
+        document.getElementById('ratioOptions').addEventListener('click', function(e) {
+            if (e.target.tagName === 'BUTTON') {
+                this.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentRatio = e.target.dataset.ratio;
+            }
+        });
+
+        document.getElementById('qualityOptions').addEventListener('click', function(e) {
+            if (e.target.tagName === 'BUTTON') {
+                this.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentQuality = e.target.dataset.quality;
+            }
+        });
+
+        // ========== ФОТО ГЕНЕРАЦИЯСЫ (ПАНЕЛЬ) ==========
+        async function generateImageFromPanel() {
+            const prompt = document.getElementById('imagePrompt').value.trim();
+            if (!prompt) {
+                alert(getLangText('image_prompt_placeholder'));
+                return;
+            }
+
+            const resultDiv = document.getElementById('imageResult');
+            resultDiv.innerHTML = '<p style="color: var(--text-secondary);">Генерациялануда...</p>';
+
+            let baseHeight;
+            switch (currentQuality) {
+                case 'hd': baseHeight = 720; break;
+                case '1080p': baseHeight = 1080; break;
+                case '2040p': baseHeight = 2040; break;
+                default: baseHeight = 720;
+            }
+
+            let width, height;
+            switch (currentRatio) {
+                case '1:1': width = baseHeight; height = baseHeight; break;
+                case '16:9': width = Math.round(baseHeight * 16 / 9); height = baseHeight; break;
+                case '9:16': width = baseHeight; height = Math.round(baseHeight * 16 / 9); break;
+                default: width = baseHeight; height = baseHeight;
+            }
+
+            const enhancedPrompt = prompt + ", masterpiece, high resolution, hyperrealistic, cinematic lighting, no text, no watermark";
+            const seed = Math.floor(Math.random() * 1000000000);
+            const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
+
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                resultDiv.innerHTML = '';
+                img.style.maxWidth = '100%';
+                img.style.borderRadius = '12px';
+                img.style.marginBottom = '10px';
+                resultDiv.appendChild(img);
+
+                // Скачать батырмасы
+                const downloadBtn = document.createElement('a');
+                downloadBtn.href = imageUrl;
+                downloadBtn.download = 'Serik AI.png';
+                downloadBtn.className = 'download-btn';
+                downloadBtn.innerHTML = '<span class="material-symbols-outlined">download</span> ' + getLangText('download_btn');
+                downloadBtn.target = '_blank';
+                resultDiv.appendChild(downloadBtn);
+            };
+            img.onerror = function() {
+                resultDiv.innerHTML = '<p style="color: red;">Суретті жүктеу мүмкін болмады. Қайталап көріңіз.</p>';
+            };
+            img.src = imageUrl;
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+        function autoResize(el) { el.style.height = '44px'; el.style.height = (el.scrollHeight) + 'px'; }
 
         function newChat() {
             chatBox.innerHTML = '';
@@ -411,22 +933,6 @@
             welcomeScreen.style.display = 'flex';
             isFirstMessage = true;
             if(window.innerWidth <= 768) toggleSidebar();
-        }
-
-        function selectHistory(text) {
-            document.getElementById('userInput').value = text;
-            send();
-            if(window.innerWidth <= 768) toggleSidebar();
-        }
-
-        function selectSuggestion(text) {
-            document.getElementById('userInput').value = text;
-            send();
-        }
-
-        function toggleAdminPanel() {
-            const panel = document.getElementById('adminPanel');
-            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
         }
 
         function addMessage(text, sender, isImage = false) {
@@ -478,6 +984,7 @@
 
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ai`;
+            msgDiv.textContent = getLangText('ai_thinking');
             
             wrapper.appendChild(avatar);
             wrapper.appendChild(msgDiv);
@@ -499,11 +1006,11 @@
             const micBtn = document.getElementById("micBtn");
             if (voiceEnabled) {
                 btn.classList.add("active");
-                btn.innerHTML = `<span class="material-symbols-outlined">volume_up</span><span>Голос включен</span>`;
+                btn.querySelector('span:last-child').textContent = translations[currentLang].voice_on;
                 micBtn.style.color = "var(--accent)";
             } else {
                 btn.classList.remove("active");
-                btn.innerHTML = `<span class="material-symbols-outlined">volume_off</span><span>Голос выключен</span>`;
+                btn.querySelector('span:last-child').textContent = translations[currentLang].voice_off;
                 micBtn.style.color = "var(--text-secondary)";
                 window.speechSynthesis.cancel();
             }
@@ -560,7 +1067,7 @@
                 showLoading();
                 try {
                     let result = eval(text);
-                    setTimeout(() => { hideLoading(); addMessage(`Ответ: ${result}`, "ai"); }, 600);
+                    setTimeout(() => { hideLoading(); addMessage(`Жауап: ${result}`, "ai"); }, 600);
                     return;
                 } catch(e) {}
             }
@@ -576,12 +1083,12 @@
             if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
                 showLoading();
                 let prompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
-                let enhancedPrompt = prompt + ", masterpiece, high resolution, hyperrealistic, cinematic lighting";
+                let enhancedPrompt = prompt + ", masterpiece, high resolution, hyperrealistic, cinematic lighting, no text, no watermark";
                 let seed = Math.floor(Math.random() * 1000000);
                 let imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
                 
-                let imgHTML = `<img src="${imgUrl}" style="max-width: 100%; max-height: 400px; border-radius: 12px; margin-top: 8px;" onload="document.getElementById('chatBox').scrollTop = document.getElementById('chatBox'].scrollHeight;">
-                <br><a href="${imgUrl}" target="_blank" download style="color: var(--accent); text-decoration: none; font-size: 14px; display: inline-block; margin-top: 10px; font-weight: 500;">Скачать в полном размере</a>`;
+                let imgHTML = `<img src="${imgUrl}" style="max-width: 100%; max-height: 400px; border-radius: 12px; margin-top: 8px;" onload="document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;">
+                <br><a href="${imgUrl}" download="Serik AI.png" style="color: var(--accent); text-decoration: none; font-size: 14px; display: inline-block; margin-top: 10px; font-weight: 500;">📥 Скачать (Serik AI.png)</a>`;
                 
                 setTimeout(() => {
                     hideLoading();
@@ -590,25 +1097,51 @@
                 return;
             }
 
+            // ========== POLLINATIONS API (ТЕГІН, ШЕКСІЗ) ==========
             showLoading();
-            
-            setTimeout(() => {
-                hideLoading();
-                let aiReply = generateLocalResponse(text);
-                addMessage(aiReply, "ai");
-            }, 800);
-        }
+            try {
+                const messages = [
+                    { role: "system", content: currentSystemPrompt },
+                    { role: "user", content: text }
+                ];
 
-        function generateLocalResponse(text) {
-            let t = text.toLowerCase();
-            if (t.includes('коды') || t.includes('код') || t.includes('c++') || t.includes('python')) {
-                return "Задавай любые вопросы по написанию кода или программированию. Сейчас я быстро и качественно обрабатываю все запросы через собственную внутреннюю логику.";
-            } else if (t.includes('ойын') || t.includes('godot') || t.includes('backrooms')) {
-                return "Создание игр — отличное дело. Я уверен, что на Godot и Blender у тебя получится потрясающий проект в жанре survival horror!";
-            } else if (t.includes('қалайсың') || t.includes('жағдай') || t.includes('как дела')) {
-                return "Спасибо, у меня всё отлично! Сам как? Как продвигаются твои сегодняшние проекты?";
-            } else {
-                return "Я понял тебя. Всегда готов помочь в этом направлении. Что именно тебя интересует?";
+                let response = await fetch("https://text.pollinations.ai/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ messages, model: "openai", private: true })
+                });
+
+                if (!response.ok) {
+                    const fallbackModels = ["mistral", "llama"];
+                    let success = false;
+                    for (let model of fallbackModels) {
+                        response = await fetch("https://text.pollinations.ai/", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ messages, model, private: true })
+                        });
+                        if (response.ok) {
+                            success = true;
+                            break;
+                        }
+                    }
+                    if (!success) {
+                        throw new Error("Барлық модельдер қолжетімсіз");
+                    }
+                }
+
+                let data = await response.text();
+                hideLoading();
+
+                if (data && !data.includes('"error"') && !data.includes('Queue full')) {
+                    addMessage(data.trim(), "ai");
+                } else {
+                    addMessage(getLangText('error_connection'), "ai");
+                }
+            } catch (e) {
+                hideLoading();
+                addMessage(getLangText('error_connection'), "ai");
+                console.error("Pollinations API қатесі:", e);
             }
         }
 
@@ -635,10 +1168,15 @@
             if (count > 0 && db) {
                 memory = newMemory;
                 db.ref('serik_memory').set(memory);
-                alert("База успешно обновлена!");
+                alert("База сәтті жаңартылды!");
                 document.getElementById("bulkData").value = "";
             }
         }
+
+        // Бастапқы тілді орнату
+        document.addEventListener('DOMContentLoaded', () => {
+            changeLanguage(currentLang);
+        });
     </script>
 </body>
-</html>
+    </html>
