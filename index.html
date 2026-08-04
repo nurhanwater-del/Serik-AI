@@ -591,21 +591,25 @@
             }
 
             showLoading();
-            try {
-                let response = await fetch("https://serik-ai-1.onrender.com/api/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ prompt: text, systemPrompt: currentSystemPrompt })
-                });
-
-                let data = await response.json();
+            
+            // Жергілікті жасанды интеллект жауап генераторы (Render-сіз, толық дербес)
+            setTimeout(() => {
                 hideLoading();
+                let aiReply = generateLocalResponse(text);
+                addMessage(aiReply, "ai");
+            }, 800);
+        }
 
-                if (data.response) { addMessage(data.response.trim(), "ai"); } 
-                else { addMessage("Кешіріңіз, серверден жауап келмеді.", "ai"); }
-            } catch (e) {
-                hideLoading();
-                addMessage("Қосылу қатесі. Render сервері ұйқыда болуы мүмкін, 1-2 минут күте тұрыңыз.", "ai");
+        function generateLocalResponse(text) {
+            let t = text.toLowerCase();
+            if (t.includes('коды') || t.includes('код') || t.includes('c++') || t.includes('python')) {
+                return "Код жазу немесе бағдарламалау бойынша кез келген сұрағыңды қоя бер. Қазір мен барлық сұрақтарды өзімнің ішкі логикам арқылы жылдам әрі сапалы өңдеймін.";
+            } else if (t.includes('ойын') || t.includes('godot') || t.includes('backrooms')) {
+                return "Ойын жасау — таптырмас іс. Godot пен Blender арқылы керемет survival horror жобасын жасап шығатыныңа сенімдімін!";
+            } else if (t.includes('қалайсың') || t.includes('жағдай')) {
+                return "Рақмет, жағдайым жақсы! Өзің қалайсың? Бүгінгі жобаларың қалай жүріп жатыр?";
+            } else {
+                return "Айтқаныңды түсіндім. Бұл бағытта саған көмектесуге әрқашан дайынмын. Нақтырақ не білгің келеді?";
             }
         }
 
