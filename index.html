@@ -604,19 +604,31 @@ async function send() {
         return;
     }
 
-    // --- 5. ТЕКСТОВЫЙ ИИ (POLLINATIONS) ---
+        // --- 5. ТЕКСТОВЫЙ ИИ (ӨЗІҢНІҢ ЖЕКЕ RENDER СЕРВЕРІҢ) ---
     showLoading();
     try {
-        let aiUrl = `https://text.pollinations.ai/${encodeURIComponent(text)}?system=${encodeURIComponent(currentSystemPrompt)}&model=openai`;
-        let aiResponse = await fetch(aiUrl);
-        let responseText = await aiResponse.text();
-        
+        let response = await fetch("https://СЕНІҢ_RENDER_СІЛТЕМЕҢ.onrender.com/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                prompt: text,
+                systemPrompt: currentSystemPrompt
+            })
+        });
+
+        let data = await response.json();
         hideLoading();
-        add(responseText.trim(), "ai");
-    } catch(e) {
+
+        if (data.response) {
+            add(data.response.trim(), "ai");
+        } else {
+            add("⚠️ Жауап алу мүмкін болмады.", "ai");
+        }
+    } catch (e) {
         hideLoading();
-        add("⚠️ Ошибка соединения с ИИ. Попробуйте позже.", "ai");
+        add("⚠️ Өз серверіңізге қосылу қатесі.", "ai");
     }
+
 }
 </script>
 </body>
