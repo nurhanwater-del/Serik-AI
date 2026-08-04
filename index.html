@@ -92,7 +92,17 @@
         }
         .footer-item:active { transform: scale(0.98); background-color: rgba(255,255,255,0.15); }
         .footer-item:hover { background-color: var(--bg-surface-hover); }
-        .footer-item.active { color: var(--accent); }
+
+        /* LANGUAGE SELECTOR */
+        .lang-select-wrap {
+            padding: 0 16px 10px 16px;
+        }
+        .lang-select {
+            width: 100%; background: var(--bg-base); color: var(--text-primary);
+            border: 1px solid rgba(255,255,255,0.1); padding: 10px 14px; border-radius: 20px;
+            font-size: 14px; outline: none; cursor: pointer; font-family: inherit;
+        }
+        .lang-select option { background: var(--bg-surface); color: var(--text-primary); }
 
         /* MAIN CONTENT */
         .main-content {
@@ -139,7 +149,7 @@
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
         }
 
-        /* CHAT AREA - ИСПРАВЛЕННЫЙ */
+        /* CHAT AREA */
         .chat-container {
             display: none; flex: 1; overflow-y: auto; padding: 20px;
             padding-bottom: 120px; scroll-behavior: smooth;
@@ -158,7 +168,6 @@
         .message-wrapper.user .message-content-wrapper { align-items: flex-end; }
         .message-wrapper.ai .message-content-wrapper { align-items: flex-start; width: 100%; }
 
-        /* ТЕКСТ ХАБАРЛАМАСЫНЫҢ ДИЗАЙНЫ */
         .message {
             font-size: 16px; line-height: 1.6; word-wrap: break-word; word-break: break-word;
             white-space: pre-wrap; display: block;
@@ -167,9 +176,7 @@
             background-color: var(--user-bubble); padding: 14px 20px;
             border-radius: 24px 24px 4px 24px; color: var(--text-primary);
         }
-        .message-wrapper.ai .message {
-            padding: 4px 0; color: var(--text-primary);
-        }
+        .message-wrapper.ai .message { padding: 4px 0; color: var(--text-primary); }
 
         .ai-avatar {
             width: 36px; height: 36px; flex-shrink: 0; display: flex;
@@ -179,7 +186,7 @@
         }
         .ai-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* БАТЫРМАЛАР (Лайк, Дизлайк, Изменить) */
+        /* MESSAGE ACTIONS */
         .message-actions {
             display: flex; align-items: center; gap: 4px; margin-top: 8px;
             opacity: 0.7; transition: opacity 0.2s;
@@ -214,8 +221,7 @@
             background: transparent; border: none; color: var(--text-secondary);
             width: 40px; height: 40px; border-radius: 50%; display: flex;
             align-items: center; justify-content: center; cursor: pointer; 
-            transition: background 0.2s, transform 0.1s;
-            flex-shrink: 0; margin-bottom: 2px;
+            transition: background 0.2s, transform 0.1s; flex-shrink: 0; margin-bottom: 2px;
         }
         .btn-icon:active { transform: scale(0.9); }
         .btn-icon:hover { background-color: rgba(255,255,255,0.1); color: var(--text-primary); }
@@ -240,10 +246,9 @@
 
         /* ADMIN PANEL */
         #adminPanel {
-            display: none; position: absolute; bottom: 85px; left: 20px;
+            display: none; position: absolute; bottom: 130px; left: 20px;
             background: var(--bg-surface); padding: 20px; border-radius: 16px; width: 280px;
-            z-index: 2000; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.1);
+            z-index: 2000; box-shadow: 0 8px 24px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1);
         }
         #adminPanel input, #adminPanel textarea {
             width: 100%; background: var(--bg-base); border: 1px solid #444; color: white;
@@ -285,38 +290,52 @@
 
         <button class="new-chat-btn" onclick="newChat()">
             <span class="material-symbols-outlined">add</span>
-            Новый чат
+            <span data-i18n="new_chat">Новый чат</span>
         </button>
+
+        <div class="lang-select-wrap">
+            <select id="langSelect" class="lang-select" onchange="changeLanguage(this.value)">
+                <option value="kk">🇰🇿 Қазақша</option>
+                <option value="ru" selected>🇷🇺 Русский</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="tr">🇹🇷 Türkçe</option>
+                <option value="uz">🇺🇿 Oʻzbekcha</option>
+                <option value="zh">🇨🇳 中文</option>
+                <option value="es">🇪🇸 Español</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="fr">🇫🇷 Français</option>
+            </select>
+        </div>
 
         <div class="chat-history">
             <div class="history-item" onclick="selectHistory('Привет!')">
                 <span class="material-symbols-outlined">chat_bubble</span>
-                Приветствие
+                <span data-i18n="hist_1">Приветствие</span>
             </div>
             <div class="history-item" onclick="selectHistory('Кто ты?')">
                 <span class="material-symbols-outlined">chat_bubble</span>
-                Мои возможности
+                <span data-i18n="hist_2">Мои возможности</span>
             </div>
         </div>
 
         <div class="sidebar-footer">
             <button class="footer-item" id="voiceBtn" onclick="toggleVoice()">
                 <span class="material-symbols-outlined" id="voiceIcon">volume_off</span>
-                <span>Голос выключен</span>
+                <span data-i18n="voice_off">Голос выключен</span>
             </button>
             <button class="footer-item" onclick="toggleAdminPanel()">
                 <span class="material-symbols-outlined">settings</span>
-                <span>Настройки</span>
+                <span data-i18n="settings">Настройки</span>
             </button>
         </div>
     </aside>
 
     <div id="adminPanel">
-        <h4 style="margin-bottom: 15px; font-weight: 500;">Скрытая база 🔒</h4>
-        <input type="password" id="adminPass" placeholder="Пароль" oninput="checkAdmin()">
+        <h4 style="margin-bottom: 15px; font-weight: 500;" data-i18n="admin_title">Скрытая база 🔒</h4>
+        <input type="password" id="adminPass" data-i18n-ph="admin_pass" placeholder="Пароль" oninput="checkAdmin()">
         <div id="adminTools" style="display: none;">
-            <textarea id="bulkData" placeholder="вопрос это ответ" style="height: 100px; resize: none;"></textarea>
-            <button onclick="bulkLearn()">Сохранить в облако</button>
+            <textarea id="bulkData" data-i18n-ph="admin_ph" placeholder="вопрос это ответ" style="height: 100px; resize: none;"></textarea>
+            <button onclick="bulkLearn()" data-i18n="admin_btn">Сохранить в облако</button>
         </div>
     </div>
 
@@ -335,16 +354,16 @@
         </div>
 
         <div class="welcome-screen" id="welcomeScreen">
-            <div class="greeting-text">Привет, Nurik</div>
-            <div class="greeting-subtext">Что вы хотите узнать сегодня?</div>
+            <div class="greeting-text" data-i18n="greeting">Привет, Nurik</div>
+            <div class="greeting-subtext" data-i18n="sub_greeting">Что вы хотите узнать сегодня?</div>
             
             <div class="suggestions">
                 <div class="suggestion-card" onclick="selectSuggestion('Киберпанк стилінде көлік нарисуй')">
-                    <p>Генерация автомобиля будущего</p>
+                    <p data-i18n="sugg_1">Генерация автомобиля будущего</p>
                     <div class="icon-wrap"><span class="material-symbols-outlined" style="color: #e37400;">draw</span></div>
                 </div>
                 <div class="suggestion-card" onclick="selectSuggestion('C++ тілінде hello world қалай жазады?')">
-                    <p>Помощь в написании кода</p>
+                    <p data-i18n="sugg_2">Помощь в написании кода</p>
                     <div class="icon-wrap"><span class="material-symbols-outlined" style="color: #12b5cb;">code</span></div>
                 </div>
             </div>
@@ -354,22 +373,130 @@
 
         <div class="input-area">
             <div class="input-box">
-                <button class="btn-icon" title="Загрузить фото (Скоро)" onclick="alert('Эта функция скоро будет добавлена!')">
+                <button class="btn-icon" title="Загрузить фото" onclick="alert('Эта функция скоро будет добавлена!')">
                     <span class="material-symbols-outlined">add_photo_alternate</span>
                 </button>
                 <button class="btn-icon" id="micBtn" onclick="toggleVoice()" title="Включить голос">
                     <span class="material-symbols-outlined">mic</span>
                 </button>
-                <textarea id="userInput" placeholder="Напишите сюда..." oninput="autoResize(this)" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); }"></textarea>
+                <textarea id="userInput" data-i18n-ph="placeholder" placeholder="Напишите сюда..." oninput="autoResize(this)" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); }"></textarea>
                 <button class="btn-icon" onclick="send()" style="color: var(--text-primary);" title="Отправить">
                     <span class="material-symbols-outlined">send</span>
                 </button>
             </div>
-            <div class="disclaimer">Serik AI может выдавать неверную информацию. Проверяйте важные данные.</div>
+            <div class="disclaimer" data-i18n="disclaimer">Serik AI может выдавать неверную информацию. Проверяйте важные данные.</div>
         </div>
     </main>
 
     <script>
+        // 9 ТІЛ ЖҮЙЕСІ (9 LANGUAGES TRANSLATIONS)
+        const translations = {
+            kk: {
+                new_chat: "Жаңа чат", hist_1: "Сәлемдесу", hist_2: "Менің мүмкіндіктерім",
+                voice_off: "Дауыс өшірулі", voice_on: "Дауыс қосулы", settings: "Баптаулар",
+                greeting: "Сәлем, Nurik", sub_greeting: "Бүгін не білгіңіз келеді?",
+                sugg_1: "Болашақ көлігін генерациялау", sugg_2: "Код жазуға көмектесу",
+                placeholder: "Осында жазыңыз...", disclaimer: "Serik AI қате ақпарат беруі мүмкін. Маңызды деректерді тексеріңіз.",
+                admin_title: "Жасырын база 🔒", admin_pass: "Құпия сөз", admin_ph: "сұрақ это жауап", admin_btn: "Бұлтқа сақтау",
+                download_img: "Толық өлшемде жүктеу"
+            },
+            ru: {
+                new_chat: "Новый чат", hist_1: "Приветствие", hist_2: "Мои возможности",
+                voice_off: "Голос выключен", voice_on: "Голос включен", settings: "Настройки",
+                greeting: "Привет, Nurik", sub_greeting: "Что вы хотите узнать сегодня?",
+                sugg_1: "Генерация автомобиля будущего", sugg_2: "Помощь в написании кода",
+                placeholder: "Напишите сюда...", disclaimer: "Serik AI может выдавать неверную информацию. Проверяйте важные данные.",
+                admin_title: "Скрытая база 🔒", admin_pass: "Пароль", admin_ph: "вопрос это ответ", admin_btn: "Сохранить в облако",
+                download_img: "Скачать в полном размере"
+            },
+            en: {
+                new_chat: "New Chat", hist_1: "Greeting", hist_2: "My Capabilities",
+                voice_off: "Voice Off", voice_on: "Voice On", settings: "Settings",
+                greeting: "Hello, Nurik", sub_greeting: "What would you like to know today?",
+                sugg_1: "Generate a futuristic car", sugg_2: "Help with writing code",
+                placeholder: "Type here...", disclaimer: "Serik AI may display inaccurate info. Verify important data.",
+                admin_title: "Hidden DB 🔒", admin_pass: "Password", admin_ph: "question is answer", admin_btn: "Save to Cloud",
+                download_img: "Download full size"
+            },
+            tr: {
+                new_chat: "Yeni Sohbet", hist_1: "Karşılama", hist_2: "Yeteneklerim",
+                voice_off: "Ses Kapalı", voice_on: "Ses Açık", settings: "Ayarlar",
+                greeting: "Merhaba, Nurik", sub_greeting: "Bugün ne öğrenmek istersiniz?",
+                sugg_1: "Fütüristik araba üretimi", sugg_2: "Kod yazma yardımı",
+                placeholder: "Buraya yazın...", disclaimer: "Serik AI yanlış bilgi verebilir. Önemli verileri kontrol edin.",
+                admin_title: "Gizli Veritabanı 🔒", admin_pass: "Şifre", admin_ph: "soru cevap", admin_btn: "Buluta Kaydet",
+                download_img: "Tam boyutta indir"
+            },
+            uz: {
+                new_chat: "Yangi chat", hist_1: "Salomlashish", hist_2: "Imkoniyatlarim",
+                voice_off: "Ovoz o'chirilgan", voice_on: "Ovoz yoqilgan", settings: "Sozlamalar",
+                greeting: "Salom, Nurik", sub_greeting: "Bugun nimani bilishni xohlaysiz?",
+                sugg_1: "Kelajak mashinasini yaratish", sugg_2: "Kod yozishda yordam",
+                placeholder: "Bu yerga yozing...", disclaimer: "Serik AI noto'g'ri ma'lumot berishi mumkin. Tekshirib ko'ring.",
+                admin_title: "Yashirin baza 🔒", admin_pass: "Parol", admin_ph: "savol javob", admin_btn: "Bulutga saqlash",
+                download_img: "To'liq hajmda yuklab olish"
+            },
+            zh: {
+                new_chat: "新聊天", hist_1: "问候", hist_2: "我的能力",
+                voice_off: "语音关闭", voice_on: "语音开启", settings: "设置",
+                greeting: "你好，Nurik", sub_greeting: "今天想了解点什么？",
+                sugg_1: "生成未来汽车", sugg_2: "编写代码帮助",
+                placeholder: "在此输入...", disclaimer: "Serik AI 可能会提供不准确的信息。请核实重要数据。",
+                admin_title: "隐藏数据库 🔒", admin_pass: "密码", admin_ph: "问题是答案", admin_btn: "保存到云端",
+                download_img: "下载完整尺寸"
+            },
+            es: {
+                new_chat: "Nuevo chat", hist_1: "Saludo", hist_2: "Mis capacidades",
+                voice_off: "Voz desactivada", voice_on: "Voz activada", settings: "Ajustes",
+                greeting: "Hola, Nurik", sub_greeting: "¿Qué te gustaría saber hoy?",
+                sugg_1: "Generar un coche futurista", sugg_2: "Ayuda para escribir código",
+                placeholder: "Escribe aquí...", disclaimer: "Serik AI puede mostrar información inexacta. Verifique los datos.",
+                admin_title: "Base oculta 🔒", admin_pass: "Contraseña", admin_ph: "pregunta es respuesta", admin_btn: "Guardar en la nube",
+                download_img: "Descargar en tamaño completo"
+            },
+            de: {
+                new_chat: "Neuer Chat", hist_1: "Begrüßung", hist_2: "Meine Fähigkeiten",
+                voice_off: "Sprache aus", voice_on: "Sprache an", settings: "Einstellungen",
+                greeting: "Hallo, Nurik", sub_greeting: "Was möchten Sie heute wissen?",
+                sugg_1: "Zukunftsauto generieren", sugg_2: "Hilfe beim Codieren",
+                placeholder: "Hier schreiben...", disclaimer: "Serik AI kann ungenaue Informationen liefern. Wichtige Daten prüfen.",
+                admin_title: "Versteckte DB 🔒", admin_pass: "Passwort", admin_ph: "frage ist antwort", admin_btn: "In Cloud speichern",
+                download_img: "In voller Größe herunterladen"
+            },
+            fr: {
+                new_chat: "Nouvelle discussion", hist_1: "Salutation", hist_2: "Mes capacités",
+                voice_off: "Voix désactivée", voice_on: "Voix activée", settings: "Paramètres",
+                greeting: "Bonjour, Nurik", sub_greeting: "Que souhaitez-vous savoir aujourd'hui ?",
+                sugg_1: "Générer une voiture futuriste", sugg_2: "Aide à l'écriture de code",
+                placeholder: "Écrivez ici...", disclaimer: "Serik AI peut fournir des informations inexactes. Vérifiez les données.",
+                admin_title: "Base cachée 🔒", admin_pass: "Mot de passe", admin_ph: "question est réponse", admin_btn: "Enregistrer dans le cloud",
+                download_img: "Télécharger en taille réelle"
+            }
+        };
+
+        let currentLang = 'ru';
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            updateLanguageUI();
+        }
+
+        function updateLanguageUI() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                let key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) el.innerText = translations[currentLang][key];
+            });
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                let key = el.getAttribute('data-i18n-ph');
+                if (translations[currentLang][key]) el.placeholder = translations[currentLang][key];
+            });
+            
+            if (voiceEnabled) {
+                document.querySelector('[data-i18n="voice_off"]').innerText = translations[currentLang].voice_on;
+            }
+        }
+
+        // FIREBASE ЖӘНЕ БАЗА
         const firebaseConfig = {
             apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
             authDomain: "serik-ai.firebaseapp.com",
@@ -381,12 +508,13 @@
         const defaultMemory = {
             "привет": "Привет! Я Serik AI. Чем могу помочь? 👋",
             "сәлем": "Сәлем! Мен Serik AI. Саған қалай көмектесе аламын? 👋",
+            "hello": "Hello! I am Serik AI. How can I help you? 👋",
             "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі. Бұл — өнеге мен парасаттың нышаны."
         };
 
         let memory = Object.assign({}, defaultMemory);
         let db = null;
-        let lastUserMessage = ""; // Соңғы жазылған хатты қайталау үшін сақтаймыз
+        let lastUserMessage = ""; 
 
         if (firebaseConfig.apiKey) {
             firebase.initializeApp(firebaseConfig);
@@ -407,9 +535,7 @@
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
             sidebar.classList.toggle('active');
-            if (window.innerWidth <= 768) {
-                overlay.classList.toggle('active');
-            }
+            if (window.innerWidth <= 768) overlay.classList.toggle('active');
         }
 
         function autoResize(el) { 
@@ -441,7 +567,6 @@
             panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
         }
 
-        // ЖАҢАРТЫЛҒАН ХАБАРЛАМА ҚОСУ ФУНКЦИЯСЫ
         function addMessage(text, sender, isImage = false) {
             if (isFirstMessage) {
                 welcomeScreen.style.display = 'none';
@@ -451,20 +576,19 @@
 
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${sender}`;
-            
-            let htmlContent = '';
-            const safeText = text.replace(/"/g, '&quot;');
+            const safeText = encodeURIComponent(text);
 
+            let htmlContent = '';
             if (sender === 'ai') {
                 htmlContent = `
                     <div class="ai-avatar"><img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA"></div>
                     <div class="message-content-wrapper">
-                        <div class="message">${isImage ? text : text}</div>
+                        <div class="message">${text}</div>
                         <div class="message-actions">
-                            <button class="action-btn" title="Жақсы жауап"><span class="material-symbols-outlined">thumb_up</span></button>
-                            <button class="action-btn" title="Нашар жауап"><span class="material-symbols-outlined">thumb_down</span></button>
-                            <button class="action-btn" title="Көшіру" onclick="copyText(this, '${safeText}')"><span class="material-symbols-outlined">content_copy</span></button>
-                            <button class="action-btn" title="Қайталау (Regenerate)" onclick="regenerate()"><span class="material-symbols-outlined">refresh</span></button>
+                            <button class="action-btn" title="Like"><span class="material-symbols-outlined">thumb_up</span></button>
+                            <button class="action-btn" title="Dislike"><span class="material-symbols-outlined">thumb_down</span></button>
+                            <button class="action-btn" title="Copy" onclick="copyText(this, '${safeText}')"><span class="material-symbols-outlined">content_copy</span></button>
+                            <button class="action-btn" title="Regenerate" onclick="regenerate()"><span class="material-symbols-outlined">refresh</span></button>
                         </div>
                     </div>
                 `;
@@ -473,7 +597,7 @@
                     <div class="message-content-wrapper">
                         <div class="message">${text}</div>
                         <div class="message-actions">
-                            <button class="action-btn" title="Өзгерту (Edit)" onclick="editMessage('${safeText}')"><span class="material-symbols-outlined">edit</span></button>
+                            <button class="action-btn" title="Edit" onclick="editMessage('${safeText}')"><span class="material-symbols-outlined">edit</span></button>
                         </div>
                     </div>
                 `;
@@ -486,15 +610,16 @@
             if (sender === 'ai' && voiceEnabled && !isImage) { speakText(text); }
         }
 
-        // КӨМЕКШІ ФУНКЦИЯЛАР (Көшіру, Өзгерту, Қайталау)
-        function copyText(btn, text) {
+        function copyText(btn, encodedText) {
+            const text = decodeURIComponent(encodedText);
             navigator.clipboard.writeText(text);
             const icon = btn.querySelector('.material-symbols-outlined');
             icon.innerText = 'done';
             setTimeout(() => { icon.innerText = 'content_copy'; }, 2000);
         }
 
-        function editMessage(text) {
+        function editMessage(encodedText) {
+            const text = decodeURIComponent(encodedText);
             const inputEl = document.getElementById("userInput");
             inputEl.value = text;
             inputEl.focus();
@@ -541,13 +666,17 @@
             voiceEnabled = !voiceEnabled;
             const btn = document.getElementById("voiceBtn");
             const micBtn = document.getElementById("micBtn");
+            const spanText = document.querySelector('[data-i18n="voice_off"]');
+            
             if (voiceEnabled) {
                 btn.classList.add("active");
-                btn.innerHTML = `<span class="material-symbols-outlined">volume_up</span><span>Голос включен</span>`;
+                document.getElementById("voiceIcon").innerText = "volume_up";
+                spanText.innerText = translations[currentLang].voice_on;
                 micBtn.style.color = "var(--accent)";
             } else {
                 btn.classList.remove("active");
-                btn.innerHTML = `<span class="material-symbols-outlined">volume_off</span><span>Голос выключен</span>`;
+                document.getElementById("voiceIcon").innerText = "volume_off";
+                spanText.innerText = translations[currentLang].voice_off;
                 micBtn.style.color = "var(--text-secondary)";
                 window.speechSynthesis.cancel();
             }
@@ -558,7 +687,9 @@
             window.speechSynthesis.cancel();
             let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').replace(/[#*`~_\-()]/g, ' ');
             let speech = new SpeechSynthesisUtterance(cleanText);
-            speech.lang = /[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text) ? 'kk-KZ' : 'ru-RU';
+            
+            const langMap = { kk: 'kk-KZ', ru: 'ru-RU', en: 'en-US', tr: 'tr-TR', uz: 'uz-UZ', zh: 'zh-CN', es: 'es-ES', de: 'de-DE', fr: 'fr-FR' };
+            speech.lang = langMap[currentLang] || 'ru-RU';
             speech.rate = 1.05;
             window.speechSynthesis.speak(speech);
         }
@@ -596,7 +727,7 @@
             let text = inputEl.value.trim();
             if (!text) return;
 
-            lastUserMessage = text; // Қайталау батырмасы үшін сақтаймыз
+            lastUserMessage = text; 
             addMessage(text, "user");
             inputEl.value = "";
             inputEl.style.height = '44px'; 
@@ -605,7 +736,7 @@
                 showLoading();
                 try {
                     let result = eval(text);
-                    setTimeout(() => { hideLoading(); addMessage(`Ответ: ${result}`, "ai"); }, 600);
+                    setTimeout(() => { hideLoading(); addMessage(`Result: ${result}`, "ai"); }, 600);
                     return;
                 } catch(e) {}
             }
@@ -618,15 +749,16 @@
             }
 
             let lowerText = text.toLowerCase();
-            if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
+            if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("draw") || lowerText.includes("çiz") || lowerText.includes("chizish")) {
                 showLoading();
-                let prompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, "").trim();
+                let prompt = text.replace(/(нарисуй|сурет сал|draw|çiz|chizish|sгенерируй)/gi, "").trim();
                 let enhancedPrompt = prompt + ", masterpiece, high resolution, hyperrealistic, cinematic lighting";
                 let seed = Math.floor(Math.random() * 1000000);
                 let imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
                 
+                let dlText = translations[currentLang].download_img || "Download";
                 let imgHTML = `<img src="${imgUrl}" style="max-width: 100%; max-height: 400px; border-radius: 12px; margin-top: 8px;" onload="document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;">
-                <br><a href="${imgUrl}" target="_blank" download style="color: var(--accent); text-decoration: none; font-size: 14px; display: inline-block; margin-top: 10px; font-weight: 500;">Скачать в полном размере</a>`;
+                <br><a href="${imgUrl}" target="_blank" download style="color: var(--accent); text-decoration: none; font-size: 14px; display: inline-block; margin-top: 10px; font-weight: 500;">${dlText}</a>`;
                 
                 setTimeout(() => { hideLoading(); addMessage(imgHTML, "ai", true); }, 1500);
                 return;
@@ -636,22 +768,24 @@
             
             setTimeout(() => {
                 hideLoading();
-                let aiReply = generateLocalResponse(text);
+                let aiReply = generateLocalizedResponse(text, currentLang);
                 addMessage(aiReply, "ai");
             }, 800);
         }
 
-        function generateLocalResponse(text) {
-            let t = text.toLowerCase();
-            if (t.includes('коды') || t.includes('код') || t.includes('c++') || t.includes('python')) {
-                return "Задавай любые вопросы по написанию кода или программированию. Сейчас я быстро и качественно обрабатываю все запросы через собственную внутреннюю логику.";
-            } else if (t.includes('ойын') || t.includes('godot') || t.includes('backrooms')) {
-                return "Создание игр — отличное дело. Я уверен, что на Godot и Blender у тебя получится потрясающий проект в жанре survival horror!";
-            } else if (t.includes('қалайсың') || t.includes('жағдай') || t.includes('как дела')) {
-                return "Спасибо, у меня всё отлично! Сам как? Как продвигаются твои сегодняшние проекты?";
-            } else {
-                return "Я понял тебя. Всегда готов помочь в этом направлении. Что именно тебя интересует?";
-            }
+        function generateLocalizedResponse(text, lang) {
+            const responses = {
+                kk: "Сені түсіндім. Кез келген сұраққа көмектесуге әрқашан дайынмын!",
+                ru: "Я понял тебя. Всегда готов помочь с любым вопросом!",
+                en: "I understand you. Always ready to help with any question!",
+                tr: "Seni anladım. Her zaman her konuda yardıma hazırım!",
+                uz: "Sizni tushundim. Har qanday savolga yordam berishga tayyorman!",
+                zh: "我明白了。随时准备为您解答任何问题！",
+                es: "Te entiendo. ¡Siempre listo para ayudar con cualquier duda!",
+                de: "Ich verstehe dich. Immer bereit, bei jeder Frage zu helfen!",
+                fr: "Je comprends. Toujours prêt à aider pour n'importe quelle question !"
+            };
+            return responses[lang] || responses['ru'];
         }
 
         function checkAdmin() {
@@ -678,13 +812,15 @@
                 memory = newMemory;
                 db.ref('serik_memory').set(memory)
                 .then(() => {
-                    alert("База сәтті сақталды!");
+                    alert("Успешно сохранено!");
                     document.getElementById("bulkData").value = "";
-                }).catch(e => { alert("Қате: " + e.message); console.error(e); });
+                }).catch(e => { alert("Ошибка: " + e.message); console.error(e); });
             } else {
-                alert("Формат қате! Мысалы: сұрақ это жауап");
+                alert("Ошибка формата! Пример: вопрос это ответ");
             }
         }
+        
+        updateLanguageUI();
     </script>
 </body>
 </html>
