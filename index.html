@@ -497,6 +497,9 @@
             }
         }
 
+        // СИСТЕМНЫЙ ПРОМПТ ДЛЯ POLLINATIONS AI
+        const systemPrompt = `Ты Serik AI, созданный в Казахстане. Отвечай естественно, на том языке, на котором тебя спрашивают, без списков и маркеров.`;
+
         // FIREBASE ЖӘНЕ БАЗА
         const firebaseConfig = {
             apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
@@ -844,28 +847,53 @@
                 return;
             }
 
+            // --- ЗАПРОС К POLLINATIONS AI (БЕСПЛАТНО, БЕЗ КЛЮЧА) ---
             showLoading();
-            
-            setTimeout(() => {
-                hideLoading();
-                let aiReply = generateLocalizedResponse(text, currentLang);
-                addMessage(aiReply, "ai");
-            }, 800);
-        }
+            try {
+                const messages = [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: text }
+                ];
 
-        function generateLocalizedResponse(text, lang) {
-            const responses = {
-                kk: "Сені түсіндім. Кез келген сұраққа көмектесуге әрқашан дайынмын!",
-                ru: "Я понял тебя. Всегда готов помочь с любым вопросом!",
-                en: "I understand you. Always ready to help with any question!",
-                tr: "Seni anladım. Her zaman her konuda yardıma hazırım!",
-                uz: "Sizni tushundim. Har qanday savolga yordam berishga tayyorman!",
-                zh: "我明白了。随时准备为您解答任何问题！",
-                es: "Te entiendo. ¡Siempre listo para ayudar con cualquier duda!",
-                de: "Ich verstehe dich. Immer bereit, bei jeder Frage zu helfen!",
-                fr: "Je comprends. Toujours prêt à aider pour n'importe quelle question !"
-            };
-            return responses[lang] || responses['ru'];
+                let response = await fetch("https://text.pollinations.ai/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ messages, model: "openai", private: true })
+                });
+
+                if (!response.ok) {
+                    // пробуем другие модели, если первая недоступна
+                    const fallbackModels = ["mistral", "llama"];
+                    let success = false;
+                    for (let model of fallbackModels) {
+                        response = await fetch("https://text.pollinations.ai/", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ messages, model, private: true })
+                        });
+                        if (response.ok) {
+                            success = true;
+                            break;
+                        }
+                    }
+                    if (!success) {
+                        throw new Error("Все модели недоступны");
+                    }
+                }
+
+                const data = await response.text();
+                hideLoading();
+
+                if (data && !data.includes('"error"') && !data.includes('Queue full')) {
+                    addMessage(data.trim(), "ai");
+                } else {
+                    addMessage("⚠️ Ошибка соединения. Попробуйте позже.", "ai");
+                }
+            } catch (e) {
+                hideLoading();
+                addMessage("⚠️ Ошибка соединения. Попробуйте позже.", "ai");
+                console.error("Pollinations API error:", e);
+            }
         }
 
         function checkAdmin() {
@@ -901,7 +929,7 @@
         }
         
         updateLanguageUI();
-        renderSidebarHistory(); // Бет жүктелгенде сақталған чаттарды шығару
+        renderSidebarHistory();
     </script>
 </body>
 </html>
