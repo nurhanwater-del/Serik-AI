@@ -822,7 +822,7 @@
                 return;
             }
 
-            // POLLINATIONS API – CORS ПРОКСИ АРҚЫЛЫ
+            // POLLINATIONS API — ТҮЗЕТІЛГЕН ПРОКСИ
             abortController = new AbortController();
             isGenerating = true;
             showLoading();
@@ -834,17 +834,24 @@
                     { role: "user", content: text }
                 ];
 
-                // Тікелей сұрау
-                let response = await fetch("https://text.pollinations.ai/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ messages, model: "openai", private: true }),
-                    signal: abortController.signal
-                }).catch(() => null);
+                const apiUrl = "https://text.pollinations.ai/";
+                let response = null;
+                
+                // 1. Тікелей сұрау
+                try {
+                    response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ messages, model: "openai", private: true }),
+                        signal: abortController.signal
+                    });
+                } catch (directError) {
+                    console.log("Тікелей сұрау сәтсіз, прокси қолданылады...");
+                }
 
-                // Егер тікелей сұрау сәтсіз болса, прокси арқылы
+                // 2. Прокси арқылы (allorigins.win)
                 if (!response || !response.ok) {
-                    const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent("https://text.pollinations.ai/");
+                    const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(apiUrl);
                     response = await fetch(proxyUrl, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
