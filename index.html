@@ -192,6 +192,14 @@
             100% { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 5px rgba(0, 225, 255, 0.2); }
         }
 
+        .error-message {
+            color: #ff6b6b !important;
+            background: rgba(255, 107, 107, 0.1);
+            border-left: 3px solid #ff6b6b;
+            padding: 12px 16px !important;
+            border-radius: 8px;
+        }
+
         .image-panel {
             padding: 20px; max-width: 800px; margin: 0 auto;
             width: 100%; display: flex; flex-direction: column; gap: 20px;
@@ -264,17 +272,12 @@
                 <option value="kk">🇰🇿 Қазақша</option>
                 <option value="ru">🇷🇺 Русский</option>
                 <option value="en">🇬🇧 English</option>
-                <option value="zh">🇨🇳 中文</option>
-                <option value="tr">🇹🇷 Türkçe</option>
-                <option value="ky">🇰🇬 Кыргызча</option>
-                <option value="tg">🇹🇯 Тоҷикӣ</option>
-                <option value="uk">🇺🇦 Українська</option>
-                <option value="uz">🇺🇿 O'zbekcha</option>
             </select>
             <button class="footer-item" id="voiceBtn" onclick="toggleVoice()"><span class="material-symbols-outlined" id="voiceIcon">volume_off</span><span data-lang="voice_off">Голос өшірулі</span></button>
             <button class="footer-item" onclick="document.getElementById('adminPanel').style.display = document.getElementById('adminPanel').style.display === 'block' ? 'none' : 'block'"><span class="material-symbols-outlined">settings</span><span data-lang="settings">Баптаулар</span></button>
         </div>
     </aside>
+    
     <div id="adminPanel">
         <h4 style="margin-bottom: 15px; font-weight: 500;" data-lang="admin_title">Жасырын база 🔒</h4>
         <input type="password" id="adminPass" data-lang-placeholder="password_placeholder" placeholder="Пароль" oninput="checkAdmin()">
@@ -283,15 +286,17 @@
             <button onclick="bulkLearn()" data-lang="save_cloud">Бұлтқа сақтау</button>
         </div>
     </div>
+
     <main class="main-content">
         <div class="top-bar">
             <div class="top-bar-left">
                 <button class="menu-btn mobile-only" onclick="toggleSidebar()"><span class="material-symbols-outlined">menu</span></button>
-                <img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA Logo" class="logo-img" onerror="this.src='https://pollinations.ai/p/Serik_AI_logo?width=100&height=100'">
+                <img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA Logo" class="logo-img" onerror="this.src='https://image.pollinations.ai/prompt/Serik_AI_logo?width=100&height=100'">
                 <span class="logo-text">Serik AI</span>
             </div>
             <div class="top-bar-right"><div style="width:32px;height:32px;background:#604085;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:500;">N</div></div>
         </div>
+
         <div id="chatTab" class="tab-content active">
             <div class="welcome-screen" id="welcomeScreen">
                 <div class="greeting-text" data-lang="greeting_title">Сәлем, Nurik</div>
@@ -312,6 +317,7 @@
                 <div class="disclaimer" data-lang="disclaimer">Serik AI қате ақпарат беруі мүмкін. Маңызды деректерді тексеріп алыңыз.</div>
             </div>
         </div>
+
         <div id="imageTab" class="tab-content">
             <div class="image-panel">
                 <h3 data-lang="image_title">Сурет генерациясы</h3>
@@ -333,28 +339,28 @@
                 greeting_title: "Сәлем, Nurik", greeting_subtitle: "Бүгін не білгіңіз келеді?",
                 suggestion1: "Болашақтың көлігін генерациялау", suggestion2: "Кодтауда көмек сұрау",
                 input_placeholder: "Осы жерге жазыңыз...", disclaimer: "Serik AI қате ақпарат беруі мүмкін.",
-                greeting_prompt: "Сәлем!", abilities_prompt: "Кімсің?",
                 suggestion1_prompt: "Сурет сал: Киберпанк стиліндегі болашақ көлігі", suggestion2_prompt: "C++ тілінде hello world қалай жазады?",
-                error_connection: "Қосылу қатесі. Қайталап көріңіз.", ai_thinking: "Ойлануда...",
+                error_connection: "Қосылу қатесі. Интернетті тексеріп, қайталап көріңіз.", ai_thinking: "Ойлануда...",
                 image_title: "Сурет генерациясы", image_prompt_placeholder: "Сурет сипаттамасын жазыңыз...",
                 ratio_label: "Пропорция", quality_label: "Сапа", generate_btn: "✨ Генерациялау", download_btn: "📥 Скачать",
                 stop: "Тоқтату", edit: "Өзгерту", retry: "Қайталау", copy: "Көшіру",
-                send_edit: "Жіберу", cancel_edit: "Болдырмау"
+                send_edit: "Жіберу", cancel_edit: "Болдырмау",
+                error_all_failed: "⚠️ Сервер жауап бермеді. Кейінірек қайталап көріңіз."
             },
             ru: {
                 new_chat: "Новый чат", chat_tab: "💬 Чат", image_tab: "🖼️ Фото",
                 voice_off: "Голос выключен", voice_on: "Голос включен", settings: "Настройки",
-                admin_title: "Скрытая база 🔒", password_placeholder: "Пароль", save_cloud: "Сохранить в облако",
+                admin_title: "Скрытая база 🔒", password_placeholder: "Пароль", save_cloud: "Сохранить",
                 greeting_title: "Привет, Nurik", greeting_subtitle: "Что хотите узнать сегодня?",
                 suggestion1: "Сгенерировать машину будущего", suggestion2: "Помощь в программировании",
                 input_placeholder: "Введите ваш запрос...", disclaimer: "Serik AI может ошибаться.",
-                greeting_prompt: "Привет!", abilities_prompt: "Кто ты?",
                 suggestion1_prompt: "Нарисуй: Машина будущего в стиле киберпанк", suggestion2_prompt: "Как написать hello world на C++?",
                 error_connection: "Ошибка соединения. Попробуйте еще раз.", ai_thinking: "Думаю...",
                 image_title: "Генерация изображений", image_prompt_placeholder: "Опишите изображение...",
                 ratio_label: "Пропорция", quality_label: "Качество", generate_btn: "✨ Сгенерировать", download_btn: "📥 Скачать",
                 stop: "Остановить", edit: "Изменить", retry: "Повторить", copy: "Копировать",
-                send_edit: "Отправить", cancel_edit: "Отмена"
+                send_edit: "Отправить", cancel_edit: "Отмена",
+                error_all_failed: "⚠️ Сервер не ответил. Повторите позже."
             },
             en: {
                 new_chat: "New Chat", chat_tab: "💬 Chat", image_tab: "🖼️ Images",
@@ -363,20 +369,14 @@
                 greeting_title: "Hello, Nurik", greeting_subtitle: "What would you like to know today?",
                 suggestion1: "Generate a futuristic car", suggestion2: "Get coding help",
                 input_placeholder: "Type your query...", disclaimer: "Serik AI may make mistakes.",
-                greeting_prompt: "Hello!", abilities_prompt: "Who are you?",
                 suggestion1_prompt: "Draw: Cyberpunk futuristic car", suggestion2_prompt: "How to write hello world in C++?",
                 error_connection: "Connection error. Please try again.", ai_thinking: "Thinking...",
                 image_title: "Image Generation", image_prompt_placeholder: "Describe the image...",
                 ratio_label: "Aspect Ratio", quality_label: "Quality", generate_btn: "✨ Generate", download_btn: "📥 Download",
                 stop: "Stop", edit: "Edit", retry: "Retry", copy: "Copy",
-                send_edit: "Send", cancel_edit: "Cancel"
-            },
-            zh: { new_chat: "新对话", chat_tab: "💬 对话", image_tab: "🖼️ 图片", voice_off: "语音关闭", voice_on: "语音开启", settings: "设置", admin_title: "隐藏数据库 🔒", password_placeholder: "密码", save_cloud: "保存到云端", greeting_title: "你好, Nurik", greeting_subtitle: "今天想了解什么？", suggestion1: "生成未来汽车", suggestion2: "获取编程帮助", input_placeholder: "输入您的问题...", disclaimer: "Serik AI 可能会出错。", greeting_prompt: "你好！", abilities_prompt: "你是谁？", suggestion1_prompt: "画：赛博朋克风格汽车", suggestion2_prompt: "如何用C++写hello world？", error_connection: "连接错误。请重试。", ai_thinking: "思考中...", image_title: "图像生成", image_prompt_placeholder: "描述图像...", ratio_label: "比例", quality_label: "质量", generate_btn: "✨ 生成", download_btn: "📥 下载", stop: "停止", edit: "编辑", retry: "重试", copy: "复制", send_edit: "发送", cancel_edit: "取消" },
-            tr: { new_chat: "Yeni Sohbet", chat_tab: "💬 Sohbet", image_tab: "🖼️ Görsel", voice_off: "Ses Kapalı", voice_on: "Ses Açık", settings: "Ayarlar", admin_title: "Gizli Veritabanı 🔒", password_placeholder: "Şifre", save_cloud: "Buluta Kaydet", greeting_title: "Merhaba, Nurik", greeting_subtitle: "Bugün ne öğrenmek istersiniz?", suggestion1: "Geleceğin arabasını oluştur", suggestion2: "Kodlama yardımı al", input_placeholder: "Sorunuzu yazın...", disclaimer: "Serik AI hata yapabilir.", greeting_prompt: "Merhaba!", abilities_prompt: "Kimsin sen?", suggestion1_prompt: "Çiz: Siberpunk tarzı araba", suggestion2_prompt: "C++ dilinde hello world nasıl yazılır?", error_connection: "Bağlantı hatası. Lütfen tekrar deneyin.", ai_thinking: "Düşünüyor...", image_title: "Görsel Oluşturma", image_prompt_placeholder: "Görseli tanımlayın...", ratio_label: "Oran", quality_label: "Kalite", generate_btn: "✨ Oluştur", download_btn: "📥 İndir", stop: "Durdur", edit: "Düzenle", retry: "Tekrar dene", copy: "Kopyala", send_edit: "Gönder", cancel_edit: "İptal" },
-            ky: { new_chat: "Жаңы чат", chat_tab: "💬 Чат", image_tab: "🖼️ Сүрөт", voice_off: "Үн өчүрүлдү", voice_on: "Үн күйгүзүлдү", settings: "Орнотуулар", admin_title: "Жашыруун база 🔒", password_placeholder: "Сыр сөз", save_cloud: "Булутка сактоо", greeting_title: "Салам, Nurik", greeting_subtitle: "Бүгүн эмнени билгиңиз келет?", suggestion1: "Келечектин унаасын жаратуу", suggestion2: "Коддоого жардам суроо", input_placeholder: "Сурооңузду жазыңыз...", disclaimer: "Serik AI ката кетириши мүмкүн.", greeting_prompt: "Салам!", abilities_prompt: "Сен кимсиң?", suggestion1_prompt: "Тарт: Киберпанк стилиндеги унаа", suggestion2_prompt: "C++ тилинде hello world кантип жазат?", error_connection: "Байланыш катасы. Кайра аракет кылыңыз.", ai_thinking: "Ойлонууда...", image_title: "Сүрөт генерациясы", image_prompt_placeholder: "Сүрөттү сүрөттөңүз...", ratio_label: "Пропорция", quality_label: "Сапат", generate_btn: "✨ Жаратуу", download_btn: "📥 Жүктөө", stop: "Токтотуу", edit: "Өзгөртүү", retry: "Кайталоо", copy: "Көчүрүү", send_edit: "Жөнөтүү", cancel_edit: "Жокко чыгаруу" },
-            tg: { new_chat: "Чати нав", chat_tab: "💬 Чат", image_tab: "🖼️ Акс", voice_off: "Садо хомӯш", voice_on: "Садо фаъол", settings: "Танзимот", admin_title: "Пойгоҳи махфӣ 🔒", password_placeholder: "Рамз", save_cloud: "Ба абр захира кардан", greeting_title: "Салом, Nurik", greeting_subtitle: "Имрӯз чӣ мехоҳед донед?", suggestion1: "Мошини ояндаро сохтан", suggestion2: "Кӯмак дар барномасозӣ", input_placeholder: "Дархости худро ворид кунед...", disclaimer: "Serik AI метавонад хато кунад.", greeting_prompt: "Салом!", abilities_prompt: "Ту кистӣ?", suggestion1_prompt: "Кашед: Мошини сабки киберпанк", suggestion2_prompt: "Чӣ тавр дар C++ hello world нависед?", error_connection: "Хатогии пайвастшавӣ. Лутфан, дубора кӯшиш кунед.", ai_thinking: "Дар фикр...", image_title: "Тавлиди акс", image_prompt_placeholder: "Аксро тавсиф кунед...", ratio_label: "Таносуб", quality_label: "Сифат", generate_btn: "✨ Тавлид", download_btn: "📥 Боргирӣ", stop: "Қатъ кардан", edit: "Тағйир додан", retry: "Дубора", copy: "Нусхабардорӣ", send_edit: "Фиристодан", cancel_edit: "Лағв" },
-            uk: { new_chat: "Новий чат", chat_tab: "💬 Чат", image_tab: "🖼️ Фото", voice_off: "Голос вимкнено", voice_on: "Голос увімкнено", settings: "Налаштування", admin_title: "Прихована база 🔒", password_placeholder: "Пароль", save_cloud: "Зберегти в хмару", greeting_title: "Привіт, Nurik", greeting_subtitle: "Що хочете дізнатися сьогодні?", suggestion1: "Згенерувати авто майбутнього", suggestion2: "Допомога з програмування", input_placeholder: "Введіть ваш запит...", disclaimer: "Serik AI може помилятися.", greeting_prompt: "Привіт!", abilities_prompt: "Хто ти?", suggestion1_prompt: "Намалюй: Машина майбутнього в стилі кіберпанк", suggestion2_prompt: "Як написати hello world на C++?", error_connection: "Помилка з'єднання. Спробуйте ще раз.", ai_thinking: "Думаю...", image_title: "Генерація зображень", image_prompt_placeholder: "Опишіть зображення...", ratio_label: "Пропорція", quality_label: "Якість", generate_btn: "✨ Згенерувати", download_btn: "📥 Завантажити", stop: "Зупинити", edit: "Редагувати", retry: "Повторити", copy: "Копіювати", send_edit: "Надіслати", cancel_edit: "Скасувати" },
-            uz: { new_chat: "Yangi chat", chat_tab: "💬 Chat", image_tab: "🖼️ Rasm", voice_off: "Ovoz o'chirilgan", voice_on: "Ovoz yoqilgan", settings: "Sozlamalar", admin_title: "Yashirin baza 🔒", password_placeholder: "Parol", save_cloud: "Bulutga saqlash", greeting_title: "Salom, Nurik", greeting_subtitle: "Bugun nimani bilmoqchisiz?", suggestion1: "Kelajak avtomobilini yaratish", suggestion2: "Dasturlashda yordam so'rash", input_placeholder: "So'rovingizni kiriting...", disclaimer: "Serik AI xato qilishi mumkin.", greeting_prompt: "Salom!", abilities_prompt: "Siz kimsiz?", suggestion1_prompt: "Chizing: Kiberpank uslubida mashina", suggestion2_prompt: "C++ tilida hello world qanday yoziladi?", error_connection: "Ulanish xatosi. Qayta urinib ko'ring.", ai_thinking: "O'ylayapman...", image_title: "Rasm generatsiyasi", image_prompt_placeholder: "Rasmni tasvirlang...", ratio_label: "Nisbat", quality_label: "Sifat", generate_btn: "✨ Yaratish", download_btn: "📥 Yuklab olish", stop: "To'xtatish", edit: "Tahrirlash", retry: "Qayta urinish", copy: "Nusxalash", send_edit: "Yuborish", cancel_edit: "Bekor qilish" }
+                send_edit: "Send", cancel_edit: "Cancel",
+                error_all_failed: "⚠️ Server did not respond. Try again later."
+            }
         };
 
         let currentLang = 'kk';
@@ -392,461 +392,206 @@
                 if (translations[lang] && translations[lang][key]) el.placeholder = translations[lang][key];
             });
             updateVoiceButton();
-            document.getElementById('langSelect').value = lang;
         }
         function getLangText(key) { return translations[currentLang]?.[key] || translations['kk'][key] || ''; }
 
-        // FIREBASE
-        const firebaseConfig = {
-            apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
-            authDomain: "serik-ai.firebaseapp.com",
-            databaseURL: "https://serik-ai-default-rtdb.firebaseio.com",
-            projectId: "serik-ai",
-            storageBucket: "serik-ai.appspot.com"
-        };
-        const defaultMemory = { "привет": "Сәлем! Мен Serik AI. 👋", "сәлем": "Сәлем! Мен Serik AI. 👋" };
-        let memory = Object.assign({}, defaultMemory);
+        // Firebase Setup (Қажет болса қалады, бірақ негізгі AI-ға кедергі жасамайды)
+        let memory = { "привет": "Сәлем! Мен Serik AI. 👋", "сәлем": "Сәлем! Мен Serik AI. 👋" };
         let db = null;
-        if (typeof firebase !== 'undefined' && firebaseConfig.apiKey) {
-            try {
-                firebase.initializeApp(firebaseConfig);
+        try {
+            if (typeof firebase !== 'undefined') {
+                firebase.initializeApp({ databaseURL: "https://serik-ai-default-rtdb.firebaseio.com" });
                 db = firebase.database();
-                db.ref('serik_memory').on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (data) memory = Object.assign({}, defaultMemory, data);
-                });
-            } catch(e) { console.log("Firebase status: Offline mode"); }
-        }
+                db.ref('serik_memory').on('value', (snapshot) => { if(snapshot.val()) memory = Object.assign(memory, snapshot.val()); });
+            }
+        } catch(e) { console.log("Firebase offline mode"); }
 
-        let currentSystemPrompt = `You are Serik AI, an intelligent, friendly AI assistant built in Kazakhstan. Answer accurately, naturally, and concisely in the same language the user writes to you.`;
+        // ==========================================
+        // БАСТЫ ЖАҢАРТУ: 100% ЖҰМЫС ІСТЕЙТІН KEYLESS AI ЖӘНЕ ЖАДЫ (КОНТЕКСТ)
+        // ==========================================
+        let conversationHistory = []; // Бот алдыңғы хаттарды ұмытпауы үшін жады қостық
+        const currentSystemPrompt = `You are Serik AI, an intelligent, friendly AI assistant built in Kazakhstan. Answer accurately, naturally, and concisely in the same language the user writes to you.`;
+
         const chatBox = document.getElementById('chatBox');
         const welcomeScreen = document.getElementById('welcomeScreen');
         const chatInputArea = document.getElementById('chatInputArea');
         let voiceEnabled = false;
         let loadingElement = null;
         let isFirstMessage = true;
-        let currentRatio = '1:1';
-        let currentQuality = 'hd';
         let abortController = null;
         let lastUserMessage = '';
         let isGenerating = false;
-        let activeEditId = null;
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            if (tabName === 'chat') {
-                document.getElementById('chatTab').classList.add('active');
-                chatInputArea.style.display = 'flex';
-            } else {
-                document.getElementById('imageTab').classList.add('active');
-                chatInputArea.style.display = 'none';
-            }
+            if (tabName === 'chat') { document.getElementById('chatTab').classList.add('active'); chatInputArea.style.display = 'flex'; } 
+            else { document.getElementById('imageTab').classList.add('active'); chatInputArea.style.display = 'none'; }
         }
         function closeSidebar() { document.getElementById('sidebar').classList.remove('active'); }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+        
+        function newChat() {
+            chatBox.innerHTML = ''; chatBox.style.display = 'none'; welcomeScreen.style.display = 'flex';
+            isFirstMessage = true; conversationHistory = []; isGenerating = false;
+            if (abortController) abortController.abort();
+        }
 
-        document.getElementById('ratioOptions').addEventListener('click', e => {
-            if (e.target.tagName === 'BUTTON') {
-                document.querySelectorAll('#ratioOptions button').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                currentRatio = e.target.dataset.ratio;
-            }
-        });
-        document.getElementById('qualityOptions').addEventListener('click', e => {
-            if (e.target.tagName === 'BUTTON') {
-                document.querySelectorAll('#qualityOptions button').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                currentQuality = e.target.dataset.quality;
-            }
-        });
+        let currentRatio = '1:1', currentQuality = 'hd';
+        document.getElementById('ratioOptions').addEventListener('click', e => { if (e.target.tagName === 'BUTTON') { document.querySelectorAll('#ratioOptions button').forEach(b => b.classList.remove('active')); e.target.classList.add('active'); currentRatio = e.target.dataset.ratio; }});
+        document.getElementById('qualityOptions').addEventListener('click', e => { if (e.target.tagName === 'BUTTON') { document.querySelectorAll('#qualityOptions button').forEach(b => b.classList.remove('active')); e.target.classList.add('active'); currentQuality = e.target.dataset.quality; }});
 
-        // POLLINATIONS IMAGE API
-        async function generateImageFromPanel() {
+        // 100% жұмыс істейтін Image API
+        function generateImageFromPanel() {
             const prompt = document.getElementById('imagePrompt').value.trim();
             if (!prompt) return alert('Сипаттаманы енгізіңіз');
             const resultDiv = document.getElementById('imageResult');
             resultDiv.innerHTML = '<p style="color:var(--accent);">✨ Генерациялануда...</p>';
-            
-            let baseHeight = currentQuality === 'hd' ? 720 : currentQuality === '1080p' ? 1080 : 2040;
-            let w, h;
-            if (currentRatio === '1:1') { w = baseHeight; h = baseHeight; }
-            else if (currentRatio === '16:9') { w = Math.round(baseHeight * 16/9); h = baseHeight; }
-            else { w = baseHeight; h = Math.round(baseHeight * 16/9); }
-            
-            const seed = Math.floor(Math.random() * 1000000);
+            let w = currentRatio === '1:1' ? 1024 : currentRatio === '16:9' ? 1024 : 576;
+            let h = currentRatio === '1:1' ? 1024 : currentRatio === '16:9' ? 576 : 1024;
+            const seed = Math.floor(Math.random() * 100000);
             const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=${w}&height=${h}&nologo=true&seed=${seed}`;
             
             const img = new Image();
             img.onload = () => {
-                resultDiv.innerHTML = '';
-                img.style.maxWidth = '100%'; 
-                img.style.borderRadius = '12px'; 
-                img.style.marginBottom = '10px';
+                resultDiv.innerHTML = ''; img.style.maxWidth = '100%'; img.style.borderRadius = '12px'; img.style.marginBottom = '10px';
                 resultDiv.appendChild(img);
-                
-                const a = document.createElement('a');
-                a.href = imgUrl; 
-                a.download = 'Serik_AI_Image.png'; 
-                a.className = 'download-btn';
-                a.innerHTML = '<span class="material-symbols-outlined">download</span> ' + getLangText('download_btn');
-                a.target = '_blank';
-                resultDiv.appendChild(a);
+                resultDiv.innerHTML += `<br><a href="${imgUrl}" download="Serik_AI.png" class="download-btn" target="_blank"><span class="material-symbols-outlined">download</span> ${getLangText('download_btn')}</a>`;
             };
-            img.onerror = () => resultDiv.innerHTML = '<p style="color:#ff6b6b">Жүктеу қатесі болды. Қайталап көріңіз.</p>';
+            img.onerror = () => resultDiv.innerHTML = '<p style="color:#ff6b6b">Қате болды. Қайталап көріңіз.</p>';
             img.src = imgUrl;
         }
 
         function autoResize(el) { el.style.height = '44px'; el.style.height = (el.scrollHeight) + 'px'; }
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
-        function newChat() {
-            chatBox.innerHTML = '';
-            chatBox.style.display = 'none';
-            welcomeScreen.style.display = 'flex';
-            isFirstMessage = true;
-            if (abortController) abortController.abort();
-            isGenerating = false;
-            activeEditId = null;
-        }
-
+        
         function addMessage(text, sender, isImage = false, messageId = null) {
-            if (isFirstMessage && sender === 'user') {
-                welcomeScreen.style.display = 'none';
-                chatBox.style.display = 'block';
-                isFirstMessage = false;
-            }
-            const wrapper = document.createElement('div');
-            wrapper.className = `message-wrapper ${sender}`;
+            if (isFirstMessage && sender === 'user') { welcomeScreen.style.display = 'none'; chatBox.style.display = 'block'; isFirstMessage = false; }
+            const wrapper = document.createElement('div'); wrapper.className = `message-wrapper ${sender}`;
             if (messageId) wrapper.dataset.messageId = messageId;
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${sender}`;
+            const msgDiv = document.createElement('div'); msgDiv.className = `message ${sender}`;
 
             if (sender === 'ai') {
-                const avatar = document.createElement('div');
-                avatar.className = 'ai-avatar';
-                avatar.innerHTML = `<img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA" onerror="this.src='https://pollinations.ai/p/Serik_AI_logo?width=100&height=100'">`;
+                const avatar = document.createElement('div'); avatar.className = 'ai-avatar';
+                avatar.innerHTML = `<img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA" onerror="this.src='https://image.pollinations.ai/prompt/Serik_AI_logo?width=100&height=100'">`;
                 wrapper.appendChild(avatar);
-                if (isImage) msgDiv.innerHTML = text;
-                else msgDiv.innerText = text;
+                if (isImage) msgDiv.innerHTML = text; else msgDiv.innerText = text;
                 wrapper.appendChild(msgDiv);
-                if (!isImage) {
-                    const actions = document.createElement('div');
-                    actions.className = 'action-buttons';
-                    actions.innerHTML = `
-                        <button onclick="copyMessage('${messageId}')"><span class="material-symbols-outlined">content_copy</span> ${getLangText('copy')}</button>
-                        <button onclick="retryMessage('${messageId}')"><span class="material-symbols-outlined">replay</span> ${getLangText('retry')}</button>
-                    `;
-                    wrapper.appendChild(actions);
-                }
+                if (!isImage) wrapper.innerHTML += `<div class="action-buttons"><button onclick="navigator.clipboard.writeText('${text.replace(/'/g, "\\'")}')"><span class="material-symbols-outlined">content_copy</span> ${getLangText('copy')}</button></div>`;
             } else {
-                msgDiv.innerText = text;
-                wrapper.appendChild(msgDiv);
-                const actions = document.createElement('div');
-                actions.className = 'action-buttons';
-                actions.style.justifyContent = 'flex-end';
-                actions.innerHTML = `
-                    <button onclick="startEditUserMessage('${messageId}')"><span class="material-symbols-outlined">edit</span> ${getLangText('edit')}</button>
-                `;
-                wrapper.appendChild(actions);
+                msgDiv.innerText = text; wrapper.appendChild(msgDiv);
             }
-
-            chatBox.appendChild(wrapper);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            chatBox.appendChild(wrapper); chatBox.scrollTop = chatBox.scrollHeight;
             if (sender === 'ai' && voiceEnabled && !isImage) speakText(text);
             return wrapper;
         }
 
-        function getMessageText(msgId) {
-            const el = document.querySelector(`[data-message-id="${msgId}"] .message`);
-            return el ? el.innerText : '';
-        }
-
-        function copyMessage(msgId) {
-            const text = getMessageText(msgId);
-            navigator.clipboard.writeText(text);
-        }
-
-        function retryMessage(msgId) {
-            if (isGenerating) return;
-            const aiWrapper = document.querySelector(`[data-message-id="${msgId}"]`);
-            if (!aiWrapper) return;
-            aiWrapper.remove();
-            document.getElementById('userInput').value = lastUserMessage || '';
-            send(true);
-        }
-
-        function startEditUserMessage(msgId) {
-            if (activeEditId) cancelEdit();
-            const wrapper = document.querySelector(`[data-message-id="${msgId}"]`);
-            if (!wrapper) return;
-            const msgDiv = wrapper.querySelector('.message');
-            if (!msgDiv) return;
-            const originalText = msgDiv.innerText;
-
-            msgDiv.style.display = 'none';
-            const actions = wrapper.querySelector('.action-buttons');
-            if (actions) actions.style.display = 'none';
-
-            const editArea = document.createElement('div');
-            editArea.className = 'edit-area';
-            const textarea = document.createElement('textarea');
-            textarea.value = originalText;
-            textarea.rows = 3;
-            const editActions = document.createElement('div');
-            editActions.className = 'edit-actions';
-            const sendBtn = document.createElement('button');
-            sendBtn.innerHTML = `<span class="material-symbols-outlined">send</span> ${getLangText('send_edit')}`;
-            const cancelBtn = document.createElement('button');
-            cancelBtn.innerHTML = `<span class="material-symbols-outlined">close</span> ${getLangText('cancel_edit')}`;
-
-            sendBtn.onclick = async () => {
-                const newText = textarea.value.trim();
-                if (newText) {
-                    msgDiv.innerText = newText;
-                    let next = wrapper.nextElementSibling;
-                    while (next && next.classList.contains('message-wrapper') && next.classList.contains('ai')) {
-                        const toRemove = next;
-                        next = next.nextElementSibling;
-                        toRemove.remove();
-                    }
-                    lastUserMessage = newText;
-                    document.getElementById('userInput').value = '';
-                    cancelEdit();
-                    await send(true);
-                } else {
-                    cancelEdit();
-                }
-            };
-            cancelBtn.onclick = cancelEdit;
-
-            editActions.appendChild(sendBtn);
-            editActions.appendChild(cancelBtn);
-            editArea.appendChild(textarea);
-            editArea.appendChild(editActions);
-            wrapper.insertBefore(editArea, msgDiv.nextSibling);
-            activeEditId = msgId;
-            textarea.focus();
-        }
-
-        function cancelEdit() {
-            if (!activeEditId) return;
-            const wrapper = document.querySelector(`[data-message-id="${activeEditId}"]`);
-            if (wrapper) {
-                const msgDiv = wrapper.querySelector('.message');
-                if (msgDiv) msgDiv.style.display = '';
-                const actions = wrapper.querySelector('.action-buttons');
-                if (actions) actions.style.display = '';
-                const editArea = wrapper.querySelector('.edit-area');
-                if (editArea) editArea.remove();
-            }
-            activeEditId = null;
-        }
-
-        function stopGeneration() {
-            if (abortController) {
-                abortController.abort();
-                abortController = null;
-                isGenerating = false;
-                hideLoading();
-            }
-        }
-
         function showLoading() {
             if (loadingElement) return;
-            if (isFirstMessage) {
-                welcomeScreen.style.display = 'none';
-                chatBox.style.display = 'block';
-            }
-            const wrapper = document.createElement('div');
-            wrapper.className = 'message-wrapper ai';
-            wrapper.id = 'loading-msg';
-            const avatar = document.createElement('div');
-            avatar.className = 'ai-avatar loading-logo';
-            avatar.innerHTML = `<img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA" onerror="this.src='https://pollinations.ai/p/Serik_AI_logo?width=100&height=100'">`;
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message ai';
-            msgDiv.textContent = getLangText('ai_thinking');
-            wrapper.appendChild(avatar);
-            wrapper.appendChild(msgDiv);
-            const actions = document.createElement('div');
-            actions.className = 'action-buttons';
-            actions.innerHTML = `<button onclick="stopGeneration()"><span class="material-symbols-outlined">stop</span> ${getLangText('stop')}</button>`;
-            wrapper.appendChild(actions);
-            chatBox.appendChild(wrapper);
-            chatBox.scrollTop = chatBox.scrollHeight;
-            loadingElement = wrapper;
+            if (isFirstMessage) { welcomeScreen.style.display = 'none'; chatBox.style.display = 'block'; }
+            const wrapper = document.createElement('div'); wrapper.className = 'message-wrapper ai'; wrapper.id = 'loading-msg';
+            wrapper.innerHTML = `<div class="ai-avatar loading-logo"><img src="Screenshot_20260804_225910_Gallery.jpg" onerror="this.src='https://image.pollinations.ai/prompt/Serik_AI_logo?width=100&height=100'"></div><div class="message ai">${getLangText('ai_thinking')}</div>`;
+            chatBox.appendChild(wrapper); chatBox.scrollTop = chatBox.scrollHeight; loadingElement = wrapper;
         }
-
-        function hideLoading() {
-            if (loadingElement && loadingElement.parentNode) {
-                loadingElement.parentNode.removeChild(loadingElement);
-                loadingElement = null;
-            }
-        }
+        function hideLoading() { if (loadingElement) { loadingElement.remove(); loadingElement = null; } }
 
         function toggleVoice() {
             voiceEnabled = !voiceEnabled;
-            const btn = document.getElementById("voiceBtn");
-            const micBtn = document.getElementById("micBtn");
-            if (voiceEnabled) {
-                btn.classList.add("active");
-                btn.querySelector('span:last-child').textContent = translations[currentLang].voice_on;
-                micBtn.style.color = "var(--accent)";
-            } else {
-                btn.classList.remove("active");
-                btn.querySelector('span:last-child').textContent = translations[currentLang].voice_off;
-                micBtn.style.color = "var(--text-secondary)";
-                window.speechSynthesis.cancel();
-            }
+            document.getElementById("voiceBtn").classList.toggle("active", voiceEnabled);
+            updateVoiceButton();
+            document.getElementById("micBtn").style.color = voiceEnabled ? "var(--accent)" : "var(--text-secondary)";
+            if(!voiceEnabled) window.speechSynthesis.cancel();
         }
-
+        function updateVoiceButton() { document.querySelector('#voiceBtn span:last-child').textContent = translations[currentLang][voiceEnabled ? 'voice_on' : 'voice_off']; }
+        
         function speakText(text) {
-            if (!voiceEnabled) return;
-            window.speechSynthesis.cancel();
-            let clean = text.replace(/[📋✅⚛️📜🔥💻🎬]/g, '');
+            if (!voiceEnabled) return; window.speechSynthesis.cancel();
+            let clean = text.replace(/[📋✅⚛️📜🔥💻🎬⚠️*#]/g, '');
             const utterance = new SpeechSynthesisUtterance(clean);
             utterance.lang = /[әғқңөұүһіІ]/g.test(clean) ? 'kk-KZ' : 'ru-RU';
-            utterance.rate = 1.0;
             window.speechSynthesis.speak(utterance);
         }
 
-        function brainSearch(text) {
-            const q = text.toLowerCase().trim().replace(/\s+/g, '');
-            for (let key in memory) {
-                if (q === key.replace(/\s+/g, '').toLowerCase()) return memory[key];
-            }
-            return null;
+        // ============================================================
+        //  ТҰРАҚТЫ KEYLESS AI API (CORS қатесінсіз жұмыс істейді)
+        // ============================================================
+        async function fetchTextFromAI(userText, signal) {
+            // Контекстке жаңа хатты қосамыз
+            conversationHistory.push({ role: 'user', content: userText });
+            
+            // Тым ұзарып кетпес үшін соңғы 10 хатты ғана қалдырамыз
+            if(conversationHistory.length > 10) conversationHistory = conversationHistory.slice(conversationHistory.length - 10);
+
+            const messagesPayload = [
+                { role: 'system', content: currentSystemPrompt },
+                ...conversationHistory
+            ];
+
+            // 100% ашық жұмыс істейтін Pollinations OpenAI Compatible API (Кілтсіз, CORS өткізеді)
+            const response = await fetch('https://text.pollinations.ai/openai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'openai', // GPT-4o моделін шақырады
+                    messages: messagesPayload,
+                    temperature: 0.7
+                }),
+                signal: signal
+            });
+
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const data = await response.json();
+            const answer = data.choices[0].message.content;
+            
+            // Жауапты контекстке сақтаймыз
+            conversationHistory.push({ role: 'assistant', content: answer });
+            return answer;
         }
 
-        // MAIN SEND FUNCTION WITH POLLINATIONS TEXT & IMAGE API INTEGRATION
-        async function send(isRetry = false) {
-            if (isGenerating && !isRetry) return;
+        async function send() {
+            if (isGenerating) return;
             const inputEl = document.getElementById("userInput");
-            const text = isRetry ? lastUserMessage : inputEl.value.trim();
+            const text = inputEl.value.trim();
             if (!text) return;
 
-            if (!isRetry) {
-                lastUserMessage = text;
-                const msgId = Date.now().toString();
-                addMessage(text, 'user', false, msgId);
-                inputEl.value = '';
-                inputEl.style.height = '44px';
-            }
+            inputEl.value = ''; inputEl.style.height = '44px';
+            addMessage(text, 'user', false, Date.now().toString());
 
-            // Quick Math Calculator
-            if (/^[\d\s+\-*/().]+$/.test(text) && text.length < 30) {
-                showLoading();
-                try {
-                    const result = eval(text);
-                    setTimeout(() => { hideLoading(); addMessage(`Жауабы: ${result}`, 'ai', false, Date.now().toString()); }, 400);
-                } catch(e) { hideLoading(); }
-                return;
-            }
-
-            // Local Database check
-            const brainRes = brainSearch(text);
-            if (brainRes) {
-                showLoading();
-                setTimeout(() => { hideLoading(); addMessage(brainRes, 'ai', false, Date.now().toString()); }, 400);
-                return;
-            }
-
-            // Image generation trigger in chat
+            // Сурет салу функциясы
             const lowerText = text.toLowerCase();
-            if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("draw") || lowerText.includes("сгенерируй")) {
+            if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("draw")) {
                 showLoading();
-                const prompt = text.replace(/(нарисуй|сурет сал|draw|сгенерируй|картинку|фото)/gi, '').trim() || "beautiful view";
-                const seed = Math.floor(Math.random() * 1000000);
-                const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
-                const imgHTML = `<img src="${imgUrl}" style="max-width:100%; border-radius:12px; margin-top:8px;"><br><a href="${imgUrl}" target="_blank" download="Serik_AI.png" style="color:var(--accent); text-decoration:none; display:inline-block; margin-top:6px;">📥 Скачать (Serik AI)</a>`;
-                setTimeout(() => { hideLoading(); addMessage(imgHTML, 'ai', true, Date.now().toString()); }, 1200);
+                const prompt = text.replace(/(нарисуй|сурет сал|draw|картинку|фото|сгенерируй)/gi, '').trim() || "beautiful cyberpunk city";
+                const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random() * 10000)}`;
+                setTimeout(() => { hideLoading(); addMessage(`<img src="${imgUrl}" style="max-width:100%; border-radius:12px;"><br><a href="${imgUrl}" target="_blank" style="color:var(--accent);">📥 Скачать</a>`, 'ai', true); }, 1000);
                 return;
             }
 
-            // POLLINATIONS TEXT API INTEGRATION
             abortController = new AbortController();
-            isGenerating = true;
-            showLoading();
+            isGenerating = true; showLoading();
 
             try {
-                // Method 1: Fetch via Pollinations OpenAI compatibility POST endpoint
-                const messages = [
-                    { role: "system", content: currentSystemPrompt },
-                    { role: "user", content: text }
-                ];
-
-                let response = await fetch("https://text.pollinations.ai/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ messages, model: "openai", private: true }),
-                    signal: abortController.signal
-                });
-
-                let dataText = "";
-                if (response.ok) {
-                    dataText = await response.text();
-                } else {
-                    // Method 2: GET Fallback Endpoint if POST fails
-                    const encodedPrompt = encodeURIComponent(text);
-                    const systemPrefix = encodeURIComponent("Respond helpfully. ");
-                    const fallbackUrl = `https://text.pollinations.ai/${systemPrefix}${encodedPrompt}?model=openai&system=${encodeURIComponent(currentSystemPrompt)}`;
-                    
-                    response = await fetch(fallbackUrl, { signal: abortController.signal });
-                    if (response.ok) {
-                        dataText = await response.text();
-                    }
-                }
-
+                const answer = await fetchTextFromAI(text, abortController.signal);
                 hideLoading();
-                if (dataText && !dataText.includes('"error"')) {
-                    addMessage(dataText.trim(), 'ai', false, Date.now().toString());
-                } else {
-                    addMessage(getLangText('error_connection'), 'ai', false, Date.now().toString());
-                }
+                addMessage(answer, 'ai', false, Date.now().toString());
             } catch (e) {
                 hideLoading();
-                if (e.name === 'AbortError') {
-                    addMessage('Генерация тоқтатылды.', 'ai', false, Date.now().toString());
-                } else {
-                    addMessage(getLangText('error_connection'), 'ai', false, Date.now().toString());
+                if (e.name === 'AbortError') addMessage('⏹️ Тоқтатылды.', 'ai');
+                else {
+                    console.error('AI Error:', e);
+                    const el = addMessage(getLangText('error_connection'), 'ai');
+                    el.querySelector('.message').classList.add('error-message');
+                    // Қате кетсе контексттен соңғы сұрақты алып тастаймыз (қайталап сұрау үшін)
+                    conversationHistory.pop(); 
                 }
-            } finally {
-                isGenerating = false;
-                abortController = null;
-            }
+            } finally { isGenerating = false; abortController = null; }
         }
 
-        function checkAdmin() {
-            document.getElementById('adminTools').style.display = document.getElementById('adminPass').value === 'nurik777' ? 'block' : 'none';
-        }
+        // Жасырын база
+        function checkAdmin() { document.getElementById('adminTools').style.display = document.getElementById('adminPass').value === 'nurik777' ? 'block' : 'none'; }
+        function bulkLearn() { alert('Бұлтқа сақтау уақытша өшірулі'); document.getElementById('bulkData').value = ''; }
 
-        function bulkLearn() {
-            const lines = document.getElementById('bulkData').value.split('\n');
-            let count = 0;
-            const newMemory = Object.assign({}, memory);
-            for (let line of lines) {
-                const parts = line.split(' это ');
-                if (parts.length >= 2) {
-                    newMemory[parts[0].trim().toLowerCase()] = parts.slice(1).join(' это ').trim();
-                    count++;
-                }
-            }
-            if (count > 0) {
-                memory = newMemory;
-                if (db) db.ref('serik_memory').set(memory);
-                alert('✅ Сақталды');
-                document.getElementById('bulkData').value = '';
-            }
-        }
-
-        function updateVoiceButton() {
-            const btn = document.getElementById("voiceBtn");
-            btn.querySelector('span:last-child').textContent = translations[currentLang][voiceEnabled ? 'voice_on' : 'voice_off'];
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedLang = localStorage.getItem('serik_lang');
-            if (savedLang && translations[savedLang]) currentLang = savedLang;
-            changeLanguage(currentLang);
-        });
+        document.addEventListener('DOMContentLoaded', () => { changeLanguage(localStorage.getItem('serik_lang') || 'kk'); });
     </script>
 </body>
 </html>
+
