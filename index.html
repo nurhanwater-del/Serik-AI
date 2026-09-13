@@ -616,39 +616,6 @@ async function send() {
     }
 
     let lowerText = text.toLowerCase();
-    
-    // --- 2.5 ВИДЕОГЕНЕРАЦИЯ (DeepSeek + Qwen + HF) ---
-    if (lowerText.includes("видео жаса") || lowerText.includes("видео қыл") || lowerText.includes("сделай видео")) {
-        showLoading();
-        
-        fetch("https://СЕНІҢ_RENDER_СІЛТЕМЕҢ.onrender.com/generate-mega-video", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ user_prompt: text })
-        })
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if(data.success) {
-                add(`🎬 **Сюжет (DeepSeek):** ${data.story}`, "ai");
-                
-                let videoElement = document.createElement("video");
-                videoElement.src = data.video_url;
-                videoElement.controls = true;
-                videoElement.style.width = "100%";
-                videoElement.style.borderRadius = "10px";
-                videoElement.style.marginTop = "10px";
-                chat.appendChild(videoElement);
-            } else {
-                add("❌ Қате шықты: " + data.error, "ai");
-            }
-        })
-        .catch(e => {
-            hideLoading();
-            add("⚠️ Сервер оянуда, сәлден соң қайталап көр, брат.", "ai");
-        });
-        return;
-    }
 
     // --- 3. АНАЛИЗ ИЗОБРАЖЕНИЙ (Vision) ---
     let imgUrlMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
@@ -680,3 +647,26 @@ async function send() {
         let div = add("🎨 Вот твой рисунок:", "ai", true);
         let img = document.createElement("img");
         img.src = imageUrl;
+        img.style.width = "100%";
+        img.style.borderRadius = "10px";
+        img.style.marginTop = "10px";
+        div.appendChild(img);
+        chat.scrollTop = chat.scrollHeight;
+        return;
+    }
+
+    // --- 5. ЗАПРОС К КЛАССИЧЕСКОМУ ИИ ---
+    showLoading();
+    try {
+        let finalAnswer = await askSmartAI(text); 
+        hideLoading();
+        add(finalAnswer, "ai");
+    } catch (error) {
+        hideLoading();
+        console.error("Ошибка отправки:", error);
+        add("Извините, произошла ошибка сервера. Пожалуйста, попробуйте повторить запрос чуть позже ⚠️", "ai");
+    }
+}
+</script>
+</body>
+  </html>
