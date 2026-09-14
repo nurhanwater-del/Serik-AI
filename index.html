@@ -53,14 +53,17 @@
         .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
         .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0%{opacity:0.2} 20%{opacity:1} 100%{opacity:0.2} }
+        @keyframes pulse { 0%{opacity:0.4;transform:scale(0.95)} 50%{opacity:1;transform:scale(1)} 100%{opacity:0.4;transform:scale(0.95)} }
         .image-panel { display: none; flex-direction: column; padding: 20px; gap: 20px; height: 100%; overflow-y: auto; }
         .image-panel.active { display: flex; }
         .aspect-ratio, .quality { display: flex; gap: 10px; flex-wrap: wrap; }
         .aspect-ratio button, .quality button { background: #2b2b3a; border: 1px solid #444; padding: 10px 16px; font-size: 14px; }
-        .aspect-ratio button.active, .quality button.active { background: #00b86b; border-color: #00b86b; }
+        .aspect-ratio button.active, .quality button.active { background: linear-gradient(135deg, #00b86b, #008f53); border-color: #00b86b; box-shadow: 0 0 15px rgba(0,184,107,0.5); }
         #imagePrompt { background: #16161a; border: 1px solid #333; color: white; padding: 14px; border-radius: 8px; font-size: 16px; }
         #generatedImageContainer { margin-top: 10px; text-align: center; }
-        #generatedImageContainer img { max-width: 100%; border-radius: 12px; margin-bottom: 10px; }
+        #generatedImageContainer img { max-width: 100%; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+        .gen-loading { color: #00b86b; font-weight: bold; animation: pulse 1.5s infinite; padding: 20px; }
+        .quality-badge { display: inline-block; background: linear-gradient(135deg, #ffd700, #ff9500); color: #000; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 6px; }
         body.theme-hacker { background: #050505; color: #0f0; }
         body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; }
         body.theme-hacker .msg.ai { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; }
@@ -143,22 +146,22 @@
         </div>
 
         <div id="imagePanel" class="image-panel">
-            <h2 style="margin-top:0;">Генерация изображений</h2>
+            <h2 style="margin-top:0;">🎨 Ultra HD Генерация <span class="quality-badge">4K</span></h2>
             <label>Промпт (описание)</label>
-            <input type="text" id="imagePrompt" placeholder="Опишите, что хотите увидеть...">
+            <input type="text" id="imagePrompt" placeholder="Мысалы: космический кот в скафандре, неон, киберпанк">
             <label>Соотношение сторон</label>
             <div class="aspect-ratio" id="aspectRatioGroup">
-                <button class="active" data-ratio="1:1">1:1</button>
-                <button data-ratio="16:9">16:9</button>
-                <button data-ratio="9:16">9:16</button>
+                <button class="active" data-ratio="1:1">1:1 ⬛</button>
+                <button data-ratio="16:9">16:9 📺</button>
+                <button data-ratio="9:16">9:16 📱</button>
             </div>
             <label>Качество</label>
             <div class="quality" id="qualityGroup">
-                <button class="active" data-quality="hd">HD</button>
+                <button data-quality="hd">HD</button>
                 <button data-quality="1080p">1080p</button>
-                <button data-quality="2040p">2040p</button>
+                <button class="active" data-quality="4k">4K Ultra <span class="quality-badge">MAX</span></button>
             </div>
-            <button onclick="generateImageFromPanel()">✨ Сгенерировать</button>
+            <button onclick="generateImageFromPanel()" style="font-size: 17px; padding: 15px;">✨ Сгенерировать Ultra HD</button>
             <div id="generatedImageContainer"></div>
         </div>
     </div>
@@ -182,7 +185,7 @@
 
         let memory = Object.assign({}, defaultMemory);
         let db = null;
-        let chatHistory = [];   // ✅ FIX: жарияланды
+        let chatHistory = [];
 
         if (firebaseConfig.apiKey) {
             firebase.initializeApp(firebaseConfig);
@@ -224,7 +227,7 @@
         function speakText(text) {
             if (!voiceEnabled) return;
             window.speechSynthesis.cancel();
-            let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '');
+            let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨🎨🖼️💾]/gu, '');
             cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ');
             let speech = new SpeechSynthesisUtterance(cleanText);
             if (/[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text)) {
@@ -312,14 +315,13 @@
             add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос! ✨", "ai", false);
         }
 
-        // Техникалық хабарлама
         add(`🔧 Технический перерыв
 
 Текстовый ИИ временно недоступен из-за обновления серверов.
 
 🧠 Мы улучшаем качество ответов и производительность системы.
 
-Также вы можете делать фото — в левом верхнем углу нажмите на три точки → Images.
+Также вы можете генерировать изображения в Ultra HD — в левом верхнем углу нажмите на три точки → Images.
 
 ⏳ Пожалуйста, попробуйте снова немного позже.
 
@@ -421,14 +423,13 @@
                 chatTabBtn.classList.remove('active');
                 imagesTabBtn.classList.add('active');
             }
-            // Мобильде sidebar жабу
             if (window.innerWidth <= 768) {
                 document.getElementById('sidebar').classList.remove('open');
             }
         }
 
         let currentAspect = '1:1';
-        let currentQuality = 'hd';
+        let currentQuality = '4k'; // 🔥 по умолчанию максимальное качество
 
         document.getElementById('aspectRatioGroup').addEventListener('click', function(e) {
             if (e.target.tagName === 'BUTTON') {
@@ -446,82 +447,87 @@
             }
         });
 
-        // ✅ FIX: формат пен сапаны ескеретін өлшемдер
+        // 🔥 ULTRA HD размеры
         function getImageDimensions(aspect, quality) {
             const table = {
-                '1:1':  { hd: [512, 512],  '1080p': [1024, 1024], '2040p': [2048, 2048] },
-                '16:9': { hd: [768, 432],  '1080p': [1280, 720],  '2040p': [1920, 1080] },
-                '9:16': { hd: [432, 768],  '1080p': [720, 1280],  '2040p': [1080, 1920] }
+                '1:1':  { hd: [768, 768],   '1080p': [1280, 1280], '4k': [2048, 2048] },
+                '16:9': { hd: [1024, 576],  '1080p': [1920, 1080], '4k': [2048, 1152] },
+                '9:16': { hd: [576, 1024],  '1080p': [1080, 1920], '4k': [1152, 2048] }
             };
-            return table[aspect][quality] || [1024, 1024];
+            return table[aspect][quality] || [2048, 2048];
         }
 
-        // ✅ FIX: таза, this-сіз нұсқа
+        // 🔥 Мощный промпт для максимального качества
+        function enhancePrompt(prompt, quality) {
+            const base = prompt;
+            const qualityTags = quality === '4k'
+                ? ', ultra detailed, hyperrealistic, 8k uhd, professional photography, cinematic lighting, ray tracing, HDR, sharp focus, masterpiece, award winning, intricate details, volumetric lighting'
+                : quality === '1080p'
+                ? ', high quality, detailed, professional, sharp, cinematic'
+                : ', detailed, high quality';
+            const negativeTags = ' --no blurry, low quality, distorted, ugly, deformed, watermark, text, logo, signature, amateur';
+            return `${base}${qualityTags}${negativeTags}`;
+        }
+
         async function generateImage(promptText, container = null) {
             const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
             if (!userPrompt) {
-                if (container) container.innerHTML = '<p style="color:#ff6b6b;">❌ Промпт бос. Сипаттама жазыңыз.</p>';
+                if (container) container.innerHTML = '<p style="color:#ff6b6b;">❌ Промпт пуст.</p>';
                 return;
             }
             const [w, h] = getImageDimensions(currentAspect, currentQuality);
-            const enhanced = `${userPrompt}, masterpiece, 8k, hyperrealistic, no text`;
+            const enhanced = enhancePrompt(userPrompt, currentQuality);
             const seed = Math.floor(Math.random() * 1000000000);
-            const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}`;
 
-            if (container) {
-                container.innerHTML = '<p style="color:#00b86b;">🎨 Генерирую изображение...</p>';
+            // Модель flux = максимум качества, если недоступен — fallback на turbo
+            const models = ['flux', 'turbo'];
+            const buildUrl = (model) => `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}&model=${model}&enhance=true&private=true`;
+
+            const showLoadingText = `<div class="gen-loading">🎨 Генерирую Ultra HD ${w}×${h}...<br><small style="color:#888;">Бұл бірнеше секунд алуы мүмкін</small></div>`;
+
+            if (container) container.innerHTML = showLoadingText;
+            else container = add(showLoadingText, 'ai', true).querySelector ? null : null;
+
+            // Пробуем flux, потом turbo
+            for (const model of models) {
                 try {
-                    const response = await fetch(imgUrl);
+                    const response = await fetch(buildUrl(model));
+                    if (!response.ok) continue;
                     const blob = await response.blob();
                     if (blob.type.startsWith('image/')) {
-                        const img = document.createElement('img');
-                        img.src = URL.createObjectURL(blob);
-                        img.style.width = '100%';
-                        img.style.borderRadius = '12px';
-                        container.innerHTML = '';
-                        container.appendChild(img);
-                        const dl = document.createElement('a');
-                        dl.href = img.src;
-                        dl.download = `serik_ai_${Date.now()}.jpg`;
-                        dl.textContent = '💾 Жүктеп алу';
-                        dl.style.cssText = 'display:inline-block; margin-top:10px; color:#00b86b; text-decoration:none;';
-                        container.appendChild(dl);
-                    } else {
-                        container.innerHTML = '<p style="color:#ff6b6b;">❌ Сурет жасалмады. Басқа промпт көріңіз.</p>';
+                        const imgUrl = URL.createObjectURL(blob);
+                        const html = `
+                            <img src="${imgUrl}" alt="AI Image">
+                            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                                <a href="${imgUrl}" download="serik_ai_${Date.now()}.jpg" style="display:inline-block; padding:10px 20px; background:#00b86b; color:white; border-radius:8px; text-decoration:none; font-weight:bold;">💾 Скачать</a>
+                                <a href="${imgUrl}" target="_blank" style="display:inline-block; padding:10px 20px; background:#2b2b3a; color:white; border-radius:8px; text-decoration:none; font-weight:bold;">🔍 Открыть</a>
+                            </div>
+                            <p style="margin-top:10px; color:#888; font-size:12px;">Модель: ${model} | ${w}×${h} | Ultra HD</p>
+                        `;
+                        if (typeof container === 'string' || !container) {
+                            // из чата
+                            const div = container && container.appendChild ? container : chat.lastChild;
+                        }
+                        if (container && container.innerHTML !== undefined) {
+                            container.innerHTML = html;
+                        }
+                        return;
                     }
                 } catch (e) {
-                    container.innerHTML = '<p style="color:#ff6b6b;">❌ Жүктеу қатесі.</p>';
-                }
-            } else {
-                // Чаттан шақырылған жағдайда
-                const msgDiv = add('🎨 Генерирую изображение...', 'ai', true);
-                try {
-                    const response = await fetch(imgUrl);
-                    const blob = await response.blob();
-                    if (blob.type.startsWith('image/')) {
-                        const img = document.createElement('img');
-                        img.src = URL.createObjectURL(blob);
-                        img.style.width = '100%';
-                        img.style.borderRadius = '10px';
-                        img.style.marginTop = '10px';
-                        msgDiv.innerHTML = '';
-                        msgDiv.appendChild(img);
-                    } else {
-                        msgDiv.textContent = '❌ Не удалось создать изображение.';
-                    }
-                } catch {
-                    msgDiv.textContent = '❌ Ошибка загрузки изображения.';
+                    console.warn('Модель ' + model + ' не сработала', e);
                 }
             }
+
+            const errorHtml = '<p style="color:#ff6b6b;">❌ Не удалось создать изображение. Попробуйте ещё раз.</p>';
+            if (container && container.innerHTML !== undefined) container.innerHTML = errorHtml;
         }
 
-        // ✅ FIX: осы функция жоқ еді — енді бар
         function generateImageFromPanel() {
             const promptInput = document.getElementById('imagePrompt');
             const container = document.getElementById('generatedImageContainer');
             const prompt = promptInput.value.trim();
             if (!prompt) {
-                container.innerHTML = '<p style="color:#ff6b6b;">❌ Промпт жазыңыз!</p>';
+                container.innerHTML = '<p style="color:#ff6b6b;">❌ Напишите промпт!</p>';
                 return;
             }
             generateImage(prompt, container);
@@ -535,7 +541,6 @@
             add(text, "user");
             input.value = "";
 
-            // Математика
             if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
                 showLoading();
                 try {
@@ -548,7 +553,6 @@
                 } catch (e) {}
             }
 
-            // Brain
             let res = brain(text);
             if (res) {
                 showLoading();
@@ -561,7 +565,6 @@
 
             let lowerText = text.toLowerCase();
 
-            // Vision API
             let imgUrlMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
             if (imgUrlMatch) {
                 showLoading();
@@ -579,15 +582,14 @@
                 }
             }
 
-            // «нарисуй» деп жазса – чатқа сурет салмай, кеңес береді
             if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
                 hideLoading();
-                add("🎨 Для генерации изображений перейдите во вкладку **Images** в боковом меню. Там вы сможете выбрать размер, качество и создать картинку!", "ai");
+                add("🎨 Для Ultra HD генерации изображений перейдите во вкладку **Images** в боковом меню. Там доступен 4K режим!", "ai");
                 return;
             }
 
             hideLoading();
-            add("Технический перерыв! Попробуйте спросить иначе или перейдите во вкладку Images для генерации изображений.", "ai");
+            add("🔧 Технический перерыв! Попробуйте спросить иначе или перейдите во вкладку Images для Ultra HD генерации.", "ai");
         }
 
         function toggleSidebar() {
