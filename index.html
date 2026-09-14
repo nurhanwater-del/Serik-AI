@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Serik AI — Ultra Realistic</title>
+    <title>Serik AI</title>
     <script type="application/ld+json">
         {"@context":"https://schema.org","@type":"WebSite","name":"Serik AI","url":"https://serik-ai.vercel.app"}
     </script>
@@ -53,21 +53,14 @@
         .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
         .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0%{opacity:0.2} 20%{opacity:1} 100%{opacity:0.2} }
-        @keyframes pulse { 0%{opacity:0.4;transform:scale(0.95)} 50%{opacity:1;transform:scale(1)} 100%{opacity:0.4;transform:scale(0.95)} }
         .image-panel { display: none; flex-direction: column; padding: 20px; gap: 20px; height: 100%; overflow-y: auto; }
         .image-panel.active { display: flex; }
         .aspect-ratio, .quality { display: flex; gap: 10px; flex-wrap: wrap; }
         .aspect-ratio button, .quality button { background: #2b2b3a; border: 1px solid #444; padding: 10px 16px; font-size: 14px; }
-        .aspect-ratio button.active, .quality button.active { background: linear-gradient(135deg, #00b86b, #008f53); border-color: #00b86b; box-shadow: 0 0 15px rgba(0,184,107,0.5); }
+        .aspect-ratio button.active, .quality button.active { background: #00b86b; border-color: #00b86b; }
         #imagePrompt { background: #16161a; border: 1px solid #333; color: white; padding: 14px; border-radius: 8px; font-size: 16px; }
         #generatedImageContainer { margin-top: 10px; text-align: center; }
-        #generatedImageContainer img { max-width: 100%; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
-        .gen-loading { color: #00b86b; font-weight: bold; animation: pulse 1.5s infinite; padding: 20px; }
-        .quality-badge { display: inline-block; background: linear-gradient(135deg, #ffd700, #ff9500); color: #000; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 6px; }
-        .safe-badge { display: inline-block; background: linear-gradient(135deg, #00b86b, #008f53); color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 6px; }
-        .prompt-hints { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-        .prompt-hints button { background: #2b2b3a; border: 1px solid #444; font-size: 11px; padding: 6px 12px; border-radius: 15px; font-weight: normal; }
-        .prompt-hints button:hover { background: #00b86b; }
+        #generatedImageContainer img { max-width: 100%; border-radius: 12px; margin-bottom: 10px; }
         body.theme-hacker { background: #050505; color: #0f0; }
         body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; }
         body.theme-hacker .msg.ai { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; }
@@ -107,7 +100,7 @@
         <h3>🤖 Serik AI</h3>
         <div class="sidebar-tabs">
             <button id="chatTabBtn" class="active" onclick="switchTab('chat')">💬 Chat</button>
-            <button id="imagesTabBtn" onclick="switchTab('images')">📸 Photo</button>
+            <button id="imagesTabBtn" onclick="switchTab('images')">🖼️ Images</button>
         </div>
         <div id="chatSettings" style="display: flex; flex-direction: column; gap: 10px;">
             <button id="menuToggle" onclick="toggleSettings()">⚙️ Настройки <span>🔽</span></button>
@@ -150,37 +143,22 @@
         </div>
 
         <div id="imagePanel" class="image-panel">
-            <h2 style="margin-top:0;">📸 Ultra Realistic Photo <span class="quality-badge">4K</span> <span class="safe-badge">🚫 NO HUMANS</span></h2>
-            <label>Промпт (описание фото)</label>
-            <input type="text" id="imagePrompt" placeholder="Мысалы: горный пейзаж, снежный барс, чашка кофе">
-            
-            <div class="prompt-hints">
-                <button onclick="setPrompt('горный пейзаж Казахстана, закат, кинематографично')">🏔 Пейзаж</button>
-                <button onclick="setPrompt('снежный барс в горах, wildlife photography, telephoto lens')">🐆 Барс</button>
-                <button onclick="setPrompt('Алматы ночью, огни города, длинная выдержка')">🌃 Город</button>
-                <button onclick="setPrompt('чашка кофе на деревянном столе, утренний свет, macro')">☕ Еда</button>
-                <button onclick="setPrompt('котенок играет с клубком, мягкий свет, home photography')">🐱 Котенок</button>
-                <button onclick="setPrompt('космический корабль у планеты, реалистично, cinematic')">🚀 Космос</button>
-                <button onclick="setPrompt('старый замок в тумане, драматичное освещение')">🏰 Замок</button>
-                <button onclick="setPrompt('красная спортивная машина на трассе, motion blur')">🚗 Машина</button>
-                <button onclick="setPrompt('поле лаванды, закатное солнце, dreamy')">🌾 Природа</button>
-            </div>
-
+            <h2 style="margin-top:0;">Генерация изображений</h2>
+            <label>Промпт (описание)</label>
+            <input type="text" id="imagePrompt" placeholder="Опишите, что хотите увидеть...">
             <label>Соотношение сторон</label>
             <div class="aspect-ratio" id="aspectRatioGroup">
-                <button class="active" data-ratio="1:1">1:1 ⬛</button>
-                <button data-ratio="16:9">16:9 📺</button>
-                <button data-ratio="9:16">9:16 📱</button>
+                <button class="active" data-ratio="1:1">1:1</button>
+                <button data-ratio="16:9">16:9</button>
+                <button data-ratio="9:16">9:16</button>
             </div>
             <label>Качество</label>
             <div class="quality" id="qualityGroup">
-                <button data-quality="hd">HD</button>
+                <button class="active" data-quality="hd">HD</button>
                 <button data-quality="1080p">1080p</button>
-                <button class="active" data-quality="4k">4K Ultra <span class="quality-badge">MAX</span></button>
+                <button data-quality="2040p">2040p</button>
             </div>
-            <button onclick="generateImageFromPanel()" style="font-size: 17px; padding: 15px; background: linear-gradient(135deg,#00b86b,#008f53);">
-                📸 Создать реалистичное фото
-            </button>
+            <button onclick="generateImageFromPanel()">✨ Сгенерировать</button>
             <div id="generatedImageContainer"></div>
         </div>
     </div>
@@ -196,7 +174,7 @@
 
         const defaultMemory = {
             "привет": "Привет! Я готов помочь. Задавай любой вопрос! 👋",
-            "что ты умеешь": "Я умный ИИ-ассистент. Умею писать тексты, эссе, рефераты, генерировать реалистичные фото природы, животных и техники! 🧠",
+            "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю длинные и короткие вопросы, ищу информацию в сети, пишу эссе, рефераты! 🧠",
             "как тебя зовут": "Я Serik-AI. 🤖",
             "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі.",
             "почему серик": "Имя Serik AI было выбрано в честь отца моего создателя — это дань глубокого уважения, любви и вечной памяти."
@@ -204,7 +182,7 @@
 
         let memory = Object.assign({}, defaultMemory);
         let db = null;
-        let chatHistory = [];
+        let chatHistory = [];   // ✅ FIX: жарияланды
 
         if (firebaseConfig.apiKey) {
             firebase.initializeApp(firebaseConfig);
@@ -246,7 +224,7 @@
         function speakText(text) {
             if (!voiceEnabled) return;
             window.speechSynthesis.cancel();
-            let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨🎨📸🖼️💾🔍🛡️🚫]/gu, '');
+            let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨]/gu, '');
             cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ');
             let speech = new SpeechSynthesisUtterance(cleanText);
             if (/[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text)) {
@@ -334,15 +312,14 @@
             add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос! ✨", "ai", false);
         }
 
+        // Техникалық хабарлама
         add(`🔧 Технический перерыв
 
 Текстовый ИИ временно недоступен из-за обновления серверов.
 
 🧠 Мы улучшаем качество ответов и производительность системы.
 
-📸 Также вы можете генерировать реалистичные фото Ultra HD — в левом верхнем углу нажмите на три точки → Photo.
-
-⚠️ Внимание: генерация людей и взрослого контента отключена — только природа, животные, техника, еда, фэнтези!
+Также вы можете делать фото — в левом верхнем углу нажмите на три точки → Images.
 
 ⏳ Пожалуйста, попробуйте снова немного позже.
 
@@ -444,17 +421,14 @@
                 chatTabBtn.classList.remove('active');
                 imagesTabBtn.classList.add('active');
             }
+            // Мобильде sidebar жабу
             if (window.innerWidth <= 768) {
                 document.getElementById('sidebar').classList.remove('open');
             }
         }
 
-        function setPrompt(text) {
-            document.getElementById('imagePrompt').value = text;
-        }
-
         let currentAspect = '1:1';
-        let currentQuality = '4k';
+        let currentQuality = 'hd';
 
         document.getElementById('aspectRatioGroup').addEventListener('click', function(e) {
             if (e.target.tagName === 'BUTTON') {
@@ -472,198 +446,82 @@
             }
         });
 
-        // 🛡️ NSFW ФИЛЬТР
-        const NSFW_WORDS = [
-            'голый', 'голая', 'голые', 'нюд', 'nude', 'sex', 'секс', 'порно', 'порн',
-            'эротика', 'эротик', 'обнажен', 'обнажён', 'интим', 'половой', 'сиськи', 'титьки',
-            'писюн', 'член', 'пенис', 'вагин', 'влагалищ', 'оргазм', 'мастур',
-            'проститут', 'нагишом', 'раздетый', 'раздевание', 'стриптиз', 'стрип',
-            'лифчик', 'трусы', 'топлес',
-            'жалаңаш', 'жаланаш', 'жыныс', 'сексуал', 'порнография', 'нәпсі',
-            'naked', 'nsfw', 'porn', 'porno', 'explicit', 'sexual', 'nudity', 'erotic', 'hentai',
-            'boobs', 'tits', 'pussy', 'penis', 'vagina', 'booty', 'dick', 'cock',
-            'xxx', '18+', 'adult content', 'undress', 'lingerie',
-            'topless', 'bottomless', 'genital', 'nipple', 'seductive', 'provocative',
-            'bdsm', 'fetish', 'kink', 'orgy', 'onlyfans'
-        ];
-
-        // 🚫 АДАМ ФИЛЬТРІ
-        const HUMAN_WORDS = [
-            'человек', 'люди', 'людей', 'мужчина', 'женщина', 'мужик', 'баба',
-            'девушка', 'девушк', 'парень', 'парен', 'юноша', 'юнош',
-            'ребенок', 'ребёнок', 'дети', 'детей', 'мальчик', 'девочка', 'младенец',
-            'старик', 'старуха', 'бабушка', 'дедушка', 'папа', 'мама', 'отец', 'мать',
-            'сын', 'дочь', 'брат', 'сестра', 'портрет',
-            'мужчины', 'женщины', 'девушки', 'парни', 'дети',
-            'модель', 'модели', 'фотомодель', 'актриса', 'актер', 'певец', 'певица',
-            'бизнесмен', 'бизнесвумен', 'спортсмен', 'спортсменка',
-            'солдат', 'воин', 'рыцарь', 'король', 'королева', 'принцесс', 'принц',
-            'ведьма', 'колдун', 'маг', 'эльф', 'орк', 'гном', 'русалка',
-            'мальчики', 'девочки', 'подросток', 'подростки', 'тинейджер',
-            'кавказец', 'казах', 'казашка', 'русский', 'русская', 'американец',
-            'азиат', 'азиатка', 'еврей', 'еврейка', 'негр', 'негритянка',
-            'инвалид', 'бомж', 'нищий', 'богач',
-            'адам', 'адамдар', 'ер', 'ерлер', 'әйел', 'әйелдер', 'қыз', 'қыздар',
-            'жігіт', 'жігіттер', 'бала', 'балалар', 'ұл',
-            'әке', 'ана', 'ата', 'әже', 'аға', 'апа', 'іні', 'сіңлі', 'қарындас',
-            'жұбай', 'күйеу', 'әйелі', 'портрет', 'бет', 'тұлға',
-            'human', 'person', 'people', 'man', 'woman', 'men', 'women', 'girl', 'boy',
-            'girls', 'boys', 'child', 'children', 'kid', 'kids', 'baby', 'babies',
-            'guy', 'guys', 'lady', 'ladies', 'gentleman', 'teenager', 'teen',
-            'male', 'female', 'portrait', 'face',
-            'father', 'mother', 'dad', 'mom', 'son', 'daughter', 'brother', 'sister',
-            'family', 'couple', 'husband', 'wife',
-            'soldier', 'warrior', 'knight', 'king', 'queen', 'prince', 'princess',
-            'wizard', 'witch', 'elf', 'orc', 'dwarf', 'mermaid',
-            'businessman', 'athlete', 'actor', 'actress', 'singer',
-            'asian', 'african', 'european', 'kazakh', 'russian', 'american'
-        ];
-
-        function isNSFW(text) {
-            const lower = text.toLowerCase().replace(/[^\wа-яёәғқңөұүһі\s]/gi, ' ');
-            return NSFW_WORDS.some(word => lower.includes(word.toLowerCase()));
-        }
-
-        function hasHuman(text) {
-            const lower = text.toLowerCase().replace(/[^\wа-яёәғқңөұүһі\s]/gi, ' ');
-            return HUMAN_WORDS.some(word => lower.includes(word.toLowerCase()));
-        }
-
-        // ✅ РАЗМЕРЫ
+        // ✅ FIX: формат пен сапаны ескеретін өлшемдер
         function getImageDimensions(aspect, quality) {
             const table = {
-                '1:1':  { hd: [1024, 1024], '1080p': [1280, 1280], '4k': [1536, 1536] },
-                '16:9': { hd: [1024, 576],  '1080p': [1280, 720],  '4k': [1536, 864] },
-                '9:16': { hd: [576, 1024],  '1080p': [720, 1280],  '4k': [864, 1536] }
+                '1:1':  { hd: [512, 512],  '1080p': [1024, 1024], '2040p': [2048, 2048] },
+                '16:9': { hd: [768, 432],  '1080p': [1280, 720],  '2040p': [1920, 1080] },
+                '9:16': { hd: [432, 768],  '1080p': [720, 1280],  '2040p': [1080, 1920] }
             };
             return table[aspect][quality] || [1024, 1024];
         }
 
-        // ✅ ҚЫСҚА ПРОМПТ (URL ұзындығын азайтады)
-        function enhancePrompt(prompt, quality) {
-            const qualityTag = quality === '4k'
-                ? ', ultra detailed, 8k, hyperrealistic, sharp focus, professional photography, natural lighting'
-                : quality === '1080p'
-                ? ', highly detailed, sharp, professional photo'
-                : ', detailed, high quality photo';
-            return prompt + qualityTag + ', photorealistic, no people, no humans, no text';
-        }
-
-        // ✅ ТҮЗЕТІЛГЕН ГЕНЕРАЦИЯ
+        // ✅ FIX: таза, this-сіз нұсқа
         async function generateImage(promptText, container = null) {
             const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
-
             if (!userPrompt) {
-                if (container) container.innerHTML = '<p style="color:#ff6b6b;">❌ Промпт пуст. Напишите описание.</p>';
+                if (container) container.innerHTML = '<p style="color:#ff6b6b;">❌ Промпт бос. Сипаттама жазыңыз.</p>';
                 return;
             }
-
-            if (isNSFW(userPrompt)) {
-                const blockHtml = `
-                    <div style="padding:20px; background:#2a0d0d; border:2px solid #ff4d4d; border-radius:12px; text-align:center;">
-                        <p style="color:#ff6b6b; font-weight:bold; font-size:16px; margin:0 0 10px 0;">🛑 Запрещённый контент</p>
-                        <p style="color:#ccc; font-size:14px; margin:0;">Генерация взрослого/неприличного контента запрещена.<br>Пожалуйста, измените описание. 🚫</p>
-                    </div>`;
-                if (container) container.innerHTML = blockHtml;
-                return;
-            }
-
-            if (hasHuman(userPrompt)) {
-                const blockHtml = `
-                    <div style="padding:20px; background:#2a1a0d; border:2px solid #ff9500; border-radius:12px; text-align:center;">
-                        <p style="color:#ff9500; font-weight:bold; font-size:16px; margin:0 0 10px 0;">🚫 Генерация людей отключена</p>
-                        <p style="color:#ccc; font-size:14px; margin:0;">Я не генерирую изображения с людьми.<br>Попробуйте: природа, животные, техника, еда, замки, космос. 🌍🐆🏰🚀</p>
-                    </div>`;
-                if (container) container.innerHTML = blockHtml;
-                return;
-            }
-
             const [w, h] = getImageDimensions(currentAspect, currentQuality);
-            const enhanced = enhancePrompt(userPrompt, currentQuality);
+            const enhanced = `${userPrompt}, masterpiece, 8k, hyperrealistic, no text`;
             const seed = Math.floor(Math.random() * 1000000000);
-
-            const loadingHtml = `
-                <div class="gen-loading">
-                    📸 Генерирую ${w}×${h}...<br>
-                    <small style="color:#888;">~10-15 секунд</small>
-                </div>`;
+            const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}`;
 
             if (container) {
-                container.innerHTML = loadingHtml;
-            } else {
-                container = add(loadingHtml, 'ai', true);
-            }
-
-            // ✅ 2 модель — flux негізгі, turbo қосалқы
-            const models = ['flux', 'turbo'];
-
-            for (const model of models) {
+                container.innerHTML = '<p style="color:#00b86b;">🎨 Генерирую изображение...</p>';
                 try {
-                    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&seed=${seed}&model=${model}&nologo=true`;
-
-                    console.log(`📸 Модель ${model}, URL: ${url.length} символов`);
-
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 60000);
-
-                    const response = await fetch(url, { signal: controller.signal });
-                    clearTimeout(timeoutId);
-
-                    console.log(`📸 Ответ ${model}: ${response.status}`);
-
-                    if (!response.ok) {
-                        console.warn(`Модель ${model} вернула ${response.status}`);
-                        continue;
-                    }
-
+                    const response = await fetch(imgUrl);
                     const blob = await response.blob();
-                    console.log(`📸 Blob ${model}: ${blob.type} (${blob.size} байт)`);
-
-                    if (blob.type.startsWith('image/') && blob.size > 1000) {
-                        const imgUrl = URL.createObjectURL(blob);
-                        const successHtml = `
-                            <img src="${imgUrl}" alt="AI Realistic Photo">
-                            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px;">
-                                <a href="${imgUrl}" download="serik_${Date.now()}.jpg"
-                                   style="display:inline-block; padding:10px 20px; background:linear-gradient(135deg,#00b86b,#008f53); color:white; border-radius:8px; text-decoration:none; font-weight:bold;">
-                                   💾 Скачать
-                                </a>
-                                <a href="${imgUrl}" target="_blank"
-                                   style="display:inline-block; padding:10px 20px; background:#2b2b3a; color:white; border-radius:8px; text-decoration:none; font-weight:bold;">
-                                   🔍 Открыть
-                                </a>
-                            </div>
-                            <p style="margin-top:10px; color:#888; font-size:12px;">
-                                ✨ ${model} | ${w}×${h} | ULTRA | 🛡️ SAFE
-                            </p>`;
-
-                        if (container && container.innerHTML !== undefined) {
-                            container.innerHTML = successHtml;
-                        }
-                        console.log('✅ Фото создано!');
-                        return;
+                    if (blob.type.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.src = URL.createObjectURL(blob);
+                        img.style.width = '100%';
+                        img.style.borderRadius = '12px';
+                        container.innerHTML = '';
+                        container.appendChild(img);
+                        const dl = document.createElement('a');
+                        dl.href = img.src;
+                        dl.download = `serik_ai_${Date.now()}.jpg`;
+                        dl.textContent = '💾 Жүктеп алу';
+                        dl.style.cssText = 'display:inline-block; margin-top:10px; color:#00b86b; text-decoration:none;';
+                        container.appendChild(dl);
+                    } else {
+                        container.innerHTML = '<p style="color:#ff6b6b;">❌ Сурет жасалмады. Басқа промпт көріңіз.</p>';
                     }
                 } catch (e) {
-                    console.error(`❌ Модель ${model}:`, e.name, e.message);
+                    container.innerHTML = '<p style="color:#ff6b6b;">❌ Жүктеу қатесі.</p>';
                 }
-            }
-
-            const errorHtml = `
-                <div style="padding:20px; background:#2a0d0d; border:1px solid #ff4d4d; border-radius:12px; text-align:center;">
-                    <p style="color:#ff6b6b; font-weight:bold;">❌ Не удалось создать фото</p>
-                    <p style="color:#ccc; font-size:13px; margin-top:8px;">Попробуйте ещё раз или измените промпт</p>
-                </div>`;
-            if (container && container.innerHTML !== undefined) {
-                container.innerHTML = errorHtml;
+            } else {
+                // Чаттан шақырылған жағдайда
+                const msgDiv = add('🎨 Генерирую изображение...', 'ai', true);
+                try {
+                    const response = await fetch(imgUrl);
+                    const blob = await response.blob();
+                    if (blob.type.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.src = URL.createObjectURL(blob);
+                        img.style.width = '100%';
+                        img.style.borderRadius = '10px';
+                        img.style.marginTop = '10px';
+                        msgDiv.innerHTML = '';
+                        msgDiv.appendChild(img);
+                    } else {
+                        msgDiv.textContent = '❌ Не удалось создать изображение.';
+                    }
+                } catch {
+                    msgDiv.textContent = '❌ Ошибка загрузки изображения.';
+                }
             }
         }
 
+        // ✅ FIX: осы функция жоқ еді — енді бар
         function generateImageFromPanel() {
             const promptInput = document.getElementById('imagePrompt');
             const container = document.getElementById('generatedImageContainer');
             const prompt = promptInput.value.trim();
             if (!prompt) {
-                container.innerHTML = '<p style="color:#ff6b6b;">❌ Напишите промпт!</p>';
+                container.innerHTML = '<p style="color:#ff6b6b;">❌ Промпт жазыңыз!</p>';
                 return;
             }
             generateImage(prompt, container);
@@ -677,11 +535,7 @@
             add(text, "user");
             input.value = "";
 
-            if (isNSFW(text)) {
-                add("🛑 Я не буду отвечать на такие запросы. Задайте другой вопрос!", "ai");
-                return;
-            }
-
+            // Математика
             if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
                 showLoading();
                 try {
@@ -694,6 +548,7 @@
                 } catch (e) {}
             }
 
+            // Brain
             let res = brain(text);
             if (res) {
                 showLoading();
@@ -706,6 +561,7 @@
 
             let lowerText = text.toLowerCase();
 
+            // Vision API
             let imgUrlMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
             if (imgUrlMatch) {
                 showLoading();
@@ -723,24 +579,15 @@
                 }
             }
 
-            // ✅ «нарисуй» — чаттан тікелей генерация
+            // «нарисуй» деп жазса – чатқа сурет салмай, кеңес береді
             if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
                 hideLoading();
-                const cleanPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, '').trim();
-                if (cleanPrompt && !hasHuman(cleanPrompt) && !isNSFW(cleanPrompt)) {
-                    generateImage(cleanPrompt);
-                } else if (hasHuman(cleanPrompt)) {
-                    add("🚫 Генерация людей отключена. Попробуйте природу, животных, технику, еду или космос. 🌍🐆🏰🚀", "ai");
-                } else if (isNSFW(cleanPrompt)) {
-                    add("🛑 Запрещённый контент. Измените описание.", "ai");
-                } else {
-                    add("📸 Для реалистичных фото перейдите во вкладку **Photo** в боковом меню.", "ai");
-                }
+                add("🎨 Для генерации изображений перейдите во вкладку **Images** в боковом меню. Там вы сможете выбрать размер, качество и создать картинку!", "ai");
                 return;
             }
 
             hideLoading();
-            add("🔧 Технический перерыв! Попробуйте спросить иначе или перейдите во вкладку Photo для реалистичной генерации.", "ai");
+            add("Технический перерыв! Попробуйте спросить иначе или перейдите во вкладку Images для генерации изображений.", "ai");
         }
 
         function toggleSidebar() {
@@ -748,4 +595,4 @@
         }
     </script>
 </body>
-    </html>
+</html>
