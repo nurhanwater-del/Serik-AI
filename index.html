@@ -472,7 +472,7 @@
             }
         });
 
-        // 🛡️ NSFW + АДАМ ФИЛЬТРІ
+        // 🛡️ NSFW ФИЛЬТР
         const NSFW_WORDS = [
             'голый', 'голая', 'голые', 'нюд', 'nude', 'sex', 'секс', 'порно', 'порн',
             'эротика', 'эротик', 'обнажен', 'обнажён', 'интим', 'половой', 'сиськи', 'титьки',
@@ -487,14 +487,13 @@
             'bdsm', 'fetish', 'kink', 'orgy', 'onlyfans'
         ];
 
-        // 🚫 АДАМ СӨЗДЕРІ — фильтр
+        // 🚫 АДАМ ФИЛЬТРІ
         const HUMAN_WORDS = [
-            // Русский
-            'человек', 'люди', 'людей', 'людишек', 'мужчина', 'женщина', 'мужик', 'баба',
-            'девушка', 'девушк', 'парень', 'парен', 'юноша', 'юнош', 'юнга',
+            'человек', 'люди', 'людей', 'мужчина', 'женщина', 'мужик', 'баба',
+            'девушка', 'девушк', 'парень', 'парен', 'юноша', 'юнош',
             'ребенок', 'ребёнок', 'дети', 'детей', 'мальчик', 'девочка', 'младенец',
             'старик', 'старуха', 'бабушка', 'дедушка', 'папа', 'мама', 'отец', 'мать',
-            'сын', 'дочь', 'брат', 'сестра', 'портрет', 'лицо человека', 'люди',
+            'сын', 'дочь', 'брат', 'сестра', 'портрет',
             'мужчины', 'женщины', 'девушки', 'парни', 'дети',
             'модель', 'модели', 'фотомодель', 'актриса', 'актер', 'певец', 'певица',
             'бизнесмен', 'бизнесвумен', 'спортсмен', 'спортсменка',
@@ -504,16 +503,14 @@
             'кавказец', 'казах', 'казашка', 'русский', 'русская', 'американец',
             'азиат', 'азиатка', 'еврей', 'еврейка', 'негр', 'негритянка',
             'инвалид', 'бомж', 'нищий', 'богач',
-            // Казахский
             'адам', 'адамдар', 'ер', 'ерлер', 'әйел', 'әйелдер', 'қыз', 'қыздар',
-            'жігіт', 'жігіттер', 'бала', 'балалар', 'ұл', 'қыз бала',
+            'жігіт', 'жігіттер', 'бала', 'балалар', 'ұл',
             'әке', 'ана', 'ата', 'әже', 'аға', 'апа', 'іні', 'сіңлі', 'қарындас',
             'жұбай', 'күйеу', 'әйелі', 'портрет', 'бет', 'тұлға',
-            // English
             'human', 'person', 'people', 'man', 'woman', 'men', 'women', 'girl', 'boy',
             'girls', 'boys', 'child', 'children', 'kid', 'kids', 'baby', 'babies',
             'guy', 'guys', 'lady', 'ladies', 'gentleman', 'teenager', 'teen',
-            'male', 'female', 'portrait', 'face', 'model', 'models',
+            'male', 'female', 'portrait', 'face',
             'father', 'mother', 'dad', 'mom', 'son', 'daughter', 'brother', 'sister',
             'family', 'couple', 'husband', 'wife',
             'soldier', 'warrior', 'knight', 'king', 'queen', 'prince', 'princess',
@@ -532,47 +529,27 @@
             return HUMAN_WORDS.some(word => lower.includes(word.toLowerCase()));
         }
 
-        // 🔥 ULTRA REALISTIC размеры
+        // ✅ РАЗМЕРЫ
         function getImageDimensions(aspect, quality) {
             const table = {
-                '1:1':  { hd: [1024, 1024], '1080p': [1536, 1536], '4k': [2048, 2048] },
-                '16:9': { hd: [1280, 720],  '1080p': [1920, 1080], '4k': [2560, 1440] },
-                '9:16': { hd: [720, 1280],  '1080p': [1080, 1920], '4k': [1440, 2560] }
+                '1:1':  { hd: [1024, 1024], '1080p': [1280, 1280], '4k': [1536, 1536] },
+                '16:9': { hd: [1024, 576],  '1080p': [1280, 720],  '4k': [1536, 864] },
+                '9:16': { hd: [576, 1024],  '1080p': [720, 1280],  '4k': [864, 1536] }
             };
-            return table[aspect][quality] || [2048, 2048];
+            return table[aspect][quality] || [1024, 1024];
         }
 
-        // 🔥 ULTRA REALISTIC промпт + 🛡️ SAFE + 🚫 NO HUMANS
+        // ✅ ҚЫСҚА ПРОМПТ (URL ұзындығын азайтады)
         function enhancePrompt(prompt, quality) {
-            const base = prompt;
-
-            const realisticTags = ', RAW photo, professional photography, shot on Canon EOS R5, 85mm f/1.4 lens, ' +
-                'ultra realistic, photorealistic, hyperdetailed, natural textures, ' +
-                'cinematic lighting, natural lighting, soft shadows, depth of field, bokeh, ' +
-                'sharp focus, high dynamic range, HDR, 8k uhd, dslr, film grain, ' +
-                'color graded, masterpiece, award winning photo, safe for work, ' +
-                'no people, no humans, no person, nobody, empty scene, unpopulated';
-
-            const qualityTags = quality === '4k'
-                ? ', extremely detailed, ultra sharp, professional color grading, editorial photography, National Geographic style'
+            const qualityTag = quality === '4k'
+                ? ', ultra detailed, 8k, hyperrealistic, sharp focus, professional photography, natural lighting'
                 : quality === '1080p'
-                ? ', highly detailed, sharp, professional'
-                : ', detailed, high quality';
-
-            // 🛡️ Күшті negative — NSFW + АДАМ + мультик болдырмау
-            const negativeTags = ' --no nude, naked, nsfw, explicit, sexual, porn, erotic, hentai, ' +
-                'genitals, nipple, exposed breast, bare skin, topless, bottomless, undress, ' +
-                'lingerie only, bikini, underwear, suggestive, provocative, ' +
-                'person, people, human, humans, man, woman, men, women, boy, girl, boys, girls, ' +
-                'child, children, baby, kid, portrait, face, body, figure, silhouette of person, ' +
-                'hand, hands, arm, leg, foot, skin, torso, crowd, group of people, ' +
-                'cartoon, anime, painting, illustration, drawing, sketch, 3d render, cgi, ' +
-                'digital art, low quality, blurry, distorted, deformed, ugly, amateur, ' +
-                'watermark, text, logo, signature, extra fingers, bad anatomy';
-
-            return `${base}${realisticTags}${qualityTags}${negativeTags}`;
+                ? ', highly detailed, sharp, professional photo'
+                : ', detailed, high quality photo';
+            return prompt + qualityTag + ', photorealistic, no people, no humans, no text';
         }
 
+        // ✅ ТҮЗЕТІЛГЕН ГЕНЕРАЦИЯ
         async function generateImage(promptText, container = null) {
             const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
 
@@ -581,33 +558,21 @@
                 return;
             }
 
-            // 🛡️ NSFW ТЕКСЕРУ
             if (isNSFW(userPrompt)) {
                 const blockHtml = `
                     <div style="padding:20px; background:#2a0d0d; border:2px solid #ff4d4d; border-radius:12px; text-align:center;">
-                        <p style="color:#ff6b6b; font-weight:bold; font-size:16px; margin:0 0 10px 0;">
-                            🛑 Запрещённый контент
-                        </p>
-                        <p style="color:#ccc; font-size:14px; margin:0;">
-                            Генерация взрослого/неприличного контента запрещена.<br>
-                            Пожалуйста, измените описание. 🚫
-                        </p>
+                        <p style="color:#ff6b6b; font-weight:bold; font-size:16px; margin:0 0 10px 0;">🛑 Запрещённый контент</p>
+                        <p style="color:#ccc; font-size:14px; margin:0;">Генерация взрослого/неприличного контента запрещена.<br>Пожалуйста, измените описание. 🚫</p>
                     </div>`;
                 if (container) container.innerHTML = blockHtml;
                 return;
             }
 
-            // 🚫 АДАМ ТЕКСЕРУ
             if (hasHuman(userPrompt)) {
                 const blockHtml = `
                     <div style="padding:20px; background:#2a1a0d; border:2px solid #ff9500; border-radius:12px; text-align:center;">
-                        <p style="color:#ff9500; font-weight:bold; font-size:16px; margin:0 0 10px 0;">
-                            🚫 Генерация людей отключена
-                        </p>
-                        <p style="color:#ccc; font-size:14px; margin:0;">
-                            Я не генерирую изображения с людьми.<br>
-                            Попробуйте: природа, животные, техника, еда, замки, космос, фэнтези-локации. 🌍🐆🏰🚀
-                        </p>
+                        <p style="color:#ff9500; font-weight:bold; font-size:16px; margin:0 0 10px 0;">🚫 Генерация людей отключена</p>
+                        <p style="color:#ccc; font-size:14px; margin:0;">Я не генерирую изображения с людьми.<br>Попробуйте: природа, животные, техника, еда, замки, космос. 🌍🐆🏰🚀</p>
                     </div>`;
                 if (container) container.innerHTML = blockHtml;
                 return;
@@ -617,14 +582,10 @@
             const enhanced = enhancePrompt(userPrompt, currentQuality);
             const seed = Math.floor(Math.random() * 1000000000);
 
-            const models = ['flux-realism', 'flux', 'turbo'];
-            const buildUrl = (model) =>
-                `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}&model=${model}&enhance=true&private=true&safe=true`;
-
             const loadingHtml = `
                 <div class="gen-loading">
-                    📸 Генерирую реалистичное фото ${w}×${h}...<br>
-                    <small style="color:#888;">~10-20 секунд, фотореализм требует времени</small>
+                    📸 Генерирую ${w}×${h}...<br>
+                    <small style="color:#888;">~10-15 секунд</small>
                 </div>`;
 
             if (container) {
@@ -633,41 +594,65 @@
                 container = add(loadingHtml, 'ai', true);
             }
 
+            // ✅ 2 модель — flux негізгі, turbo қосалқы
+            const models = ['flux', 'turbo'];
+
             for (const model of models) {
                 try {
-                    const response = await fetch(buildUrl(model));
-                    if (!response.ok) continue;
-                    const blob = await response.blob();
+                    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&seed=${seed}&model=${model}&nologo=true`;
 
-                    if (blob.type.startsWith('image/')) {
+                    console.log(`📸 Модель ${model}, URL: ${url.length} символов`);
+
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+                    const response = await fetch(url, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+
+                    console.log(`📸 Ответ ${model}: ${response.status}`);
+
+                    if (!response.ok) {
+                        console.warn(`Модель ${model} вернула ${response.status}`);
+                        continue;
+                    }
+
+                    const blob = await response.blob();
+                    console.log(`📸 Blob ${model}: ${blob.type} (${blob.size} байт)`);
+
+                    if (blob.type.startsWith('image/') && blob.size > 1000) {
                         const imgUrl = URL.createObjectURL(blob);
                         const successHtml = `
                             <img src="${imgUrl}" alt="AI Realistic Photo">
                             <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px;">
-                                <a href="${imgUrl}" download="serik_realistic_${Date.now()}.jpg"
+                                <a href="${imgUrl}" download="serik_${Date.now()}.jpg"
                                    style="display:inline-block; padding:10px 20px; background:linear-gradient(135deg,#00b86b,#008f53); color:white; border-radius:8px; text-decoration:none; font-weight:bold;">
-                                   💾 Скачать фото
+                                   💾 Скачать
                                 </a>
                                 <a href="${imgUrl}" target="_blank"
                                    style="display:inline-block; padding:10px 20px; background:#2b2b3a; color:white; border-radius:8px; text-decoration:none; font-weight:bold;">
-                                   🔍 Открыть полностью
+                                   🔍 Открыть
                                 </a>
                             </div>
                             <p style="margin-top:10px; color:#888; font-size:12px;">
-                                ✨ Модель: ${model} | ${w}×${h} | Реализм: ULTRA | 🛡️ SAFE | 🚫 NO HUMANS
+                                ✨ ${model} | ${w}×${h} | ULTRA | 🛡️ SAFE
                             </p>`;
 
                         if (container && container.innerHTML !== undefined) {
                             container.innerHTML = successHtml;
                         }
+                        console.log('✅ Фото создано!');
                         return;
                     }
                 } catch (e) {
-                    console.warn('Модель ' + model + ' не сработала:', e);
+                    console.error(`❌ Модель ${model}:`, e.name, e.message);
                 }
             }
 
-            const errorHtml = '<p style="color:#ff6b6b;">❌ Не удалось создать фото. Попробуйте ещё раз или измените промпт.</p>';
+            const errorHtml = `
+                <div style="padding:20px; background:#2a0d0d; border:1px solid #ff4d4d; border-radius:12px; text-align:center;">
+                    <p style="color:#ff6b6b; font-weight:bold;">❌ Не удалось создать фото</p>
+                    <p style="color:#ccc; font-size:13px; margin-top:8px;">Попробуйте ещё раз или измените промпт</p>
+                </div>`;
             if (container && container.innerHTML !== undefined) {
                 container.innerHTML = errorHtml;
             }
@@ -692,7 +677,6 @@
             add(text, "user");
             input.value = "";
 
-            // 🛡️ NSFW тексеру
             if (isNSFW(text)) {
                 add("🛑 Я не буду отвечать на такие запросы. Задайте другой вопрос!", "ai");
                 return;
@@ -739,9 +723,19 @@
                 }
             }
 
+            // ✅ «нарисуй» — чаттан тікелей генерация
             if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
                 hideLoading();
-                add("📸 Для реалистичных фото перейдите во вкладку **Photo** в боковом меню. Там 4K Ultra Realistic режим (без людей).", "ai");
+                const cleanPrompt = text.replace(/(нарисуй|сурет сал|сгенерируй)/gi, '').trim();
+                if (cleanPrompt && !hasHuman(cleanPrompt) && !isNSFW(cleanPrompt)) {
+                    generateImage(cleanPrompt);
+                } else if (hasHuman(cleanPrompt)) {
+                    add("🚫 Генерация людей отключена. Попробуйте природу, животных, технику, еду или космос. 🌍🐆🏰🚀", "ai");
+                } else if (isNSFW(cleanPrompt)) {
+                    add("🛑 Запрещённый контент. Измените описание.", "ai");
+                } else {
+                    add("📸 Для реалистичных фото перейдите во вкладку **Photo** в боковом меню.", "ai");
+                }
                 return;
             }
 
@@ -754,4 +748,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
