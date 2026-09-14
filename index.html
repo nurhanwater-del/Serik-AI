@@ -123,14 +123,14 @@ body.theme-light input, body.theme-light textarea { background: #fafafa; color: 
         flex-direction: column;
         position: relative;
     }
-    .chat { flex: 1; padding: 10px; padding-bottom: 70px; } /* Инпут астын жауып қалмас үшін бос орын */
+    .chat { flex: 1; padding: 10px; padding-bottom: 70px; } 
     .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
     .generators { padding: 6px 10px; }
     .generators button { padding: 5px 10px; font-size: 11px; }
     
     .row { 
         padding: 10px; 
-        position: fixed; /* Экранның ең астына шегелеп бекіту */
+        position: fixed; 
         bottom: 0; 
         left: 0;
         width: 100%;
@@ -206,7 +206,6 @@ const defaultMemory = {
 let memory = Object.assign({}, defaultMemory);
 let db = null;
 
-// Тек Стандартты режим қалды
 let currentSystemPrompt = "Ты всезнающий ИИ Serik-AI. Отвечай всегда грамотно, четко и развернуто. Будь полезным ассистентом.";
 
 if (firebaseConfig.apiKey) {
@@ -443,38 +442,34 @@ function generateText(prompt) {
     send();
 }
 
-async function searchWebFallback(queryText) {
+// ДАГДАГГО (DuckDuckGo) API БАЗАСЫ
+async function searchDuckDuckGo(queryText) {
     try {
         let cleanQuery = queryText.replace(/(пожалуйста|расскажи про|что такое|кто такой|найди|гугл|google|реферат|эссе|кратко)/gi, "").trim();
-        let searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&format=json&origin=*`;
+        let searchUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(cleanQuery)}&format=json&no_html=1&skip_disambig=1`;
         let res = await fetch(searchUrl);
         let data = await res.json();
         
-        if (data.query.search.length > 0) {
-            let title = data.query.search[0].title;
-            let contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=0&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-            let contentRes = await fetch(contentUrl);
-            let contentData = await contentRes.json();
-            let pages = contentData.query.pages;
-            let extract = pages[Object.keys(pages)[0]].extract;
-            
-            if (extract && extract.trim().length > 30) {
-                if(queryText.toLowerCase().includes("кратко")) {
-                    return `🤖 [Smart Web Search]: ${extract.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ")}`;
-                }
-                return `🤖 [Smart Web Search - ${title}]:\n\n${extract.substring(0, 1800)}`;
+        if (data.AbstractText) {
+            if(queryText.toLowerCase().includes("кратко")) {
+                return `🦆 [DuckDuckGo]: ${data.AbstractText.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ")}`;
             }
+            return `🦆 [DuckDuckGo Search]:\n\n${data.AbstractText}`;
+        } else if (data.RelatedTopics && data.RelatedTopics.length > 0 && data.RelatedTopics[0].Text) {
+             return `🦆 [DuckDuckGo]: ${data.RelatedTopics[0].Text}`;
         }
         return null;
     } catch(e) { return null; }
 }
 
 async function askSmartAI(queryText) {
+    // 1. Бірінші кезекте жауапты DuckDuckGo-дан іздейміз
     if(queryText.toLowerCase().includes("что такое") || queryText.toLowerCase().includes("кто") || queryText.toLowerCase().includes("найди")) {
-        let webAnswer = await searchWebFallback(queryText);
-        if(webAnswer) return webAnswer;
+        let ddgAnswer = await searchDuckDuckGo(queryText);
+        if(ddgAnswer) return ddgAnswer;
     }
 
+    // 2. Егер Дагдагго жауап таппаса, нейрожелі арқылы генерациялаймыз
     try {
         let url = `https://text.pollinations.ai/${encodeURIComponent(queryText)}?system=${encodeURIComponent(currentSystemPrompt)}`;
         let res = await fetch(url);
@@ -488,7 +483,8 @@ async function askSmartAI(queryText) {
             return text.trim();
         }
     } catch (e) {
-        let backup = await searchWebFallback(queryText);
+        // 3. Нейрожелі істемей қалған жағдайда Дагдагго-ға қайта жүгінеміз
+        let backup = await searchDuckDuckGo(queryText);
         if(backup) return backup;
     }
 
@@ -521,3 +517,4 @@ async function send(){
 </script>
 </body>
 </html>
+
