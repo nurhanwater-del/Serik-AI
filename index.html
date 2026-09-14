@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Serik AI</title>
+    <title>Serik AI — Ultra Realistic</title>
     <script type="application/ld+json">
         {"@context":"https://schema.org","@type":"WebSite","name":"Serik AI","url":"https://serik-ai.vercel.app"}
     </script>
@@ -64,6 +64,9 @@
         #generatedImageContainer img { max-width: 100%; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
         .gen-loading { color: #00b86b; font-weight: bold; animation: pulse 1.5s infinite; padding: 20px; }
         .quality-badge { display: inline-block; background: linear-gradient(135deg, #ffd700, #ff9500); color: #000; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 6px; }
+        .prompt-hints { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+        .prompt-hints button { background: #2b2b3a; border: 1px solid #444; font-size: 11px; padding: 6px 12px; border-radius: 15px; font-weight: normal; }
+        .prompt-hints button:hover { background: #00b86b; }
         body.theme-hacker { background: #050505; color: #0f0; }
         body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; }
         body.theme-hacker .msg.ai { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; }
@@ -103,7 +106,7 @@
         <h3>🤖 Serik AI</h3>
         <div class="sidebar-tabs">
             <button id="chatTabBtn" class="active" onclick="switchTab('chat')">💬 Chat</button>
-            <button id="imagesTabBtn" onclick="switchTab('images')">🖼️ Images</button>
+            <button id="imagesTabBtn" onclick="switchTab('images')">📸 Photo</button>
         </div>
         <div id="chatSettings" style="display: flex; flex-direction: column; gap: 10px;">
             <button id="menuToggle" onclick="toggleSettings()">⚙️ Настройки <span>🔽</span></button>
@@ -146,9 +149,18 @@
         </div>
 
         <div id="imagePanel" class="image-panel">
-            <h2 style="margin-top:0;">🎨 Ultra HD Генерация <span class="quality-badge">4K</span></h2>
-            <label>Промпт (описание)</label>
-            <input type="text" id="imagePrompt" placeholder="Мысалы: космический кот в скафандре, неон, киберпанк">
+            <h2 style="margin-top:0;">📸 Ultra Realistic Photo <span class="quality-badge">4K PHOTO</span></h2>
+            <label>Промпт (описание фото)</label>
+            <input type="text" id="imagePrompt" placeholder="Мысалы: портрет казашки в национальном костюме, студия, мягкий свет">
+            
+            <div class="prompt-hints">
+                <button onclick="setPrompt('портрет девушки, студия, мягкий свет, профессиональное фото')">👩 Портрет</button>
+                <button onclick="setPrompt('горный пейзаж Казахстана, закат, кинематографично')">🏔 Пейзаж</button>
+                <button onclick="setPrompt('снежный барс в горах, wildlife photography, telephoto lens')">🐆 Барс</button>
+                <button onclick="setPrompt('Алматы ночью, огни города, длинная выдержка')">🌃 Город</button>
+                <button onclick="setPrompt('чашка кофе на деревянном столе, утренний свет, macro')">☕ Еда</button>
+            </div>
+
             <label>Соотношение сторон</label>
             <div class="aspect-ratio" id="aspectRatioGroup">
                 <button class="active" data-ratio="1:1">1:1 ⬛</button>
@@ -161,7 +173,9 @@
                 <button data-quality="1080p">1080p</button>
                 <button class="active" data-quality="4k">4K Ultra <span class="quality-badge">MAX</span></button>
             </div>
-            <button onclick="generateImageFromPanel()" style="font-size: 17px; padding: 15px;">✨ Сгенерировать Ultra HD</button>
+            <button onclick="generateImageFromPanel()" style="font-size: 17px; padding: 15px; background: linear-gradient(135deg,#00b86b,#008f53);">
+                📸 Создать реалистичное фото
+            </button>
             <div id="generatedImageContainer"></div>
         </div>
     </div>
@@ -177,7 +191,7 @@
 
         const defaultMemory = {
             "привет": "Привет! Я готов помочь. Задавай любой вопрос! 👋",
-            "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю длинные и короткие вопросы, ищу информацию в сети, пишу эссе, рефераты! 🧠",
+            "что ты умеешь": "Я умный ИИ-ассистент. Умею писать тексты, эссе, рефераты, генерировать реалистичные фото! 🧠",
             "как тебя зовут": "Я Serik-AI. 🤖",
             "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі.",
             "почему серик": "Имя Serik AI было выбрано в честь отца моего создателя — это дань глубокого уважения, любви и вечной памяти."
@@ -227,7 +241,7 @@
         function speakText(text) {
             if (!voiceEnabled) return;
             window.speechSynthesis.cancel();
-            let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨🎨🖼️💾]/gu, '');
+            let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨🎨📸🖼️💾🔍]/gu, '');
             cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ');
             let speech = new SpeechSynthesisUtterance(cleanText);
             if (/[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text)) {
@@ -321,7 +335,7 @@
 
 🧠 Мы улучшаем качество ответов и производительность системы.
 
-Также вы можете генерировать изображения в Ultra HD — в левом верхнем углу нажмите на три точки → Images.
+📸 Также вы можете генерировать реалистичные фото Ultra HD — в левом верхнем углу нажмите на три точки → Photo.
 
 ⏳ Пожалуйста, попробуйте снова немного позже.
 
@@ -428,8 +442,12 @@
             }
         }
 
+        function setPrompt(text) {
+            document.getElementById('imagePrompt').value = text;
+        }
+
         let currentAspect = '1:1';
-        let currentQuality = '4k'; // 🔥 по умолчанию максимальное качество
+        let currentQuality = '4k';
 
         document.getElementById('aspectRatioGroup').addEventListener('click', function(e) {
             if (e.target.tagName === 'BUTTON') {
@@ -447,79 +465,105 @@
             }
         });
 
-        // 🔥 ULTRA HD размеры
+        // 🔥 ULTRA REALISTIC размеры
         function getImageDimensions(aspect, quality) {
             const table = {
-                '1:1':  { hd: [768, 768],   '1080p': [1280, 1280], '4k': [2048, 2048] },
-                '16:9': { hd: [1024, 576],  '1080p': [1920, 1080], '4k': [2048, 1152] },
-                '9:16': { hd: [576, 1024],  '1080p': [1080, 1920], '4k': [1152, 2048] }
+                '1:1':  { hd: [1024, 1024], '1080p': [1536, 1536], '4k': [2048, 2048] },
+                '16:9': { hd: [1280, 720],  '1080p': [1920, 1080], '4k': [2560, 1440] },
+                '9:16': { hd: [720, 1280],  '1080p': [1080, 1920], '4k': [1440, 2560] }
             };
             return table[aspect][quality] || [2048, 2048];
         }
 
-        // 🔥 Мощный промпт для максимального качества
+        // 🔥 МАКСИМАЛДЫ РЕАЛИСТІК промпт
         function enhancePrompt(prompt, quality) {
             const base = prompt;
+
+            const realisticTags = ', RAW photo, professional photography, shot on Canon EOS R5, 85mm f/1.4 lens, ' +
+                'ultra realistic, photorealistic, hyperdetailed, skin pores visible, natural skin texture, ' +
+                'fine hair details, subsurface scattering, cinematic lighting, natural lighting, ' +
+                'golden hour, soft shadows, depth of field, bokeh, sharp focus on subject, ' +
+                'high dynamic range, HDR, 8k uhd, dslr, film grain, color graded, masterpiece, award winning photo';
+
             const qualityTags = quality === '4k'
-                ? ', ultra detailed, hyperrealistic, 8k uhd, professional photography, cinematic lighting, ray tracing, HDR, sharp focus, masterpiece, award winning, intricate details, volumetric lighting'
+                ? ', extremely detailed, ultra sharp, tack sharp, professional color grading, editorial photography, National Geographic style'
                 : quality === '1080p'
-                ? ', high quality, detailed, professional, sharp, cinematic'
+                ? ', highly detailed, sharp, professional'
                 : ', detailed, high quality';
-            const negativeTags = ' --no blurry, low quality, distorted, ugly, deformed, watermark, text, logo, signature, amateur';
-            return `${base}${qualityTags}${negativeTags}`;
+
+            const negativeTags = ' --no cartoon, anime, painting, illustration, drawing, sketch, 3d render, cgi, ' +
+                'digital art, low quality, blurry, distorted, deformed, ugly, amateur, plastic skin, ' +
+                'smooth skin, wax figure, doll, watermark, text, logo, signature, extra fingers, bad anatomy';
+
+            return `${base}${realisticTags}${qualityTags}${negativeTags}`;
         }
 
         async function generateImage(promptText, container = null) {
             const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
             if (!userPrompt) {
-                if (container) container.innerHTML = '<p style="color:#ff6b6b;">❌ Промпт пуст.</p>';
+                if (container) container.innerHTML = '<p style="color:#ff6b6b;">❌ Промпт пуст. Напишите описание.</p>';
                 return;
             }
+
             const [w, h] = getImageDimensions(currentAspect, currentQuality);
             const enhanced = enhancePrompt(userPrompt, currentQuality);
             const seed = Math.floor(Math.random() * 1000000000);
 
-            // Модель flux = максимум качества, если недоступен — fallback на turbo
-            const models = ['flux', 'turbo'];
-            const buildUrl = (model) => `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}&model=${model}&enhance=true&private=true`;
+            // 🔥 3 модель каскады — реализм үшін
+            const models = ['flux-realism', 'flux', 'turbo'];
+            const buildUrl = (model) =>
+                `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}&model=${model}&enhance=true&private=true&safe=false`;
 
-            const showLoadingText = `<div class="gen-loading">🎨 Генерирую Ultra HD ${w}×${h}...<br><small style="color:#888;">Бұл бірнеше секунд алуы мүмкін</small></div>`;
+            const loadingHtml = `
+                <div class="gen-loading">
+                    📸 Генерирую реалистичное фото ${w}×${h}...<br>
+                    <small style="color:#888;">~10-20 секунд, фотореализм требует времени</small>
+                </div>`;
 
-            if (container) container.innerHTML = showLoadingText;
-            else container = add(showLoadingText, 'ai', true).querySelector ? null : null;
+            if (container) {
+                container.innerHTML = loadingHtml;
+            } else {
+                container = add(loadingHtml, 'ai', true);
+            }
 
-            // Пробуем flux, потом turbo
             for (const model of models) {
                 try {
                     const response = await fetch(buildUrl(model));
                     if (!response.ok) continue;
                     const blob = await response.blob();
+
                     if (blob.type.startsWith('image/')) {
                         const imgUrl = URL.createObjectURL(blob);
-                        const html = `
-                            <img src="${imgUrl}" alt="AI Image">
-                            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-                                <a href="${imgUrl}" download="serik_ai_${Date.now()}.jpg" style="display:inline-block; padding:10px 20px; background:#00b86b; color:white; border-radius:8px; text-decoration:none; font-weight:bold;">💾 Скачать</a>
-                                <a href="${imgUrl}" target="_blank" style="display:inline-block; padding:10px 20px; background:#2b2b3a; color:white; border-radius:8px; text-decoration:none; font-weight:bold;">🔍 Открыть</a>
+                        const successHtml = `
+                            <img src="${imgUrl}" alt="AI Realistic Photo">
+                            <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:10px;">
+                                <a href="${imgUrl}" download="serik_realistic_${Date.now()}.jpg"
+                                   style="display:inline-block; padding:10px 20px; background:linear-gradient(135deg,#00b86b,#008f53); color:white; border-radius:8px; text-decoration:none; font-weight:bold;">
+                                   💾 Скачать фото
+                                </a>
+                                <a href="${imgUrl}" target="_blank"
+                                   style="display:inline-block; padding:10px 20px; background:#2b2b3a; color:white; border-radius:8px; text-decoration:none; font-weight:bold;">
+                                   🔍 Открыть полностью
+                                </a>
                             </div>
-                            <p style="margin-top:10px; color:#888; font-size:12px;">Модель: ${model} | ${w}×${h} | Ultra HD</p>
-                        `;
-                        if (typeof container === 'string' || !container) {
-                            // из чата
-                            const div = container && container.appendChild ? container : chat.lastChild;
-                        }
+                            <p style="margin-top:10px; color:#888; font-size:12px;">
+                                ✨ Модель: ${model} | ${w}×${h} | Реализм: ULTRA
+                            </p>`;
+
                         if (container && container.innerHTML !== undefined) {
-                            container.innerHTML = html;
+                            container.innerHTML = successHtml;
                         }
                         return;
                     }
                 } catch (e) {
-                    console.warn('Модель ' + model + ' не сработала', e);
+                    console.warn('Модель ' + model + ' не сработала:', e);
                 }
             }
 
-            const errorHtml = '<p style="color:#ff6b6b;">❌ Не удалось создать изображение. Попробуйте ещё раз.</p>';
-            if (container && container.innerHTML !== undefined) container.innerHTML = errorHtml;
+            const errorHtml = '<p style="color:#ff6b6b;">❌ Не удалось создать фото. Попробуйте ещё раз или измените промпт.</p>';
+            if (container && container.innerHTML !== undefined) {
+                container.innerHTML = errorHtml;
+            }
         }
 
         function generateImageFromPanel() {
@@ -584,12 +628,12 @@
 
             if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
                 hideLoading();
-                add("🎨 Для Ultra HD генерации изображений перейдите во вкладку **Images** в боковом меню. Там доступен 4K режим!", "ai");
+                add("📸 Для реалистичных фото перейдите во вкладку **Photo** в боковом меню. Там доступен 4K Ultra Realistic режим!", "ai");
                 return;
             }
 
             hideLoading();
-            add("🔧 Технический перерыв! Попробуйте спросить иначе или перейдите во вкладку Images для Ultra HD генерации.", "ai");
+            add("🔧 Технический перерыв! Попробуйте спросить иначе или перейдите во вкладку Photo для реалистичной генерации.", "ai");
         }
 
         function toggleSidebar() {
@@ -597,4 +641,4 @@
         }
     </script>
 </body>
-    </html>
+</html>
