@@ -4,530 +4,104 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Serik AI</title>
-
     <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "name": "Serik AI",
-            "url": "https://serik-ai.vercel.app"
-        }
+        {"@context":"https://schema.org","@type":"WebSite","name":"Serik AI","url":"https://serik-ai.vercel.app"}
     </script>
     <meta name="google-site-verification" content="google9a22931bc29d7cd7" />
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
     <style>
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #0f0f14;
-            color: white;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-            transition: background 0.4s, color 0.4s;
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #444;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #00b86b;
-        }
-
-        .sidebar {
-            width: 280px;
-            background: #1a1a24;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            transition: background 0.4s, left 0.3s ease;
-            z-index: 10;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.5);
-        }
-        .sidebar h3 {
-            text-align: center;
-            margin-top: 0;
-            font-size: 22px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #00b86b;
-            text-shadow: 0 0 10px rgba(0,184,107,0.3);
-        }
-        .sidebar-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .sidebar-tabs button {
-            flex: 1;
-            padding: 10px;
-            background: #2b2b3a;
-            border: 1px solid #444;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-        .sidebar-tabs button.active {
-            background: #00b86b;
-            border-color: #00b86b;
-            color: #fff;
-        }
-
-        .main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            background: transparent;
-            position: relative;
-            height: 100vh;
-        }
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-        .chat {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            scroll-behavior: smooth;
-        }
-        .msg {
-            padding: 14px 18px;
-            margin: 8px 0;
-            border-radius: 14px;
-            max-width: 85%;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            line-height: 1.5;
-            font-size: 15px;
-            transition: transform 0.2s ease-out;
-        }
-        .msg:hover {
-            transform: translateY(-1px);
-        }
-        .user {
-            background: linear-gradient(135deg, #00b86b, #008f53);
-            margin-left: auto;
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-        .ai {
-            background: linear-gradient(135deg, #2b2b3a, #20202d);
-            margin-right: auto;
-            border-bottom-left-radius: 4px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .row {
-            display: flex;
-            flex-direction: column;
-            border-top: 1px solid #222;
-            background: #111;
-            padding: 15px;
-            gap: 10px;
-            z-index: 10;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
-        }
-        .input-group {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #333;
-            border-radius: 8px;
-            outline: none;
-            background: #16161a;
-            color: white;
-            font-size: 16px;
-            transition: 0.3s;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
-        }
-        input:focus, textarea:focus {
-            border-color: #00b86b;
-            box-shadow: 0 0 10px rgba(0,184,107,0.2);
-        }
-        button, select {
-            padding: 12px;
-            background: #00b86b;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 15px;
-            transition: 0.3s;
-            outline: none;
-        }
-        button:hover {
-            background: #009e5b;
-            transform: scale(1.02);
-        }
-        button:active {
-            transform: scale(0.98);
-        }
-        select {
-            background: #2b2b3a;
-            width: 100%;
-            color: white;
-        }
-        select:hover {
-            background: #3a3a4d;
-        }
-
-        #voiceBtn {
-            background: #444;
-            border-radius: 8px;
-        }
-        #voiceBtn.active {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            box-shadow: 0 0 10px rgba(0,123,255,0.4);
-        }
-        #adminPanel {
-            display: none;
-            margin-top: 10px;
-            background: #222230;
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #333;
-        }
-        textarea {
-            height: 120px;
-            resize: none;
-        }
-
-        .generators {
-            display: flex;
-            gap: 10px;
-            padding: 12px 15px;
-            background: #1a1a24;
-            border-top: 1px solid #2b2b3a;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-        .generators button {
-            background: #2b2b3a;
-            padding: 8px 14px;
-            font-size: 13px;
-            border: 1px solid #444;
-            border-radius: 20px;
-            font-weight: normal;
-        }
-        .generators button:hover {
-            background: #00b86b;
-            border-color: #00b86b;
-            color: white;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(0,0,0,0.3);
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            padding: 6px;
-            border-radius: 6px;
-            opacity: 0;
-            transition: 0.3s;
-        }
-        .msg.ai:hover .copy-btn {
-            opacity: 1;
-        }
-        .copy-btn:hover {
-            background: #00b86b;
-            transform: scale(1.1);
-        }
-
-        .disclaimer {
-            text-align: center;
-            font-size: 11px;
-            color: #777;
-            width: 100%;
-            font-family: sans-serif;
-            letter-spacing: 0.5px;
-            margin-top: 2px;
-        }
-
-        .loading-dots {
-            display: inline-block;
-            animation: blink 1.4s infinite both;
-            font-weight: bold;
-            font-size: 18px;
-            line-height: 1;
-        }
-        .loading-dots span {
-            animation: blink 1.4s infinite both;
-        }
-        .loading-dots span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        .loading-dots span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-        @keyframes blink {
-            0% { opacity: 0.2; }
-            20% { opacity: 1; }
-            100% { opacity: 0.2; }
-        }
-
-        .image-panel {
-            display: none;
-            flex-direction: column;
-            padding: 20px;
-            gap: 20px;
-            height: 100%;
-            overflow-y: auto;
-        }
-        .image-panel.active {
-            display: flex;
-        }
-        .aspect-ratio, .quality {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .aspect-ratio button, .quality button {
-            background: #2b2b3a;
-            border: 1px solid #444;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        .aspect-ratio button.active, .quality button.active {
-            background: #00b86b;
-            border-color: #00b86b;
-        }
-        #imagePrompt {
-            background: #16161a;
-            border: 1px solid #333;
-            color: white;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 16px;
-        }
-        #generatedImageContainer {
-            margin-top: 10px;
-            text-align: center;
-        }
-        #generatedImageContainer img {
-            max-width: 100%;
-            border-radius: 12px;
-            margin-bottom: 10px;
-        }
-
-        /* Темы */
-        body.theme-hacker {
-            background: #050505;
-            color: #0f0;
-        }
-        body.theme-hacker .sidebar {
-            background: #000;
-            border-right: 1px solid #0f0;
-            box-shadow: none;
-        }
-        body.theme-hacker .msg.ai {
-            background: #0a0a0a;
-            border: 1px solid #0f0;
-            color: #0f0;
-        }
-        body.theme-hacker .msg.user {
-            background: #003300;
-            border: 1px solid #0f0;
-            color: #0f0;
-        }
-        body.theme-hacker button, body.theme-hacker select {
-            background: #002200;
-            border: 1px solid #0f0;
-            color: #0f0;
-        }
-        body.theme-cyberpunk {
-            background: #0f001a;
-            color: #0ff;
-        }
-        body.theme-cyberpunk .sidebar {
-            background: #1a0033;
-            border-right: 1px solid #f0f;
-        }
-        body.theme-cyberpunk .msg.ai {
-            background: #2a004d;
-            border: 1px solid #0ff;
-            color: #fff;
-        }
-        body.theme-cyberpunk .msg.user {
-            background: #4d004d;
-            border: 1px solid #f0f;
-            color: #fff;
-        }
-        body.theme-cyberpunk button, body.theme-cyberpunk select {
-            background: linear-gradient(45deg, #8a2be2, #f0f);
-            border: none;
-            color: #fff;
-            text-shadow: 1px 1px 2px #000;
-        }
-        body.theme-light {
-            background: #f4f4f9;
-            color: #333;
-        }
-        body.theme-light .sidebar {
-            background: #ffffff;
-            border-right: 1px solid #ddd;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-        }
-        body.theme-light .msg.ai {
-            background: #ffffff;
-            color: #333;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        body.theme-light .msg.user {
-            background: linear-gradient(135deg, #00b86b, #009e5b);
-            color: #fff;
-            box-shadow: 0 2px 10px rgba(0,184,107,0.3);
-        }
-        body.theme-light button {
-            background: #00b86b;
-            color: white;
-            border: none;
-        }
-        body.theme-light select {
-            background: #fff;
-            color: #333;
-            border: 1px solid #ccc;
-        }
-        body.theme-light .row, body.theme-light .generators {
-            background: #fff;
-            border-color: #ddd;
-        }
-        body.theme-light input, body.theme-light textarea {
-            background: #fafafa;
-            color: #333;
-            border-color: #ccc;
-        }
-
-        .menu-toggle-btn {
-            display: none;
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            z-index: 20;
-            background: #2b2b3a;
-            border: 1px solid #444;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 20px;
-            cursor: pointer;
-            color: white;
-        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0f0f14; color: white; display: flex; height: 100vh; overflow: hidden; transition: background 0.4s, color 0.4s; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00b86b; }
+        .sidebar { width: 280px; background: #1a1a24; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; transition: background 0.4s, left 0.3s ease; z-index: 10; box-shadow: 2px 0 15px rgba(0,0,0,0.5); }
+        .sidebar h3 { text-align: center; margin-top: 0; font-size: 22px; text-transform: uppercase; letter-spacing: 1px; color: #00b86b; text-shadow: 0 0 10px rgba(0,184,107,0.3); }
+        .sidebar-tabs { display: flex; gap: 10px; margin-bottom: 10px; }
+        .sidebar-tabs button { flex: 1; padding: 10px; background: #2b2b3a; border: 1px solid #444; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .sidebar-tabs button.active { background: #00b86b; border-color: #00b86b; color: #fff; }
+        .settings-menu { display: none; flex-direction: column; gap: 10px; background: #111118; padding: 15px; border-radius: 10px; border: 1px solid #333; }
+        .settings-menu.open { display: flex; }
+        .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: transparent; position: relative; height: 100vh; }
+        .chat-container { display: flex; flex-direction: column; height: 100%; }
+        .chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; scroll-behavior: smooth; }
+        .msg { padding: 14px 18px; margin: 8px 0; border-radius: 14px; max-width: 85%; white-space: pre-wrap; word-wrap: break-word; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); line-height: 1.5; font-size: 15px; transition: transform 0.2s ease-out; }
+        .msg:hover { transform: translateY(-1px); }
+        .user { background: linear-gradient(135deg, #00b86b, #008f53); margin-left: auto; color: white; border-bottom-right-radius: 4px; }
+        .ai { background: linear-gradient(135deg, #2b2b3a, #20202d); margin-right: auto; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
+        .row { display: flex; flex-direction: column; border-top: 1px solid #222; background: #111; padding: 15px; gap: 10px; z-index: 10; box-shadow: 0 -5px 15px rgba(0,0,0,0.3); }
+        .input-group { display: flex; gap: 10px; width: 100%; }
+        input, textarea { width: 100%; padding: 14px; border: 1px solid #333; border-radius: 8px; outline: none; background: #16161a; color: white; font-size: 16px; transition: 0.3s; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+        input:focus, textarea:focus { border-color: #00b86b; box-shadow: 0 0 10px rgba(0,184,107,0.2); }
+        button, select { padding: 12px; background: #00b86b; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.3s; outline: none; }
+        button:hover { background: #009e5b; transform: scale(1.02); }
+        button:active { transform: scale(0.98); }
+        select { background: #2b2b3a; width: 100%; color: white; }
+        #voiceBtn { background: #444; }
+        #voiceBtn.active { background: linear-gradient(135deg, #007bff, #0056b3); box-shadow: 0 0 10px rgba(0,123,255,0.4); }
+        #adminPanel { display: none; margin-top: 10px; background: #222230; padding: 15px; border-radius: 10px; border: 1px solid #333; }
+        textarea { height: 120px; resize: none; }
+        .generators { display: flex; gap: 10px; padding: 12px 15px; background: #1a1a24; border-top: 1px solid #2b2b3a; overflow-x: auto; white-space: nowrap; }
+        .generators button { background: #2b2b3a; padding: 8px 14px; font-size: 13px; border: 1px solid #444; border-radius: 20px; font-weight: normal; }
+        .generators button:hover { background: #00b86b; border-color: #00b86b; }
+        .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.3); border: none; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: 0; transition: 0.3s; }
+        .msg.ai:hover .copy-btn { opacity: 1; }
+        .disclaimer { text-align: center; font-size: 11px; color: #777; margin-top: 2px; }
+        .loading-dots span { animation: blink 1.4s infinite both; }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0%{opacity:0.2} 20%{opacity:1} 100%{opacity:0.2} }
+        .image-panel { display: none; flex-direction: column; padding: 20px; gap: 20px; height: 100%; overflow-y: auto; }
+        .image-panel.active { display: flex; }
+        .aspect-ratio, .quality { display: flex; gap: 10px; flex-wrap: wrap; }
+        .aspect-ratio button, .quality button { background: #2b2b3a; border: 1px solid #444; padding: 10px 16px; font-size: 14px; }
+        .aspect-ratio button.active, .quality button.active { background: #00b86b; border-color: #00b86b; }
+        #imagePrompt { background: #16161a; border: 1px solid #333; color: white; padding: 14px; border-radius: 8px; font-size: 16px; }
+        #generatedImageContainer { margin-top: 10px; text-align: center; }
+        #generatedImageContainer img { max-width: 100%; border-radius: 12px; margin-bottom: 10px; }
+        body.theme-hacker { background: #050505; color: #0f0; }
+        body.theme-hacker .sidebar { background: #000; border-right: 1px solid #0f0; }
+        body.theme-hacker .msg.ai { background: #0a0a0a; border: 1px solid #0f0; color: #0f0; }
+        body.theme-hacker .msg.user { background: #003300; border: 1px solid #0f0; color: #0f0; }
+        body.theme-cyberpunk { background: #0f001a; color: #0ff; }
+        body.theme-cyberpunk .sidebar { background: #1a0033; border-right: 1px solid #f0f; }
+        body.theme-cyberpunk .msg.ai { background: #2a004d; border: 1px solid #0ff; }
+        body.theme-cyberpunk .msg.user { background: #4d004d; border: 1px solid #f0f; }
+        body.theme-light { background: #f4f4f9; color: #333; }
+        body.theme-light .sidebar { background: #fff; border-right: 1px solid #ddd; }
+        body.theme-light .msg.ai { background: #fff; color: #333; border: 1px solid #e0e0e0; }
+        body.theme-light .msg.user { background: linear-gradient(135deg, #00b86b, #009e5b); color: #fff; }
+        body.theme-light .row, body.theme-light .generators { background: #fff; border-color: #ddd; }
+        body.theme-light input, body.theme-light textarea { background: #fafafa; color: #333; border-color: #ccc; }
+        .menu-toggle-btn { display: none; position: absolute; top: 15px; left: 15px; z-index: 20; background: #2b2b3a; border: 1px solid #444; border-radius: 8px; padding: 10px 14px; font-size: 20px; cursor: pointer; color: white; }
         @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-                height: 100vh;
-                height: 100dvh;
-                overflow: hidden;
-                position: fixed;
-                width: 100%;
-            }
-            .menu-toggle-btn {
-                display: block;
-            }
-            .sidebar {
-                position: fixed;
-                left: -100%;
-                top: 0;
-                bottom: 0;
-                width: 280px;
-                height: 100%;
-                z-index: 15;
-                transition: left 0.3s ease;
-                padding-top: 60px;
-            }
-            .sidebar.open {
-                left: 0;
-            }
-            .main {
-                height: 100%;
-            }
-            .chat {
-                padding: 10px;
-                padding-bottom: 90px;
-            }
-            .msg {
-                font-size: 14px;
-                padding: 10px 14px;
-                max-width: 90%;
-            }
-            .generators {
-                padding: 6px 10px;
-            }
-            .generators button {
-                padding: 5px 10px;
-                font-size: 11px;
-            }
-            .row {
-                padding: 10px;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                background: #111;
-                border-top: 1px solid #222;
-                z-index: 999;
-            }
-            input {
-                padding: 10px;
-                font-size: 15px;
-            }
-            button {
-                padding: 10px 14px;
-                font-size: 14px;
-            }
-            .disclaimer {
-                font-size: 10px;
-                margin-top: 4px;
-            }
+            body { flex-direction: column; height: 100dvh; overflow: hidden; position: fixed; width: 100%; }
+            .menu-toggle-btn { display: block; }
+            .sidebar { position: fixed; left: -100%; top: 0; bottom: 0; width: 280px; height: 100%; z-index: 15; transition: left 0.3s ease; padding-top: 60px; }
+            .sidebar.open { left: 0; }
+            .main { height: 100%; }
+            .chat { padding: 10px; padding-bottom: 90px; }
+            .msg { font-size: 14px; padding: 10px 14px; max-width: 90%; }
+            .generators { padding: 6px 10px; }
+            .generators button { padding: 5px 10px; font-size: 11px; }
+            .row { padding: 10px; position: fixed; bottom: 0; left: 0; width: 100%; background: #111; border-top: 1px solid #222; z-index: 999; }
+            input { padding: 10px; font-size: 15px; }
+            button { padding: 10px 14px; font-size: 14px; }
         }
     </style>
 </head>
-
 <body class="theme-default">
 
     <button class="menu-toggle-btn" onclick="toggleSidebar()">⋮</button>
 
     <div class="sidebar" id="sidebar">
         <h3>🤖 Serik AI</h3>
-
         <div class="sidebar-tabs">
             <button id="chatTabBtn" class="active" onclick="switchTab('chat')">💬 Chat</button>
             <button id="imagesTabBtn" onclick="switchTab('images')">🖼️ Images</button>
         </div>
-
         <div id="chatSettings" style="display: flex; flex-direction: column; gap: 10px;">
             <button id="menuToggle" onclick="toggleSettings()">⚙️ Настройки <span>🔽</span></button>
             <div id="settingsMenu" class="settings-menu">
@@ -549,7 +123,7 @@
     </div>
 
     <div class="main">
-        <div id="chatContainer" class="chat-container active">
+        <div id="chatContainer" class="chat-container">
             <div class="chat" id="chat"></div>
             <div class="generators">
                 <button onclick="generateText('Напиши мне эссе по истории за 10 класс')">📜 Эссе по истории</button>
@@ -560,7 +134,7 @@
             </div>
             <div class="row">
                 <div class="input-group">
-                    <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;" title="Очистить чат">🗑️</button>
+                    <button onclick="clearChat()" style="background: #ff4d4d; min-width: 50px;">🗑️</button>
                     <input id="input" placeholder="Введите ваш вопрос..." onkeydown="if(event.key==='Enter') send()">
                     <button onclick="send()">Отправить</button>
                 </div>
@@ -572,21 +146,18 @@
             <h2 style="margin-top:0;">Генерация изображений</h2>
             <label>Промпт (описание)</label>
             <input type="text" id="imagePrompt" placeholder="Опишите, что хотите увидеть...">
-
             <label>Соотношение сторон</label>
             <div class="aspect-ratio" id="aspectRatioGroup">
                 <button class="active" data-ratio="1:1">1:1</button>
                 <button data-ratio="16:9">16:9</button>
                 <button data-ratio="9:16">9:16</button>
             </div>
-
             <label>Качество</label>
             <div class="quality" id="qualityGroup">
                 <button class="active" data-quality="hd">HD</button>
-                <button data-quality="1080p">1080p60</button>
-                <button data-quality="2040p">2040p60</button>
+                <button data-quality="1080p">1080p</button>
+                <button data-quality="2040p">2040p</button>
             </div>
-
             <button onclick="generateImageFromPanel()">✨ Сгенерировать</button>
             <div id="generatedImageContainer"></div>
         </div>
@@ -605,12 +176,13 @@
             "привет": "Привет! Я готов помочь. Задавай любой вопрос! 👋",
             "что ты умеешь": "Я умный ИИ-ассистент. Я понимаю длинные и короткие вопросы, ищу информацию в сети, пишу эссе, рефераты! 🧠",
             "как тебя зовут": "Я Serik-AI. 🤖",
-            "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі. Бұл — өнеге мен парасаттың нышаны.",
+            "неге серік": "Серік AI атауы — менің авторымның әкесіне деген шексіз құрметі мен махаббатының белгісі.",
             "почему серик": "Имя Serik AI было выбрано в честь отца моего создателя — это дань глубокого уважения, любви и вечной памяти."
         };
 
         let memory = Object.assign({}, defaultMemory);
         let db = null;
+        let chatHistory = [];   // ✅ FIX: жарияланды
 
         if (firebaseConfig.apiKey) {
             firebase.initializeApp(firebaseConfig);
@@ -640,7 +212,7 @@
             voiceEnabled = !voiceEnabled;
             let btn = document.getElementById("voiceBtn");
             if (voiceEnabled) {
-                btn.innerText = "🔊 Голос: ВКЛ (Премиум)";
+                btn.innerText = "🔊 Голос: ВКЛ";
                 btn.classList.add("active");
             } else {
                 btn.innerText = "🔇 Голос: ВЫКЛ";
@@ -662,11 +234,9 @@
             }
             let voices = window.speechSynthesis.getVoices();
             let premiumVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]) &&
-                (/google|natural|premium|neural|microsoft|yuri|pavel/i.test(v.name))
-            );
-            if (premiumVoice) {
-                speech.voice = premiumVoice;
-            } else {
+                (/google|natural|premium|neural|microsoft|yuri|pavel/i.test(v.name)));
+            if (premiumVoice) speech.voice = premiumVoice;
+            else {
                 let defaultLangVoice = voices.find(v => v.lang.startsWith(speech.lang.split('-')[0]));
                 if (defaultLangVoice) speech.voice = defaultLangVoice;
             }
@@ -742,15 +312,14 @@
             add("Привет! Я Serik AI Pro. Откройте ⚙️ Настройки, чтобы включить голос! ✨", "ai", false);
         }
 
-        // Техникалық ескерту – «нарисуй» туралы сөйлем жоқ
-        hideLoading();
+        // Техникалық хабарлама
         add(`🔧 Технический перерыв
 
 Текстовый ИИ временно недоступен из-за обновления серверов.
 
 🧠 Мы улучшаем качество ответов и производительность системы.
 
-Также вы можете делать фото с левом углу есть три точка нажмите на images и можете делать фото 
+Также вы можете делать фото — в левом верхнем углу нажмите на три точки → Images.
 
 ⏳ Пожалуйста, попробуйте снова немного позже.
 
@@ -767,11 +336,8 @@
                     if (b.charAt(i - 1) === a.charAt(j - 1)) {
                         matrix[i][j] = matrix[i - 1][j - 1];
                     } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1,
-                            Math.min(matrix[i][j - 1] + 1,
-                                matrix[i - 1][j] + 1)
-                        );
+                        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1,
+                            Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1));
                     }
                 }
             }
@@ -786,14 +352,9 @@
             let minDistance = 3;
             for (let key in memory) {
                 let keyNoSpace = key.toLowerCase().replace(/\s+/g, "");
-                if (qNoSpace === keyNoSpace) {
-                    return memory[key];
-                }
+                if (qNoSpace === keyNoSpace) return memory[key];
                 let dist = levenshteinDistance(q, key.toLowerCase());
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    bestMatch = key;
-                }
+                if (dist < minDistance) { minDistance = dist; bestMatch = key; }
             }
             if (bestMatch) return memory[bestMatch];
             return null;
@@ -815,8 +376,7 @@
                 let parts = line.split(" это ");
                 let q = parts[0].trim().toLowerCase();
                 let a = parts.slice(1).join(" это ").trim();
-                if (q && a) { newMemory[q] = a;
-                    count++; }
+                if (q && a) { newMemory[q] = a; count++; }
             }
             if (count > 0) {
                 memory = newMemory;
@@ -861,6 +421,10 @@
                 chatTabBtn.classList.remove('active');
                 imagesTabBtn.classList.add('active');
             }
+            // Мобильде sidebar жабу
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
         }
 
         let currentAspect = '1:1';
@@ -882,37 +446,87 @@
             }
         });
 
-        async generateImage(promptText) {
-    // Пайдаланушының мәтінінен "сурет сал", "нарисуй" сияқты артық сөздерді тазалау
-    const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
-    
-    // Сурет сапасын арттыратын қосымша тегтер қосу
-    const enhanced = `${userPrompt}, masterpiece, 8k, hyperrealistic, no text`;
-    const seed = Math.floor(Math.random() * 1000000000); // Әр жолы әртүрлі сурет шығуы үшін рандомды сан
-    const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
-    
-    // Чатқа жүктеліп жатқаны туралы хабарлама шығару
-    const msgDiv = this.addMessage('🎨 Генерирую изображение...', 'ai');
-    try {
-        const response = await fetch(imgUrl);
-        const blob = await response.blob();
-        
-        // Егер келген жауап шынымен сурет болса, оны чатқа қосу
-        if (blob.type.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = URL.createObjectURL(blob);
-            img.style.width = '100%';
-            img.style.borderRadius = '10px';
-            img.style.marginTop = '10px';
-            msgDiv.innerHTML = ''; // Жүктелу мәтінін өшіріп, орнына суретті қоямыз
-            msgDiv.appendChild(img);
-        } else {
-            msgDiv.textContent = '❌ Не удалось создать изображение. Попробуйте другой запрос.';
+        // ✅ FIX: формат пен сапаны ескеретін өлшемдер
+        function getImageDimensions(aspect, quality) {
+            const table = {
+                '1:1':  { hd: [512, 512],  '1080p': [1024, 1024], '2040p': [2048, 2048] },
+                '16:9': { hd: [768, 432],  '1080p': [1280, 720],  '2040p': [1920, 1080] },
+                '9:16': { hd: [432, 768],  '1080p': [720, 1280],  '2040p': [1080, 1920] }
+            };
+            return table[aspect][quality] || [1024, 1024];
         }
-    } catch {
-        msgDiv.textContent = '❌ Ошибка загрузки изображения.';
-    }
-                            }
+
+        // ✅ FIX: таза, this-сіз нұсқа
+        async function generateImage(promptText, container = null) {
+            const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
+            if (!userPrompt) {
+                if (container) container.innerHTML = '<p style="color:#ff6b6b;">❌ Промпт бос. Сипаттама жазыңыз.</p>';
+                return;
+            }
+            const [w, h] = getImageDimensions(currentAspect, currentQuality);
+            const enhanced = `${userPrompt}, masterpiece, 8k, hyperrealistic, no text`;
+            const seed = Math.floor(Math.random() * 1000000000);
+            const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}`;
+
+            if (container) {
+                container.innerHTML = '<p style="color:#00b86b;">🎨 Генерирую изображение...</p>';
+                try {
+                    const response = await fetch(imgUrl);
+                    const blob = await response.blob();
+                    if (blob.type.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.src = URL.createObjectURL(blob);
+                        img.style.width = '100%';
+                        img.style.borderRadius = '12px';
+                        container.innerHTML = '';
+                        container.appendChild(img);
+                        const dl = document.createElement('a');
+                        dl.href = img.src;
+                        dl.download = `serik_ai_${Date.now()}.jpg`;
+                        dl.textContent = '💾 Жүктеп алу';
+                        dl.style.cssText = 'display:inline-block; margin-top:10px; color:#00b86b; text-decoration:none;';
+                        container.appendChild(dl);
+                    } else {
+                        container.innerHTML = '<p style="color:#ff6b6b;">❌ Сурет жасалмады. Басқа промпт көріңіз.</p>';
+                    }
+                } catch (e) {
+                    container.innerHTML = '<p style="color:#ff6b6b;">❌ Жүктеу қатесі.</p>';
+                }
+            } else {
+                // Чаттан шақырылған жағдайда
+                const msgDiv = add('🎨 Генерирую изображение...', 'ai', true);
+                try {
+                    const response = await fetch(imgUrl);
+                    const blob = await response.blob();
+                    if (blob.type.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.src = URL.createObjectURL(blob);
+                        img.style.width = '100%';
+                        img.style.borderRadius = '10px';
+                        img.style.marginTop = '10px';
+                        msgDiv.innerHTML = '';
+                        msgDiv.appendChild(img);
+                    } else {
+                        msgDiv.textContent = '❌ Не удалось создать изображение.';
+                    }
+                } catch {
+                    msgDiv.textContent = '❌ Ошибка загрузки изображения.';
+                }
+            }
+        }
+
+        // ✅ FIX: осы функция жоқ еді — енді бар
+        function generateImageFromPanel() {
+            const promptInput = document.getElementById('imagePrompt');
+            const container = document.getElementById('generatedImageContainer');
+            const prompt = promptInput.value.trim();
+            if (!prompt) {
+                container.innerHTML = '<p style="color:#ff6b6b;">❌ Промпт жазыңыз!</p>';
+                return;
+            }
+            generateImage(prompt, container);
+        }
+
         async function send() {
             let input = document.getElementById("input");
             let text = input.value.trim();
@@ -954,10 +568,9 @@
                 let detectedImageUrl = imgUrlMatch[0];
                 let cleanQuestion = text.replace(detectedImageUrl, "").trim() || "Что на этом изображении?";
                 try {
-                    let visionUrl =
-                        `https://text.pollinations.ai/${encodeURIComponent(cleanQuestion)}?image=${encodeURIComponent(detectedImageUrl)}&model=openai`;
-                    let res = await fetch(visionUrl);
-                    let responseText = await res.text();
+                    let visionUrl = `https://text.pollinations.ai/${encodeURIComponent(cleanQuestion)}?image=${encodeURIComponent(detectedImageUrl)}&model=openai`;
+                    let r = await fetch(visionUrl);
+                    let responseText = await r.text();
                     hideLoading();
                     add(`👁️ [Анализ изображения]:\n\n${responseText.trim()}`, "ai");
                     return;
@@ -966,7 +579,7 @@
                 }
             }
 
-            // Егер «нарисуй» деп жазса – чатта сурет ЖАСАМАЙДЫ, тек хабарлама береді
+            // «нарисуй» деп жазса – чатқа сурет салмай, кеңес береді
             if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
                 hideLoading();
                 add("🎨 Для генерации изображений перейдите во вкладку **Images** в боковом меню. Там вы сможете выбрать размер, качество и создать картинку!", "ai");
@@ -974,7 +587,7 @@
             }
 
             hideLoading();
-            add("Технический перерыв!. Попробуйте спросить иначе или перейдите во вкладку Images для генерации изображений.", "ai");
+            add("Технический перерыв! Попробуйте спросить иначе или перейдите во вкладку Images для генерации изображений.", "ai");
         }
 
         function toggleSidebar() {
@@ -982,4 +595,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
