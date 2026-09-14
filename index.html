@@ -64,6 +64,7 @@
         #generatedImageContainer img { max-width: 100%; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
         .gen-loading { color: #00b86b; font-weight: bold; animation: pulse 1.5s infinite; padding: 20px; }
         .quality-badge { display: inline-block; background: linear-gradient(135deg, #ffd700, #ff9500); color: #000; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 6px; }
+        .safe-badge { display: inline-block; background: linear-gradient(135deg, #00b86b, #008f53); color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-left: 6px; }
         .prompt-hints { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
         .prompt-hints button { background: #2b2b3a; border: 1px solid #444; font-size: 11px; padding: 6px 12px; border-radius: 15px; font-weight: normal; }
         .prompt-hints button:hover { background: #00b86b; }
@@ -149,16 +150,18 @@
         </div>
 
         <div id="imagePanel" class="image-panel">
-            <h2 style="margin-top:0;">📸 Ultra Realistic Photo <span class="quality-badge">4K PHOTO</span></h2>
+            <h2 style="margin-top:0;">📸 Ultra Realistic Photo <span class="quality-badge">4K</span> <span class="safe-badge">🛡️ SAFE</span></h2>
             <label>Промпт (описание фото)</label>
             <input type="text" id="imagePrompt" placeholder="Мысалы: портрет казашки в национальном костюме, студия, мягкий свет">
             
             <div class="prompt-hints">
-                <button onclick="setPrompt('портрет девушки, студия, мягкий свет, профессиональное фото')">👩 Портрет</button>
+                <button onclick="setPrompt('портрет девушки в национальном костюме, студия, мягкий свет, профессиональное фото')">👩 Портрет</button>
                 <button onclick="setPrompt('горный пейзаж Казахстана, закат, кинематографично')">🏔 Пейзаж</button>
                 <button onclick="setPrompt('снежный барс в горах, wildlife photography, telephoto lens')">🐆 Барс</button>
                 <button onclick="setPrompt('Алматы ночью, огни города, длинная выдержка')">🌃 Город</button>
                 <button onclick="setPrompt('чашка кофе на деревянном столе, утренний свет, macro')">☕ Еда</button>
+                <button onclick="setPrompt('котенок играет с клубком, мягкий свет, home photography')">🐱 Котенок</button>
+                <button onclick="setPrompt('космонавт на Марсе, реалистично, cinematic')">🚀 Космос</button>
             </div>
 
             <label>Соотношение сторон</label>
@@ -241,7 +244,7 @@
         function speakText(text) {
             if (!voiceEnabled) return;
             window.speechSynthesis.cancel();
-            let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨🎨📸🖼️💾🔍]/gu, '');
+            let cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}📋✅⚛️📜🔥💻🛋️🤖👨‍🏫😎✨🎨📸🖼️💾🔍🛡️]/gu, '');
             cleanText = cleanText.replace(/[#*`~_\-()]/g, ' ');
             let speech = new SpeechSynthesisUtterance(cleanText);
             if (/[әғқңөұүһіІӘҒҚҢӨҰҮҺ]/g.test(text)) {
@@ -465,6 +468,30 @@
             }
         });
 
+        // 🛡️ NSFW ФИЛЬТР — тыйым салынған сөздер
+        const NSFW_WORDS = [
+            // Русский
+            'голый', 'голая', 'голые', 'голое', 'нюд', 'nude', 'sex', 'секс', 'порно', 'порн',
+            'эротика', 'эротик', 'обнажен', 'обнажён', 'интим', 'половой', 'сиськи', 'титьки',
+            'попа', 'писюн', 'член', 'пенис', 'вагин', 'влагалищ', 'онан', 'мастур', 'оргазм',
+            'шлюх', 'проститут', 'нагишом', 'раздетый', 'раздевание', 'стриптиз', 'стрип',
+            'лифчик', 'трусы', 'нижнее белье', 'топлес', 'обнаженка',
+            // Казахский
+            'жалаңаш', 'жаланаш', 'жыныс', 'сексуал', 'порнография', 'нәпсі', 'дене мүше',
+            // English
+            'naked', 'nsfw', 'porn', 'porno', 'explicit', 'sexual', 'nudity', 'erotic', 'hentai',
+            'boobs', 'tits', 'pussy', 'penis', 'vagina', 'ass', 'booty', 'dick', 'cock',
+            'xxx', '18+', 'adult content', 'stripping', 'undress', 'lingerie',
+            'topless', 'bottomless', 'genital', 'nipple', 'breast exposed', 'bare skin',
+            'seductive', 'provocative', 'suggestive', 'bdsm', 'fetish', 'kink', 'orgy',
+            'milf', 'onlyfans', 'camgirl', 'escort'
+        ];
+
+        function isNSFW(text) {
+            const lower = text.toLowerCase().replace(/[^\wа-яёәғқңөұүһі\s]/gi, ' ');
+            return NSFW_WORDS.some(word => lower.includes(word.toLowerCase()));
+        }
+
         // 🔥 ULTRA REALISTIC размеры
         function getImageDimensions(aspect, quality) {
             const table = {
@@ -475,33 +502,54 @@
             return table[aspect][quality] || [2048, 2048];
         }
 
-        // 🔥 МАКСИМАЛДЫ РЕАЛИСТІК промпт
+        // 🔥 ULTRA REALISTIC промпт + 🛡️ SAFE
         function enhancePrompt(prompt, quality) {
             const base = prompt;
 
             const realisticTags = ', RAW photo, professional photography, shot on Canon EOS R5, 85mm f/1.4 lens, ' +
-                'ultra realistic, photorealistic, hyperdetailed, skin pores visible, natural skin texture, ' +
-                'fine hair details, subsurface scattering, cinematic lighting, natural lighting, ' +
-                'golden hour, soft shadows, depth of field, bokeh, sharp focus on subject, ' +
-                'high dynamic range, HDR, 8k uhd, dslr, film grain, color graded, masterpiece, award winning photo';
+                'ultra realistic, photorealistic, hyperdetailed, natural skin texture, ' +
+                'cinematic lighting, natural lighting, soft shadows, depth of field, bokeh, ' +
+                'sharp focus on subject, high dynamic range, HDR, 8k uhd, dslr, film grain, ' +
+                'color graded, masterpiece, award winning photo, fully clothed, modest, safe for work';
 
             const qualityTags = quality === '4k'
-                ? ', extremely detailed, ultra sharp, tack sharp, professional color grading, editorial photography, National Geographic style'
+                ? ', extremely detailed, ultra sharp, professional color grading, editorial photography, National Geographic style'
                 : quality === '1080p'
                 ? ', highly detailed, sharp, professional'
                 : ', detailed, high quality';
 
-            const negativeTags = ' --no cartoon, anime, painting, illustration, drawing, sketch, 3d render, cgi, ' +
+            // 🛡️ Күшті negative — NSFW + мультик болдырмау
+            const negativeTags = ' --no nude, naked, nsfw, explicit, sexual, porn, erotic, hentai, ' +
+                'genitals, nipple, exposed breast, bare skin, topless, bottomless, undress, ' +
+                'lingerie only, bikini, underwear, suggestive, provocative, ' +
+                'cartoon, anime, painting, illustration, drawing, sketch, 3d render, cgi, ' +
                 'digital art, low quality, blurry, distorted, deformed, ugly, amateur, plastic skin, ' +
-                'smooth skin, wax figure, doll, watermark, text, logo, signature, extra fingers, bad anatomy';
+                'wax figure, doll, watermark, text, logo, signature, extra fingers, bad anatomy';
 
             return `${base}${realisticTags}${qualityTags}${negativeTags}`;
         }
 
         async function generateImage(promptText, container = null) {
             const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
+
             if (!userPrompt) {
                 if (container) container.innerHTML = '<p style="color:#ff6b6b;">❌ Промпт пуст. Напишите описание.</p>';
+                return;
+            }
+
+            // 🛡️ NSFW ТЕКСЕРУ — генерация басталмай тұрып
+            if (isNSFW(userPrompt)) {
+                const blockHtml = `
+                    <div style="padding:20px; background:#2a0d0d; border:2px solid #ff4d4d; border-radius:12px; text-align:center;">
+                        <p style="color:#ff6b6b; font-weight:bold; font-size:16px; margin:0 0 10px 0;">
+                            🛑 Запрещённый контент
+                        </p>
+                        <p style="color:#ccc; font-size:14px; margin:0;">
+                            Генерация взрослого/неприличного контента запрещена.<br>
+                            Пожалуйста, измените описание. 🚫
+                        </p>
+                    </div>`;
+                if (container) container.innerHTML = blockHtml;
                 return;
             }
 
@@ -509,10 +557,9 @@
             const enhanced = enhancePrompt(userPrompt, currentQuality);
             const seed = Math.floor(Math.random() * 1000000000);
 
-            // 🔥 3 модель каскады — реализм үшін
             const models = ['flux-realism', 'flux', 'turbo'];
             const buildUrl = (model) =>
-                `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}&model=${model}&enhance=true&private=true&safe=false`;
+                `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}&model=${model}&enhance=true&private=true&safe=true`;
 
             const loadingHtml = `
                 <div class="gen-loading">
@@ -547,7 +594,7 @@
                                 </a>
                             </div>
                             <p style="margin-top:10px; color:#888; font-size:12px;">
-                                ✨ Модель: ${model} | ${w}×${h} | Реализм: ULTRA
+                                ✨ Модель: ${model} | ${w}×${h} | Реализм: ULTRA | 🛡️ SAFE
                             </p>`;
 
                         if (container && container.innerHTML !== undefined) {
@@ -584,6 +631,12 @@
 
             add(text, "user");
             input.value = "";
+
+            // 🛡️ NSFW тексеру чатта да
+            if (isNSFW(text)) {
+                add("🛑 Я не буду отвечать на такие запросы. Задайте другой вопрос!", "ai");
+                return;
+            }
 
             if (/^[0-9\s\+\-\*\/\(\)\.]+$/.test(text)) {
                 showLoading();
@@ -628,7 +681,7 @@
 
             if (lowerText.includes("нарисуй") || lowerText.includes("сурет сал") || lowerText.includes("сгенерируй")) {
                 hideLoading();
-                add("📸 Для реалистичных фото перейдите во вкладку **Photo** в боковом меню. Там доступен 4K Ultra Realistic режим!", "ai");
+                add("📸 Для реалистичных фото перейдите во вкладку **Photo** в боковом меню. Там доступен 4K Ultra Realistic режим с защитой от NSFW!", "ai");
                 return;
             }
 
