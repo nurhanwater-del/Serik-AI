@@ -132,7 +132,7 @@
         .message-wrapper.user { align-items: flex-end; }
         .message-wrapper.user .message {
             background-color: var(--user-bubble); padding: 12px 20px;
-            border-radius: 24px; font-size: 16px; line-height: 1.5; max-width: 85%; word-wrap: break-word;
+            border-radius: 24px; font-size: 15px; line-height: 1.5; max-width: 85%; word-wrap: break-word;
         }
         .message-wrapper.ai { align-items: flex-start; flex-direction: row; gap: 12px; }
         .ai-avatar {
@@ -143,7 +143,7 @@
         }
         .ai-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .message-wrapper.ai .message {
-            padding: 4px 0; font-size: 16px; line-height: 1.6; color: var(--text-primary);
+            padding: 4px 0; font-size: 15px; line-height: 1.6; color: var(--text-primary);
             max-width: 100%; word-wrap: break-word; white-space: pre-wrap;
         }
 
@@ -163,7 +163,7 @@
         .edit-area textarea {
             width: 100%; background: var(--bg-base); border: 1px solid #444;
             color: var(--text-primary); padding: 10px; border-radius: 12px;
-            resize: none; font-family: inherit; font-size: 16px;
+            resize: none; font-family: inherit; font-size: 15px;
         }
         .edit-area .edit-actions { display: flex; gap: 6px; justify-content: flex-end; }
 
@@ -598,6 +598,7 @@
             }
         }
 
+        // ==== Осы жерде құрылым өзгерді (Мәтін мен батырмалар бағанға бөлінді) ====
         function addMessage(text, sender, isImage = false, messageId = null) {
             if (isFirstMessage && sender === 'user') {
                 welcomeScreen.style.display = 'none';
@@ -615,9 +616,19 @@
                 avatar.className = 'ai-avatar';
                 avatar.innerHTML = `<img src="Screenshot_20260804_225910_Gallery.jpg" onerror="this.src='https://via.placeholder.com/38/1a1a24/00b86b?text=SA'" alt="SA">`;
                 wrapper.appendChild(avatar);
+                
+                // Жаңа контейнер жасап, мәтін мен батырмаларды ішіне саламыз (тігінен орналасады)
+                const contentWrapper = document.createElement('div');
+                contentWrapper.style.flex = "1";
+                contentWrapper.style.minWidth = "0";
+                contentWrapper.style.display = "flex";
+                contentWrapper.style.flexDirection = "column";
+                contentWrapper.style.gap = "6px";
+
                 if (isImage) msgDiv.innerHTML = text;
                 else msgDiv.innerText = text;
-                wrapper.appendChild(msgDiv);
+                contentWrapper.appendChild(msgDiv);
+
                 if (!isImage) {
                     const actions = document.createElement('div');
                     actions.className = 'action-buttons';
@@ -627,8 +638,9 @@
                         <button onclick="copyMessage('${messageId}')"><span class="material-symbols-outlined">content_copy</span> ${getLangText('copy')}</button>
                         <button onclick="retryMessage('${messageId}')"><span class="material-symbols-outlined">replay</span> ${getLangText('retry')}</button>
                     `;
-                    wrapper.appendChild(actions);
+                    contentWrapper.appendChild(actions);
                 }
+                wrapper.appendChild(contentWrapper);
             } else {
                 msgDiv.innerText = text;
                 wrapper.appendChild(msgDiv);
@@ -730,16 +742,31 @@
             if (isFirstMessage) { welcomeScreen.style.display = 'none'; chatBox.style.display = 'block'; }
             const wrapper = document.createElement('div');
             wrapper.className = 'message-wrapper ai'; wrapper.id = 'loading-msg';
+            
             const avatar = document.createElement('div');
             avatar.className = 'ai-avatar loading-logo';
             avatar.innerHTML = `<img src="Screenshot_20260804_225910_Gallery.jpg" onerror="this.src='https://via.placeholder.com/38/1a1a24/00b86b?text=SA'" alt="SA">`;
+            
+            const contentWrapper = document.createElement('div');
+            contentWrapper.style.flex = "1";
+            contentWrapper.style.minWidth = "0";
+            contentWrapper.style.display = "flex";
+            contentWrapper.style.flexDirection = "column";
+            contentWrapper.style.gap = "6px";
+
             const msgDiv = document.createElement('div');
             msgDiv.className = 'message ai'; msgDiv.textContent = getLangText('ai_thinking');
-            wrapper.appendChild(avatar); wrapper.appendChild(msgDiv);
+            
             const actions = document.createElement('div');
             actions.className = 'action-buttons';
             actions.innerHTML = `<button onclick="stopGeneration()"><span class="material-symbols-outlined">stop</span> ${getLangText('stop')}</button>`;
-            wrapper.appendChild(actions);
+            
+            contentWrapper.appendChild(msgDiv);
+            contentWrapper.appendChild(actions);
+
+            wrapper.appendChild(avatar); 
+            wrapper.appendChild(contentWrapper);
+            
             chatBox.appendChild(wrapper);
             chatBox.scrollTop = chatBox.scrollHeight;
             loadingElement = wrapper;
