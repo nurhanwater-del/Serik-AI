@@ -168,15 +168,15 @@ class SerikAI {
         this.themeSelect = document.getElementById('themeSelect');
         
         this.memory = {
-            "привет": "Привет! Чем могу помочь?",
-            "сәлем": "Сәлем! Қалай көмектесе аламын?",
-            "hello": "Hello! How can I help you?",
-            "как дела": "Всё отлично! Спрашивай что угодно.",
-            "қалайсың": "Жақсы, рахмет! Сізге не көмек керек?",
-            "how are you": "I'm doing well, thanks! What can I do for you?",
-            "что ты умеешь": "Я могу искать информацию, генерировать изображения и короткие видео!",
-            "не істей аласың": "Мен мәлімет іздей аламын, суреттер мен бейнелер жасай аламын!",
-            "what can you do": "I can search for information, generate images, and create short videos!"
+            "привет": "Привет! Чем могу помочь? 😊",
+            "сәлем": "Сәлем! Қалай көмектесе аламын? ✨",
+            "hello": "Hello! How can I help you? 🚀",
+            "как дела": "Всё отлично! Спрашивай что угодно. 👍",
+            "қалайсың": "Жақсы, рахмет! Сізге не көмек керек? 🤝",
+            "how are you": "I'm doing well, thanks! What can I do for you? ⭐",
+            "что ты умеешь": "Я могу искать информацию, генерировать изображения и короткие видео! 💡",
+            "не істей аласың": "Мен мәлімет іздей аламын, суреттер мен бейнелер жасай аламын! 🎨",
+            "what can you do": "I can search for information, generate images, and create short videos! 🛠️"
         };
         this.db = null;
         this.voiceEnabled = false;
@@ -258,7 +258,7 @@ class SerikAI {
         const signal = this.abortController.signal;
         
         if (/^[\d\s+\-*/().]+$/.test(text)) {
-            try { return this.addMessage(`🧮 ${eval(text)}`, 'ai'); } catch {}
+            try { return this.addMessage(`🧮 ${eval(text)} ✨`, 'ai'); } catch {}
         }
         
         const cached = this.messageCache.get(text.toLowerCase());
@@ -281,16 +281,21 @@ class SerikAI {
         
         try {
             const lang = this.detectLanguage(text);
-            const response = await this.fetchLocalOrWebResponse(text, lang, signal);
+            let response = await this.fetchLocalOrWebResponse(text, lang, signal);
             typingIndicator.remove();
             if (response) {
+                // Жауап соңына әдемі смайлик қосу
+                const emojis = ['✨', '💡', '🔥', '⭐', '🚀', '📌', '🎯'];
+                const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                response = response + ' ' + randomEmoji;
+
                 this.messageCache.set(text.toLowerCase(), response);
                 this.addMessage(response, 'ai');
             }
         } catch (err) {
             typingIndicator.remove();
             if (err.name !== 'AbortError') {
-                this.addMessage('⚠️ Желіде ақаулық шықты / Network error / Ошибка сети.', 'ai');
+                this.addMessage('⚠️ Желіде ақаулық шықты. / Network error. / Ошибка сети. 🔄', 'ai');
             }
         }
     }
@@ -318,14 +323,31 @@ class SerikAI {
         return (2 * intersection) / (Math.max(1, sa.size + sb.size));
     }
 
+    // Мәтінді мүлдем таза, қатесіз, пробели мен тыныс белгілері әдемі болатындай етіп өңдеу
     cleanUpText(text) {
-        return text
-            .replace(/\.\.\./g, '') 
-            .replace(/http[^\s]+/gi, '') 
-            .replace(/&[a-z]+;/gi, '') 
-            .replace(/[\[\]\{\}\<\>\^\|\~]/g, '') 
-            .replace(/\s{2,}/g, ' ') 
+        let cleaned = text
+            .replace(/\([^)]*['ː][^)]*\)/g, '') // Транскрипцияларды өшіру (мысалы: ('mærəlɪn...))
+            .replace(/\[\d+\]/g, '') // Википедия сілтемелерін өшіру [1], [2]
+            .replace(/\.{3,}/g, '.') // Үш нүктені дұрыстау
+            .replace(/http[^\s]+/gi, '') // Сілтемелерді өшіру
+            .replace(/&[a-z]+;/gi, '') // HTML символдарды өшіру
+            .replace(/[\[\]\{\}\<\>\^\|\~]/g, '') // Артық символдарды алып тастау
+            .replace(/\s{2,}/g, ' ') // Артық пробелдерді қысқарту
             .trim();
+
+        // Егер мәтін соңы нүктемен, леп белгісімен не сұрақ белгісімен аяқталмаса, үзіліп қалған әріпті өшіріп, соңына нүкте қою
+        if (cleaned.length > 0) {
+            const lastChar = cleaned.slice(-1);
+            if (!['.', '!', '?', '”', '"', ')'].includes(lastChar)) {
+                const lastSpace = cleaned.lastIndexOf(' ');
+                if (lastSpace > 0) {
+                    cleaned = cleaned.substring(0, lastSpace) + '.';
+                } else {
+                    cleaned += '.';
+                }
+            }
+        }
+        return cleaned;
     }
 
     async getWebContext(query, lang) {
@@ -415,13 +437,13 @@ class SerikAI {
             msgDiv.appendChild(img);
         };
         img.onerror = () => {
-            msgDiv.textContent = '❌ Error / Ошибка.';
+            msgDiv.textContent = '❌ Error / Ошибка. ⚠️';
         };
     }
 
     async generateVideo(promptText) {
         const cleanPrompt = promptText.replace(/(видео|video|сделай видео|жаса|create video)/gi, '').trim();
-        if (!cleanPrompt) return this.addMessage('?', 'ai');
+        if (!cleanPrompt) return this.addMessage('❓', 'ai');
 
         const msg = this.addMessage(`🎬 ...`, 'ai');
         const seed = Math.floor(Math.random() * 100000);
@@ -463,7 +485,7 @@ class SerikAI {
     clearChat() {
         this.chat.innerHTML = '';
         this.messageCache.clear();
-        this.addMessage('Очищено / Тазартылды / Cleared.', 'ai');
+        this.addMessage('Очищено / Тазартылды / Cleared. 🧹', 'ai');
     }
 
     toggleVoice() {
@@ -482,10 +504,11 @@ class SerikAI {
         }
         if (this.db) this.db.ref('serik_memory').set(this.memory);
         this.bulkTextarea.value = '';
-        alert('Сохранено / Сақталды / Saved!');
+        alert('Сохранено / Сақталды / Saved! ✅');
     }
 }
 document.addEventListener('DOMContentLoaded', () => { window.app = new SerikAI(); });
 </script>
 </body>
 </html>
+
