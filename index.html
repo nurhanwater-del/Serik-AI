@@ -147,15 +147,17 @@
             max-width: 100%; word-wrap: break-word; white-space: pre-wrap;
         }
 
-        .action-buttons { display: flex; gap: 6px; margin-top: 4px; align-items: center; }
+        .action-buttons { display: flex; gap: 6px; margin-top: 4px; align-items: center; flex-wrap: wrap; }
         .action-buttons button {
             background: transparent; border: 1px solid #444;
-            color: var(--text-secondary); padding: 4px 8px; border-radius: 16px;
+            color: var(--text-secondary); padding: 4px 10px; border-radius: 16px;
             font-size: 12px; cursor: pointer; transition: 0.2s;
             display: inline-flex; align-items: center; gap: 4px;
         }
         .action-buttons button:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
         .action-buttons button .material-symbols-outlined { font-size: 16px; }
+        .action-buttons button.liked { color: #8ab4f8; border-color: #8ab4f8; background: rgba(138, 180, 248, 0.1); }
+        .action-buttons button.disliked { color: #f28b82; border-color: #f28b82; background: rgba(242, 139, 130, 0.1); }
 
         .edit-area { display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 4px; }
         .edit-area textarea {
@@ -295,7 +297,6 @@
         <div class="top-bar">
             <div class="top-bar-left">
                 <button class="menu-btn mobile-only" onclick="toggleSidebar()"><span class="material-symbols-outlined">menu</span></button>
-                <!-- Суреттің орнына қолданушының берген атын қалдырдым немесе өзгертуге болады -->
                 <img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA Logo" onerror="this.src='https://via.placeholder.com/36/1a1a24/00b86b?text=SA'" class="logo-img">
                 <span class="logo-text">Serik AI</span>
             </div>
@@ -334,7 +335,7 @@
     </main>
 
     <script>
-        // ========== АУДАРМАЛАР ==========
+        // ========== ТОЛЫҚ АУДАРМАЛАР БАЗАСЫ ==========
         const translations = {
             kk: {
                 new_chat: "Жаңа чат", chat_tab: "💬 Чат", image_tab: "🖼️ Фото",
@@ -342,13 +343,13 @@
                 admin_title: "Жасырын база 🔒", password_placeholder: "Пароль", save_cloud: "Бұлтқа сақтау",
                 greeting_title: "Сәлем, Nurik", greeting_subtitle: "Бүгін не білгіңіз келеді?",
                 suggestion1: "Болашақтың көлігін генерациялау", suggestion2: "Негізгі формулалар",
-                input_placeholder: "Осы жерге жазыңыз...", disclaimer: "Serik AI (Wiki & Search) қате ақпарат беруі мүмкін.",
+                input_placeholder: "Осы жерге жазыңыз...", disclaimer: "Serik AI қате ақпарат беруі мүмкін. Маңызды деректерді тексеріп алыңыз.",
                 suggestion1_prompt: "Киберпанк стилінде көлік нарисуй", suggestion2_prompt: "Физикадан негізгі формулалар",
                 error_connection: "Қосылу қатесі. Қайталап көріңіз.", ai_thinking: "Іздестіруде...",
                 image_title: "Сурет генерациясы", image_prompt_placeholder: "Сурет сипаттамасын жазыңыз...",
                 ratio_label: "Пропорция", quality_label: "Сапа", generate_btn: "✨ Генерациялау", download_btn: "📥 Скачать",
                 stop: "Тоқтату", edit: "Өзгерту", retry: "Қайталау", copy: "Көшіру",
-                send_edit: "Жіберу", cancel_edit: "Болдырмау"
+                send_edit: "Жіберу", cancel_edit: "Болдырмау", like: "Лайк", dislike: "Дизлайк"
             },
             ru: {
                 new_chat: "Новый чат", chat_tab: "💬 Чат", image_tab: "🖼️ Фото",
@@ -356,13 +357,13 @@
                 admin_title: "Скрытая база 🔒", password_placeholder: "Пароль", save_cloud: "Сохранить",
                 greeting_title: "Привет, Nurik", greeting_subtitle: "Что хотите узнать сегодня?",
                 suggestion1: "Сгенерировать машину будущего", suggestion2: "Основные формулы",
-                input_placeholder: "Введите ваш запрос...", disclaimer: "Serik AI (Wiki & Search) может ошибаться.",
+                input_placeholder: "Введите ваш запрос...", disclaimer: "Serik AI может ошибаться. Проверяйте информацию.",
                 suggestion1_prompt: "Нарисуй машину в стиле киберпанк", suggestion2_prompt: "Основные формулы по физике",
                 error_connection: "Ошибка соединения. Попробуйте еще раз.", ai_thinking: "Ищу информацию...",
                 image_title: "Генерация изображений", image_prompt_placeholder: "Опишите изображение...",
                 ratio_label: "Пропорция", quality_label: "Качество", generate_btn: "✨ Сгенерировать", download_btn: "📥 Скачать",
                 stop: "Остановить", edit: "Изменить", retry: "Повторить", copy: "Копировать",
-                send_edit: "Отправить", cancel_edit: "Отмена"
+                send_edit: "Отправить", cancel_edit: "Отмена", like: "Лайк", dislike: "Дизлайк"
             },
             en: {
                 new_chat: "New Chat", chat_tab: "💬 Chat", image_tab: "🖼️ Images",
@@ -370,32 +371,128 @@
                 admin_title: "Hidden Database 🔒", password_placeholder: "Password", save_cloud: "Save to Cloud",
                 greeting_title: "Hello, Nurik", greeting_subtitle: "What would you like to know today?",
                 suggestion1: "Generate a futuristic car", suggestion2: "Basic formulas",
-                input_placeholder: "Type your query...", disclaimer: "Serik AI (Wiki & Search) may make mistakes.",
+                input_placeholder: "Type your query...", disclaimer: "Serik AI may make mistakes. Check important info.",
                 suggestion1_prompt: "Draw a cyberpunk style car", suggestion2_prompt: "Basic physics formulas",
                 error_connection: "Connection error. Please try again.", ai_thinking: "Searching...",
                 image_title: "Image Generation", image_prompt_placeholder: "Describe the image...",
                 ratio_label: "Aspect Ratio", quality_label: "Quality", generate_btn: "✨ Generate", download_btn: "📥 Download",
                 stop: "Stop", edit: "Edit", retry: "Retry", copy: "Copy",
-                send_edit: "Send", cancel_edit: "Cancel"
+                send_edit: "Send", cancel_edit: "Cancel", like: "Like", dislike: "Dislike"
+            },
+            zh: {
+                new_chat: "新对话", chat_tab: "💬 聊天", image_tab: "🖼️ 图片",
+                voice_off: "语音关闭", voice_on: "语音开启", settings: "设置",
+                admin_title: "隐藏数据库 🔒", password_placeholder: "密码", save_cloud: "保存到云端",
+                greeting_title: "你好, Nurik", greeting_subtitle: "今天想了解什么？",
+                suggestion1: "生成未来概念车", suggestion2: "基础公式",
+                input_placeholder: "请输入您的内容...", disclaimer: "Serik AI 可能会提供不准确的信息。",
+                suggestion1_prompt: "画一辆赛博朋克风格的车", suggestion2_prompt: "物理基础公式",
+                error_connection: "连接错误，请重试。", ai_thinking: "正在搜索...",
+                image_title: "图片生成", image_prompt_placeholder: "请描述图片...",
+                ratio_label: "比例", quality_label: "画质", generate_btn: "✨ 生成图片", download_btn: "📥 下载",
+                stop: "停止", edit: "编辑", retry: "重试", copy: "复制",
+                send_edit: "发送", cancel_edit: "取消", like: "赞", dislike: "踩"
+            },
+            tr: {
+                new_chat: "Yeni Sohbet", chat_tab: "💬 Sohbet", image_tab: "🖼️ Görsel",
+                voice_off: "Ses Kapalı", voice_on: "Ses Açık", settings: "Ayarlar",
+                admin_title: "Gizli Veritabanı 🔒", password_placeholder: "Parola", save_cloud: "Buluta Kaydet",
+                greeting_title: "Merhaba, Nurik", greeting_subtitle: "Bugün ne öğrenmek istersin?",
+                suggestion1: "Geleceğin arabasını üret", suggestion2: "Temel formüller",
+                input_placeholder: "Buraya yazın...", disclaimer: "Serik AI hata yapabilir. Önemli bilgileri kontrol edin.",
+                suggestion1_prompt: "Siberpunk tarzında bir araba çiz", suggestion2_prompt: "Temel fizik formülleri",
+                error_connection: "Bağlantı hatası. Lütfen tekrar deneyin.", ai_thinking: "Aranıyor...",
+                image_title: "Görsel Oluşturma", image_prompt_placeholder: "Görseli tanımlayın...",
+                ratio_label: "Oran", quality_label: "Kalite", generate_btn: "✨ Oluştur", download_btn: "📥 İndir",
+                stop: "Durdur", edit: "Düzenle", retry: "Tekrar dene", copy: "Kopyala",
+                send_edit: "Gönder", cancel_edit: "İptal", like: "Beğen", dislike: "Beğenme"
+            },
+            ky: {
+                new_chat: "Жаңы чат", chat_tab: "💬 Чат", image_tab: "🖼️ Сүрөт",
+                voice_off: "Үн өчүрүлгөн", voice_on: "Үн күйгүзүлгөн", settings: "Орнотуулар",
+                admin_title: "Жашыруун база 🔒", password_placeholder: "Сыр сөз", save_cloud: "Булутка сактоо",
+                greeting_title: "Салам, Nurik", greeting_subtitle: "Бүгүн эмнени билгиңиз келет?",
+                suggestion1: "Келечектин унаасын жаратуу", suggestion2: "Негизги формулалар",
+                input_placeholder: "Ушул жерге жазыңыз...", disclaimer: "Serik AI ката кетириши мүмкүн.",
+                suggestion1_prompt: "Киберпанк стилинде унаа тартып бер", suggestion2_prompt: "Физикадан негизги формулалар",
+                error_connection: "Байланыш катасы. Кайра аракет кылыңыз.", ai_thinking: "Издөөдө...",
+                image_title: "Сүрөт генерациясы", image_prompt_placeholder: "Сүрөттүн сүрөттөмөсүн жазыңыз...",
+                ratio_label: "Пропорция", quality_label: "Сапаты", generate_btn: "✨ Генерациялоо", download_btn: "📥 Жүктөп алуу",
+                stop: "Токтотуу", edit: "Өзгөртүү", retry: "Кайралоо", copy: "Көчүрүү",
+                send_edit: "Узатуу", cancel_edit: "Жокко чыгаруу", like: "Лайк", dislike: "Дизлайк"
+            },
+            tg: {
+                new_chat: "Чат нав", chat_tab: "💬 Чат", image_tab: "🖼️ Акс",
+                voice_off: "Овоз хомӯш", voice_on: "Овоз фаъол", settings: "Танзимот",
+                admin_title: "Базаи пӯшида 🔒", password_placeholder: "Парол", save_cloud: "Захира дар абр",
+                greeting_title: "Салом, Nurik", greeting_subtitle: "Имрӯз чиро донистан мехоҳед?",
+                suggestion1: "Сохтани мошини оянда", suggestion2: "Формулаҳои асосӣ",
+                input_placeholder: "Дар ин ҷо нависед...", disclaimer: "Serik AI метавонад хато кунад.",
+                suggestion1_prompt: "Мошин дар услуби киберпанк каш", suggestion2_prompt: "Формулаҳои асосии физика",
+                error_connection: "Хатои пайвастшавӣ. Дубора кӯшиш кунед.", ai_thinking: "Ҷустуҷӯ...",
+                image_title: "Сохтани акс", image_prompt_placeholder: "Тавсифи аксро нависед...",
+                ratio_label: "Пропорсия", quality_label: "Сифат", generate_btn: "✨ Сохтан", download_btn: "📥 Боргирӣ",
+                stop: "Ист", edit: "Таҳрир", retry: "Такрор", copy: "Нусхабардорӣ",
+                send_edit: "Фристодан", cancel_edit: "Бекор кардан", like: "Лайк", dislike: "Дизлайк"
+            },
+            uk: {
+                new_chat: "Новий чат", chat_tab: "💬 Чат", image_tab: "🖼️ Фото",
+                voice_off: "Голос вимкнено", voice_on: "Голос увімкнено", settings: "Налаштування",
+                admin_title: "Прихована база 🔒", password_placeholder: "Пароль", save_cloud: "Зберегти в хмару",
+                greeting_title: "Привіт, Nurik", greeting_subtitle: "Що ви хочете дізнатися сьогодні?",
+                suggestion1: "Згенерувати авто майбутнього", suggestion2: "Основні формули",
+                input_placeholder: "Введіть ваш запит...", disclaimer: "Serik AI може помилятися.",
+                suggestion1_prompt: "Намалюй авто в стилі кіберпанк", suggestion2_prompt: "Основні формули з фізики",
+                error_connection: "Помилка з'єднання. Спробуйте ще раз.", ai_thinking: "Шукаю...",
+                image_title: "Генерація зображень", image_prompt_placeholder: "Опишіть зображення...",
+                ratio_label: "Пропорція", quality_label: "Якість", generate_btn: "✨ Згенерувати", download_btn: "📥 Завантажити",
+                stop: "Зупинити", edit: "Редагувати", retry: "Повторити", copy: "Копіювати",
+                send_edit: "Надіслати", cancel_edit: "Скасувати", like: "Подобається", dislike: "Не подобається"
+            },
+            uz: {
+                new_chat: "Yangi chat", chat_tab: "💬 Chat", image_tab: "🖼️ Rasm",
+                voice_off: "Ovoz o'chirilgan", voice_on: "Ovoz yoqilgan", settings: "Sozlamalar",
+                admin_title: "Yashirin baza 🔒", password_placeholder: "Parol", save_cloud: "Bulutga saqlash",
+                greeting_title: "Salom, Nurik", greeting_subtitle: "Bugun nimani bilmoqchisiz?",
+                suggestion1: "Kelajak mashinasini yaratish", suggestion2: "Asosiy formulalar",
+                input_placeholder: "Bu yerga yozing...", disclaimer: "Serik AI xato qilishi mumkin.",
+                suggestion1_prompt: "Kiberpank uslubida mashina chizib ber", suggestion2_prompt: "Fizikadan asosiy formulalar",
+                error_connection: "Ulanishda xatolik. Qaytadan urinib ko'ring.", ai_thinking: "Qidirilmoqda...",
+                image_title: "Rasm yaratish", image_prompt_placeholder: "Rasm tavsifini yozing...",
+                ratio_label: "Proportsiya", quality_label: "Sifat", generate_btn: "✨ Yaratish", download_btn: "📥 Yuklab olish",
+                stop: "To'xtatish", edit: "O'zgartirish", retry: "Qayta urinish", copy: "Nusxalash",
+                send_edit: "Yuborish", cancel_edit: "Bekor qilish", like: "Layk", dislike: "Dizlayk"
             }
         };
 
         let currentLang = 'kk';
+        
+        function getLangText(key) { 
+            if (translations[currentLang] && translations[currentLang][key]) {
+                return translations[currentLang][key];
+            }
+            if (translations['kk'] && translations['kk'][key]) {
+                return translations['kk'][key];
+            }
+            return ''; 
+        }
+
         function changeLanguage(lang) {
             currentLang = lang;
             localStorage.setItem('serik_lang', lang);
             document.querySelectorAll('[data-lang]').forEach(el => {
                 const key = el.getAttribute('data-lang');
-                if (translations[lang] && translations[lang][key]) el.textContent = translations[lang][key];
+                const val = getLangText(key);
+                if (val) el.textContent = val;
             });
             document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
                 const key = el.getAttribute('data-lang-placeholder');
-                if (translations[lang] && translations[lang][key]) el.placeholder = translations[lang][key];
+                const val = getLangText(key);
+                if (val) el.placeholder = val;
             });
             updateVoiceButton();
             document.getElementById('langSelect').value = lang;
         }
-        function getLangText(key) { return translations[currentLang]?.[key] || translations['kk'][key] || ''; }
 
         // ========== ЖАДЫ МЕН FIREBASE ==========
         const firebaseConfig = {
@@ -479,6 +576,28 @@
             activeEditId = null;
         }
 
+        function toggleLike(btn) {
+            const parent = btn.parentElement;
+            const dislikeBtn = parent.querySelector('.btn-dislike');
+            if (btn.classList.contains('liked')) {
+                btn.classList.remove('liked');
+            } else {
+                btn.classList.add('liked');
+                if (dislikeBtn) dislikeBtn.classList.remove('disliked');
+            }
+        }
+
+        function toggleDislike(btn) {
+            const parent = btn.parentElement;
+            const likeBtn = parent.querySelector('.btn-like');
+            if (btn.classList.contains('disliked')) {
+                btn.classList.remove('disliked');
+            } else {
+                btn.classList.add('disliked');
+                if (likeBtn) likeBtn.classList.remove('liked');
+            }
+        }
+
         function addMessage(text, sender, isImage = false, messageId = null) {
             if (isFirstMessage && sender === 'user') {
                 welcomeScreen.style.display = 'none';
@@ -503,6 +622,8 @@
                     const actions = document.createElement('div');
                     actions.className = 'action-buttons';
                     actions.innerHTML = `
+                        <button class="btn-like" onclick="toggleLike(this)"><span class="material-symbols-outlined">thumb_up</span> ${getLangText('like')}</button>
+                        <button class="btn-dislike" onclick="toggleDislike(this)"><span class="material-symbols-outlined">thumb_down</span> ${getLangText('dislike')}</button>
                         <button onclick="copyMessage('${messageId}')"><span class="material-symbols-outlined">content_copy</span> ${getLangText('copy')}</button>
                         <button onclick="retryMessage('${messageId}')"><span class="material-symbols-outlined">replay</span> ${getLangText('retry')}</button>
                     `;
@@ -636,11 +757,11 @@
             const micBtn = document.getElementById("micBtn");
             if (voiceEnabled) {
                 btn.classList.add("active");
-                btn.querySelector('span:last-child').textContent = translations[currentLang].voice_on;
+                btn.querySelector('span:last-child').textContent = getLangText('voice_on');
                 micBtn.style.color = "var(--accent)";
             } else {
                 btn.classList.remove("active");
-                btn.querySelector('span:last-child').textContent = translations[currentLang].voice_off;
+                btn.querySelector('span:last-child').textContent = getLangText('voice_off');
                 micBtn.style.color = "var(--text-secondary)";
                 window.speechSynthesis.cancel();
             }
@@ -773,7 +894,6 @@
                 inputEl.style.height = '44px';
             }
 
-            // Математикалық тексеру
             if (/^[\d\s+\-*/().]+$/.test(text)) {
                 showLoading();
                 try {
@@ -783,7 +903,6 @@
                 return;
             }
 
-            // Жадыдан ұқсастық іздеу
             const brainRes = brainSearch(text);
             if (brainRes) {
                 showLoading();
@@ -792,7 +911,6 @@
             }
 
             const lowerText = text.toLowerCase();
-            // Сурет салу пәрмені
             if (/(нарисуй|сурет сал|сгенерируй|draw|generate image)/i.test(lowerText)) {
                 showLoading();
                 const prompt = text.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image)/gi, '').trim();
@@ -804,7 +922,6 @@
                 return;
             }
             
-            // Видео жасау пәрмені
             if (/(видео|video|сделай видео|жаса|create video)/i.test(lowerText)) {
                 showLoading();
                 const prompt = text.replace(/(видео|video|сделай видео|жаса|create video)/gi, '').trim();
@@ -815,7 +932,6 @@
                 return;
             }
 
-            // Википедия және Веб (DuckDuckGo) іздеу
             abortController = new AbortController();
             isGenerating = true;
             showLoading();
@@ -895,7 +1011,7 @@
 
         function updateVoiceButton() {
             const btn = document.getElementById("voiceBtn");
-            btn.querySelector('span:last-child').textContent = translations[currentLang][voiceEnabled ? 'voice_on' : 'voice_off'];
+            btn.querySelector('span:last-child').textContent = getLangText(voiceEnabled ? 'voice_on' : 'voice_off');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -906,3 +1022,4 @@
     </script>
 </body>
 </html>
+
