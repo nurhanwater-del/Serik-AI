@@ -1,194 +1,403 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="kk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Serik AI — Мультиязычный assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Serik AI</title>
+    <link rel="icon" type="image/jpeg" href="Screenshot_20260804_225910_Gallery.jpg">
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
         :root {
-            --radius: 14px; --transition: 0.2s ease;
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-        }
-        body {
-            --bg: #0f0f14; --sidebar-bg: #1a1a24; --text: #fff;
-            --user-msg: linear-gradient(135deg, #00b86b, #008f53);
-            --ai-msg: linear-gradient(135deg, #2b2b3a, #20202d);
-            --border: #333; --accent: #00b86b;
-
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg); color: var(--text);
-            display: flex; height: 100vh; overflow: hidden;
-            transition: background 0.3s, color 0.3s;
-        }
-        body.theme-hacker {
-            --bg: #000000; --sidebar-bg: #051405; --text: #00ff00;
-            --user-msg: linear-gradient(135deg, #005500, #003300);
-            --ai-msg: linear-gradient(135deg, #0c1f0c, #051405);
-            --border: #00ff00; --accent: #00ff00;
-        }
-        body.theme-cyberpunk {
-            --bg: #12041c; --sidebar-bg: #1b022b; --text: #00ffff;
-            --user-msg: linear-gradient(135deg, #ff007f, #99004c);
-            --ai-msg: linear-gradient(135deg, #250938, #12041c);
-            --border: #ff007f; --accent: #00ffff;
-        }
-        body.theme-light {
-            --bg: #f4f4f9; --sidebar-bg: #ffffff; --text: #1a1a24;
-            --user-msg: linear-gradient(135deg, #00b86b, #008f53);
-            --ai-msg: linear-gradient(135deg, #e1e1e8, #f0f0f5);
-            --border: #ccc; --accent: #00b86b;
+            --bg-base: #131314;
+            --bg-surface: #1e1f20;
+            --bg-surface-hover: #333538;
+            --text-primary: #e3e3e3;
+            --text-secondary: #c4c7c5;
+            --user-bubble: #303134;
+            --accent: #a8c7fa;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Google Sans', 'Roboto', sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #4a4d51; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #5f6368; }
+
         .sidebar {
-            width: 280px; background: var(--sidebar-bg); padding: 20px;
-            overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.5); z-index: 10;
-            transition: background 0.3s;
+            width: 280px;
+            background-color: var(--bg-surface);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            height: 100%;
         }
-        .sidebar h3 { font-size: 22px; color: var(--accent); text-align: center; }
-        button, select, input, textarea {
-            background: #2b2b3a; border: 1px solid var(--border);
-            color: white; padding: 10px; border-radius: 8px;
+        .sidebar-header { padding: 12px 16px; display: flex; align-items: center; }
+        .menu-btn {
+            background: transparent; border: none; color: var(--text-primary);
+            width: 48px; height: 48px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s;
+        }
+        .menu-btn:hover { background-color: var(--bg-surface-hover); }
+        .new-chat-btn {
+            background-color: var(--bg-base); color: var(--text-primary);
+            border: none; padding: 12px 16px; border-radius: 50px;
+            cursor: pointer; display: flex; align-items: center; gap: 12px;
+            font-size: 14px; font-weight: 500; margin: 0 16px 16px 16px; transition: 0.2s;
+        }
+        .new-chat-btn:hover { background-color: var(--bg-surface-hover); }
+        .chat-history { flex: 1; overflow-y: auto; padding: 0 16px; display: flex; flex-direction: column; gap: 2px; }
+        .history-item {
+            padding: 10px 12px; border-radius: 50px; cursor: pointer; color: var(--text-primary);
+            font-size: 14px; display: flex; align-items: center; gap: 12px; transition: 0.2s;
+        }
+        .history-item:hover { background-color: var(--bg-surface-hover); }
+        .history-item .material-symbols-outlined { font-size: 18px; color: var(--text-secondary); }
+        .sidebar-footer { padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+        .footer-item {
+            padding: 10px 12px; border-radius: 50px; cursor: pointer; color: var(--text-primary);
+            font-size: 14px; display: flex; align-items: center; gap: 12px; transition: 0.2s;
+            border: none; background: transparent; text-align: left; width: 100%;
+        }
+        .footer-item:hover { background-color: var(--bg-surface-hover); }
+        .footer-item.active { color: var(--accent); }
+        .lang-select {
+            background: var(--bg-base);
+            color: var(--text-primary);
+            border: 1px solid #444;
+            padding: 8px 12px;
+            border-radius: 8px;
             font-size: 13px;
-            transition: var(--transition); outline: none;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 4px;
+            outline: none;
         }
-        button { cursor: pointer; font-weight: bold; }
-        button:hover { background: #3a3a4d; border-color: var(--accent); }
-        body.theme-hacker button, body.theme-hacker select, body.theme-hacker input, body.theme-hacker textarea { background: #001100; color: #00ff00; }
-        body.theme-cyberpunk button, body.theme-cyberpunk select, body.theme-cyberpunk input, body.theme-cyberpunk textarea { background: #250938; color: #00ffff; }
-        body.theme-light button, body.theme-light select, body.theme-light input, body.theme-light textarea { background: #e1e1e8; color: #1a1a24; }
-        body.theme-light .msg.ai { color: #1a1a24; }
-        .main { flex: 1; display: flex; flex-direction: column; height: 100vh; }
-        .chat {
-            flex: 1; overflow-y: auto; padding: 20px;
-            display: flex; flex-direction: column; scroll-behavior: smooth;
+        .lang-select:hover { border-color: var(--accent); }
+
+        .main-content {
+            flex: 1; display: flex; flex-direction: column; position: relative;
+            background-color: var(--bg-base); height: 100%;
         }
-        .msg {
-            padding: 10px 15px; margin: 6px 0; border-radius: var(--radius);
-            max-width: 85%; word-wrap: break-word; line-height: 1.4;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            position: relative; transition: transform 0.2s;
+        .top-bar {
+            padding: 8px 16px; display: flex; align-items: center;
+            justify-content: space-between; height: 64px;
         }
-        .msg:hover { transform: translateY(-1px); }
-        .user { background: var(--user-msg); color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
-        .ai { background: var(--ai-msg); margin-right: auto; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
-        .row { background: var(--sidebar-bg); border-top: 1px solid var(--border); padding: 12px; transition: background 0.3s; }
-        .input-group { display: flex; gap: 8px; }
-        #input { flex: 1; }
-        .generators { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; background: var(--sidebar-bg); transition: background 0.3s; }
-        .generators button { white-space: nowrap; padding: 6px 12px; font-size: 11px; border-radius: 20px; }
-        .disclaimer { text-align: center; font-size: 11px; color: #777; margin-top: 6px; }
-        .copy-btn {
-            position: absolute; top: 6px; right: 6px;
-            background: rgba(0,0,0,0.3); border: none; font-size: 12px;
-            padding: 4px 8px; border-radius: 6px; opacity: 0;
+        .top-bar-left { display: flex; align-items: center; gap: 12px; }
+        .logo-img { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; }
+        .logo-text { font-size: 20px; color: var(--text-primary); font-weight: 500; }
+        .tab-content { display: none; flex: 1; flex-direction: column; overflow-y: auto; }
+        .tab-content.active { display: flex; }
+
+        .welcome-screen {
+            flex: 1; display: flex; flex-direction: column; justify-content: center;
+            max-width: 800px; margin: 0 auto; width: 100%; padding: 20px; padding-bottom: 120px;
         }
-        .msg.ai:hover .copy-btn { opacity: 1; }
-        .loading-dots span { animation: blink 1.4s infinite both; }
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes blink { 0%,100%{opacity:0.2} 20%{opacity:1} }
+        .greeting-text {
+            font-size: 56px; font-weight: 500; line-height: 1.2; margin-bottom: 10px;
+            background: -webkit-linear-gradient(74deg, #4285f4 0, #9b72cb 9%, #d96570 20%, #d96570 24%, #9b72cb 35%, #4285f4 44%, #9b72cb 50%, #d96570 56%, #e3e3e3 75%, #e3e3e3 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-size: 400% 100%; animation: gradientMove 8s ease infinite;
+        }
+        @keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .greeting-subtext { font-size: 56px; font-weight: 500; color: #444746; margin-bottom: 40px; line-height: 1.2; }
+        .suggestions { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+        .suggestion-card {
+            background-color: var(--bg-surface); padding: 16px; border-radius: 12px;
+            cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 12px; height: 100%;
+        }
+        .suggestion-card:hover { background-color: var(--bg-surface-hover); }
+        .suggestion-card p { color: var(--text-primary); font-size: 15px; line-height: 1.4; flex: 1; }
+        .suggestion-card .icon-wrap {
+            align-self: flex-end; background-color: var(--bg-base); width: 36px; height: 36px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 120px; scroll-behavior: smooth; }
+        .message-wrapper { max-width: 800px; margin: 0 auto 16px auto; display: flex; flex-direction: column; gap: 4px; width: 100%; }
+        .message-wrapper.user { align-items: flex-end; }
+        .message-wrapper.user .message {
+            background-color: var(--user-bubble); padding: 12px 20px;
+            border-radius: 24px; font-size: 16px; line-height: 1.5; max-width: 85%; word-wrap: break-word;
+        }
+        .message-wrapper.ai { align-items: flex-start; flex-direction: row; gap: 12px; }
+        .ai-avatar {
+            width: 38px; height: 38px; flex-shrink: 0; display: flex;
+            align-items: center; justify-content: center; margin-top: 2px;
+            border-radius: 50%; overflow: hidden; background: #000;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .ai-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .message-wrapper.ai .message {
+            padding: 4px 0; font-size: 16px; line-height: 1.6; color: var(--text-primary);
+            max-width: 100%; word-wrap: break-word; white-space: pre-wrap;
+        }
+
+        .action-buttons { display: flex; gap: 6px; margin-top: 4px; align-items: center; }
+        .action-buttons button {
+            background: transparent; border: 1px solid #444;
+            color: var(--text-secondary); padding: 4px 8px; border-radius: 16px;
+            font-size: 12px; cursor: pointer; transition: 0.2s;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .action-buttons button:hover { background: var(--bg-surface-hover); color: var(--text-primary); }
+        .action-buttons button .material-symbols-outlined { font-size: 16px; }
+
+        .edit-area { display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 4px; }
+        .edit-area textarea {
+            width: 100%; background: var(--bg-base); border: 1px solid #444;
+            color: var(--text-primary); padding: 10px; border-radius: 12px;
+            resize: none; font-family: inherit; font-size: 16px;
+        }
+        .edit-area .edit-actions { display: flex; gap: 6px; justify-content: flex-end; }
+
+        .input-area {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(to top, var(--bg-base) 70%, transparent);
+            padding: 20px; display: flex; flex-direction: column; align-items: center;
+        }
+        .input-box {
+            background-color: var(--bg-surface); border-radius: 32px; display: flex;
+            align-items: flex-end; padding: 8px 16px; width: 100%; max-width: 800px;
+            min-height: 56px; transition: background-color 0.3s;
+        }
+        .input-box:focus-within { background-color: #3a3b3e; }
+        .btn-icon {
+            background: transparent; border: none; color: var(--text-secondary);
+            width: 40px; height: 40px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+            flex-shrink: 0; margin-bottom: 2px;
+        }
+        .btn-icon:hover { background-color: rgba(255,255,255,0.1); color: var(--text-primary); }
+        textarea {
+            flex: 1; background: transparent; border: none; color: var(--text-primary);
+            font-size: 16px; resize: none; max-height: 200px; padding: 12px 12px;
+            outline: none; height: 44px; font-family: inherit; line-height: 1.5;
+        }
+        .disclaimer { text-align: center; font-size: 12px; color: var(--text-secondary); margin-top: 12px; }
+
+        .loading-logo { 
+            animation: pulseGlow 1.2s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(0, 225, 255, 0.4);
+        }
+        @keyframes pulseGlow {
+            0% { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 5px rgba(0, 225, 255, 0.2); }
+            50% { transform: scale(1.08); opacity: 1; box-shadow: 0 0 18px rgba(0, 225, 255, 0.8); }
+            100% { transform: scale(0.92); opacity: 0.6; box-shadow: 0 0 5px rgba(0, 225, 255, 0.2); }
+        }
+
+        .image-panel {
+            padding: 20px; max-width: 800px; margin: 0 auto;
+            width: 100%; display: flex; flex-direction: column; gap: 20px;
+        }
+        .image-panel h3 { font-weight: 500; margin-bottom: 8px; }
+        .image-panel textarea {
+            background: var(--bg-surface); border: 1px solid #444;
+            color: var(--text-primary); border-radius: 12px; padding: 12px;
+            height: 80px; width: 100%; resize: none; font-family: inherit;
+        }
+        .ratio-options, .quality-options { display: flex; gap: 8px; flex-wrap: wrap; }
+        .ratio-options button, .quality-options button {
+            background: var(--bg-surface); border: 1px solid #444;
+            color: var(--text-primary); padding: 8px 16px; border-radius: 20px;
+            cursor: pointer; font-size: 14px; transition: 0.2s;
+        }
+        .ratio-options button.active, .quality-options button.active {
+            background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600;
+        }
+        #generateImageBtn {
+            background: var(--accent); color: #000; border: none;
+            padding: 12px; border-radius: 24px; font-weight: 600;
+            cursor: pointer; font-size: 15px; transition: 0.2s;
+        }
+        #generateImageBtn:hover { opacity: 0.9; }
+        #imageResult { text-align: center; margin-top: 10px; }
+        #imageResult img { max-width: 100%; border-radius: 12px; margin-bottom: 10px; }
+        .download-btn {
+            background: var(--bg-surface); color: var(--text-primary);
+            border: 1px solid #444; padding: 8px 16px; border-radius: 20px;
+            cursor: pointer; display: inline-flex; align-items: center;
+            gap: 6px; font-size: 14px; transition: 0.2s; text-decoration: none;
+        }
+        .download-btn:hover { background: var(--bg-surface-hover); }
+
+        #adminPanel {
+            display: none; position: absolute; bottom: 80px; left: 20px;
+            background: var(--bg-surface); padding: 20px; border-radius: 16px;
+            width: 280px; z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        #adminPanel input, #adminPanel textarea {
+            width: 100%; background: var(--bg-base); border: 1px solid #444;
+            color: white; padding: 10px; border-radius: 8px; margin-bottom: 12px; outline: none;
+        }
+        #adminPanel button { width: 100%; background: var(--accent); color: #000; border: none; padding: 10px; border-radius: 20px; font-weight: 500; cursor: pointer; }
+
         @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .sidebar {
-                width: 100%; max-height: 100px; padding: 8px 10px;
-                gap: 4px; overflow-y: visible;
-            }
-            .sidebar h3 { font-size: 16px; margin: 0; }
-            .main { height: calc(100vh - 100px); display: flex; flex-direction: column; }
-            .chat { padding: 8px; flex: 1; }
-            .msg { max-width: 95%; font-size: 13px; padding: 8px 12px;}
-            .generators { padding: 6px 8px; }
-            .generators button { padding: 5px 10px; font-size: 10px; }
-            .row {
-                position: sticky; bottom: 0; left: 0; width: 100%;
-                background: #111; padding: 8px;
-                padding-bottom: calc(8px + var(--safe-bottom));
-                border-top: 1px solid #222;
-            }
-            input, textarea { font-size: 14px !important; }
+            .sidebar { position: absolute; left: -280px; box-shadow: 5px 0 20px rgba(0,0,0,0.5); }
+            .sidebar.active { left: 0; }
+            .menu-btn.mobile-only { display: flex; }
+            .greeting-text, .greeting-subtext { font-size: 40px; }
+            .message-wrapper.ai { gap: 8px; }
+            .message-wrapper.user .message { max-width: 90%; }
         }
+        @media (min-width: 769px) { .menu-btn.mobile-only { display: none; } }
     </style>
 </head>
 <body>
-
-<div class="sidebar">
-    <h3>🤖 Serik AI</h3>
-    <button id="menuToggle">⚙️ Настройки</button>
-    <div id="settingsMenu" style="display:none; flex-direction:column; gap:8px;">
-        <select id="themeSelect">
-            <option value="default">🌙 Тёмная</option>
-            <option value="hacker">💻 Хакер</option>
-            <option value="cyberpunk">🌃 Киберпанк</option>
-            <option value="light">☀️ Светлая</option>
-        </select>
-        <button id="voiceBtn">🔇 Голос: ВЫКЛ</button>
-        <input type="password" id="adminPass" placeholder="Пароль администратора">
-        <div id="adminPanel" style="display:none;">
-            <textarea id="bulk" placeholder="вопрос это ответ"></textarea>
-            <button id="bulkLearnBtn">Сохранить базу</button>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <button class="menu-btn" onclick="toggleSidebar()"><span class="material-symbols-outlined">menu</span></button>
+        </div>
+        <button class="new-chat-btn" onclick="newChat()"><span class="material-symbols-outlined">add</span><span data-lang="new_chat">Жаңа чат</span></button>
+        <div class="chat-history">
+            <div class="history-item" onclick="switchTab('chat'); closeSidebar()"><span class="material-symbols-outlined">chat_bubble</span><span data-lang="chat_tab">💬 Чат</span></div>
+            <div class="history-item" onclick="switchTab('image'); closeSidebar()"><span class="material-symbols-outlined">image</span><span data-lang="image_tab">🖼️ Фото</span></div>
+        </div>
+        <div class="sidebar-footer">
+            <select class="lang-select" id="langSelect" onchange="changeLanguage(this.value)">
+                <option value="kk">🇰🇿 Қазақша</option>
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="zh">🇨🇳 中文</option>
+                <option value="tr">🇹🇷 Türkçe</option>
+                <option value="ky">🇰🇬 Кыргызча</option>
+                <option value="tg">🇹🇯 Тоҷикӣ</option>
+                <option value="uk">🇺🇦 Українська</option>
+                <option value="uz">🇺🇿 O'zbekcha</option>
+            </select>
+            <button class="footer-item" id="voiceBtn" onclick="toggleVoice()"><span class="material-symbols-outlined" id="voiceIcon">volume_off</span><span data-lang="voice_off">Голос өшірулі</span></button>
+            <button class="footer-item" onclick="document.getElementById('adminPanel').style.display = document.getElementById('adminPanel').style.display === 'block' ? 'none' : 'block'"><span class="material-symbols-outlined">settings</span><span data-lang="settings">Баптаулар</span></button>
+        </div>
+    </aside>
+    <div id="adminPanel">
+        <h4 style="margin-bottom: 15px; font-weight: 500;" data-lang="admin_title">Жасырын база 🔒</h4>
+        <input type="password" id="adminPass" data-lang-placeholder="password_placeholder" placeholder="Пароль" oninput="checkAdmin()">
+        <div id="adminTools" style="display: none;">
+            <textarea id="bulkData" placeholder="вопрос это ответ" style="height: 100px; resize: none;"></textarea>
+            <button onclick="bulkLearn()" data-lang="save_cloud">Бұлтқа сақтау</button>
         </div>
     </div>
-</div>
-
-<div class="main">
-    <div class="chat" id="chat"></div>
-    <div class="generators">
-        <button data-prompt="Напиши эссе по истории">📜 Эссе</button>
-        <button data-prompt="Основные формулы по физике">⚛️ Формулы</button>
-        <button data-prompt="Реферат про ИИ">🤖 ИИ</button>
-        <button data-prompt="Мотивация">🔥 Мотивация</button>
-        <button data-prompt="Проверь код на ошибки">💻 Код</button>
-    </div>
-    <div class="row">
-        <div class="input-group">
-            <button id="clearBtn" style="background:#ff4d4d;">🗑️</button>
-            <input id="input" placeholder="Введите вопрос... / Сұрақ жазыңыз... / Type a question..." autofocus>
-            <button id="sendBtn">Отправить</button>
+    <main class="main-content">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <button class="menu-btn mobile-only" onclick="toggleSidebar()"><span class="material-symbols-outlined">menu</span></button>
+                <!-- Суреттің орнына қолданушының берген атын қалдырдым немесе өзгертуге болады -->
+                <img src="Screenshot_20260804_225910_Gallery.jpg" alt="SA Logo" onerror="this.src='https://via.placeholder.com/36/1a1a24/00b86b?text=SA'" class="logo-img">
+                <span class="logo-text">Serik AI</span>
+            </div>
+            <div class="top-bar-right"><div style="width:32px;height:32px;background:#604085;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:500;">N</div></div>
         </div>
-        <div class="disclaimer">Serik AI может ошибаться. Важные данные проверяйте.</div>
-    </div>
-</div>
+        <div id="chatTab" class="tab-content active">
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="greeting-text" data-lang="greeting_title">Сәлем, Nurik</div>
+                <div class="greeting-subtext" data-lang="greeting_subtitle">Бүгін не білгіңіз келеді?</div>
+                <div class="suggestions">
+                    <div class="suggestion-card" onclick="document.getElementById('userInput').value=getLangText('suggestion1_prompt'); send()"><p data-lang="suggestion1">Болашақтың көлігін генерациялау</p><div class="icon-wrap"><span class="material-symbols-outlined" style="color:#e37400;">draw</span></div></div>
+                    <div class="suggestion-card" onclick="document.getElementById('userInput').value=getLangText('suggestion2_prompt'); send()"><p data-lang="suggestion2">Негізгі формулалар</p><div class="icon-wrap"><span class="material-symbols-outlined" style="color:#12b5cb;">functions</span></div></div>
+                </div>
+            </div>
+            <div class="chat-container" id="chatBox"></div>
+            <div class="input-area" id="chatInputArea">
+                <div class="input-box">
+                    <button class="btn-icon" onclick="document.getElementById('userInput').value='Нарисуй '; document.getElementById('userInput').focus();" title="Сурет генерациясы"><span class="material-symbols-outlined">add_photo_alternate</span></button>
+                    <button class="btn-icon" id="micBtn" onclick="toggleVoice()" title="Дауыс қосу"><span class="material-symbols-outlined">mic</span></button>
+                    <textarea id="userInput" data-lang-placeholder="input_placeholder" placeholder="Осы жерге жазыңыз..." oninput="autoResize(this)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}"></textarea>
+                    <button class="btn-icon" onclick="send()" style="color:var(--text-primary);"><span class="material-symbols-outlined">send</span></button>
+                </div>
+                <div class="disclaimer" data-lang="disclaimer">Serik AI қате ақпарат беруі мүмкін. Маңызды деректерді тексеріп алыңыз.</div>
+            </div>
+        </div>
+        <div id="imageTab" class="tab-content">
+            <div class="image-panel">
+                <h3 data-lang="image_title">Сурет генерациясы</h3>
+                <textarea id="imagePrompt" data-lang-placeholder="image_prompt_placeholder" placeholder="Сурет сипаттамасын жазыңыз..."></textarea>
+                <div><p style="margin-bottom:8px;color:var(--text-secondary);" data-lang="ratio_label">Пропорция</p><div class="ratio-options" id="ratioOptions"><button class="active" data-ratio="1:1">1:1</button><button data-ratio="16:9">16:9</button><button data-ratio="9:16">9:16</button></div></div>
+                <div><p style="margin-bottom:8px;color:var(--text-secondary);" data-lang="quality_label">Сапа</p><div class="quality-options" id="qualityOptions"><button class="active" data-quality="hd">HD</button><button data-quality="1080p">1080p60</button><button data-quality="2040p">2040p60</button></div></div>
+                <button id="generateImageBtn" onclick="generateImageFromPanel()" data-lang="generate_btn">✨ Генерациялау</button>
+                <div id="imageResult"></div>
+            </div>
+        </div>
+    </main>
 
-<script>
-class SerikAI {
-    constructor() {
-        this.chat = document.getElementById('chat');
-        this.input = document.getElementById('input');
-        this.sendBtn = document.getElementById('sendBtn');
-        this.clearBtn = document.getElementById('clearBtn');
-        this.voiceBtn = document.getElementById('voiceBtn');
-        this.adminPass = document.getElementById('adminPass');
-        this.adminPanel = document.getElementById('adminPanel');
-        this.bulkTextarea = document.getElementById('bulk');
-        this.bulkLearnBtn = document.getElementById('bulkLearnBtn');
-        this.themeSelect = document.getElementById('themeSelect');
-        
-        this.memory = {
-            "привет": "Привет! Чем могу помочь? 😊",
-            "сәлем": "Сәлем! Қалай көмектесе аламын? ✨",
-            "hello": "Hello! How can I help you? 🚀",
-            "как дела": "Всё отлично! Спрашивай что угодно. 👍",
-            "қалайсың": "Жақсы, рахмет! Сізге не көмек керек? 🤝",
-            "how are you": "I'm doing well, thanks! What can I do for you? ⭐",
-            "что ты умеешь": "Я могу искать информацию, генерировать изображения и короткие видео! 💡",
-            "не істей аласың": "Мен мәлімет іздей аламын, суреттер мен бейнелер жасай аламын! 🎨",
-            "what can you do": "I can search for information, generate images, and create short videos! 🛠️"
+    <script>
+        // ========== АУДАРМАЛАР ==========
+        const translations = {
+            kk: {
+                new_chat: "Жаңа чат", chat_tab: "💬 Чат", image_tab: "🖼️ Фото",
+                voice_off: "Голос өшірулі", voice_on: "Голос қосулы", settings: "Баптаулар",
+                admin_title: "Жасырын база 🔒", password_placeholder: "Пароль", save_cloud: "Бұлтқа сақтау",
+                greeting_title: "Сәлем, Nurik", greeting_subtitle: "Бүгін не білгіңіз келеді?",
+                suggestion1: "Болашақтың көлігін генерациялау", suggestion2: "Негізгі формулалар",
+                input_placeholder: "Осы жерге жазыңыз...", disclaimer: "Serik AI (Wiki & Search) қате ақпарат беруі мүмкін.",
+                suggestion1_prompt: "Киберпанк стилінде көлік нарисуй", suggestion2_prompt: "Физикадан негізгі формулалар",
+                error_connection: "Қосылу қатесі. Қайталап көріңіз.", ai_thinking: "Іздестіруде...",
+                image_title: "Сурет генерациясы", image_prompt_placeholder: "Сурет сипаттамасын жазыңыз...",
+                ratio_label: "Пропорция", quality_label: "Сапа", generate_btn: "✨ Генерациялау", download_btn: "📥 Скачать",
+                stop: "Тоқтату", edit: "Өзгерту", retry: "Қайталау", copy: "Көшіру",
+                send_edit: "Жіберу", cancel_edit: "Болдырмау"
+            },
+            ru: {
+                new_chat: "Новый чат", chat_tab: "💬 Чат", image_tab: "🖼️ Фото",
+                voice_off: "Голос выключен", voice_on: "Голос включен", settings: "Настройки",
+                admin_title: "Скрытая база 🔒", password_placeholder: "Пароль", save_cloud: "Сохранить",
+                greeting_title: "Привет, Nurik", greeting_subtitle: "Что хотите узнать сегодня?",
+                suggestion1: "Сгенерировать машину будущего", suggestion2: "Основные формулы",
+                input_placeholder: "Введите ваш запрос...", disclaimer: "Serik AI (Wiki & Search) может ошибаться.",
+                suggestion1_prompt: "Нарисуй машину в стиле киберпанк", suggestion2_prompt: "Основные формулы по физике",
+                error_connection: "Ошибка соединения. Попробуйте еще раз.", ai_thinking: "Ищу информацию...",
+                image_title: "Генерация изображений", image_prompt_placeholder: "Опишите изображение...",
+                ratio_label: "Пропорция", quality_label: "Качество", generate_btn: "✨ Сгенерировать", download_btn: "📥 Скачать",
+                stop: "Остановить", edit: "Изменить", retry: "Повторить", copy: "Копировать",
+                send_edit: "Отправить", cancel_edit: "Отмена"
+            },
+            en: {
+                new_chat: "New Chat", chat_tab: "💬 Chat", image_tab: "🖼️ Images",
+                voice_off: "Voice Off", voice_on: "Voice On", settings: "Settings",
+                admin_title: "Hidden Database 🔒", password_placeholder: "Password", save_cloud: "Save to Cloud",
+                greeting_title: "Hello, Nurik", greeting_subtitle: "What would you like to know today?",
+                suggestion1: "Generate a futuristic car", suggestion2: "Basic formulas",
+                input_placeholder: "Type your query...", disclaimer: "Serik AI (Wiki & Search) may make mistakes.",
+                suggestion1_prompt: "Draw a cyberpunk style car", suggestion2_prompt: "Basic physics formulas",
+                error_connection: "Connection error. Please try again.", ai_thinking: "Searching...",
+                image_title: "Image Generation", image_prompt_placeholder: "Describe the image...",
+                ratio_label: "Aspect Ratio", quality_label: "Quality", generate_btn: "✨ Generate", download_btn: "📥 Download",
+                stop: "Stop", edit: "Edit", retry: "Retry", copy: "Copy",
+                send_edit: "Send", cancel_edit: "Cancel"
+            }
         };
-        this.db = null;
-        this.voiceEnabled = false;
-        this.abortController = null;
-        this.messageCache = new Map();
-        
-        this.initFirebase();
-        this.initEventListeners();
-        this.addMessage("Привет! Я Serik AI. Готов помочь на любом языке! ✨", 'ai');
-    }
 
-    initFirebase() {
+        let currentLang = 'kk';
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('serik_lang', lang);
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                const key = el.getAttribute('data-lang');
+                if (translations[lang] && translations[lang][key]) el.textContent = translations[lang][key];
+            });
+            document.querySelectorAll('[data-lang-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-lang-placeholder');
+                if (translations[lang] && translations[lang][key]) el.placeholder = translations[lang][key];
+            });
+            updateVoiceButton();
+            document.getElementById('langSelect').value = lang;
+        }
+        function getLangText(key) { return translations[currentLang]?.[key] || translations['kk'][key] || ''; }
+
+        // ========== ЖАДЫ МЕН FIREBASE ==========
         const firebaseConfig = {
             apiKey: "AIzaSyAzofVJLZNadLA1-1XsCSqCukJ4gkPzqoo",
             authDomain: "serik-ai.firebaseapp.com",
@@ -196,319 +405,504 @@ class SerikAI {
             projectId: "serik-ai",
             storageBucket: "serik-ai.appspot.com"
         };
-        try {
+        const defaultMemory = { 
+            "привет": "Привет! Чем могу помочь? 😊",
+            "сәлем": "Сәлем! Қалай көмектесе аламын? ✨",
+            "hello": "Hello! How can I help you? 🚀",
+            "как дела": "Всё отлично! Спрашивай что угодно. 👍",
+            "қалайсың": "Жақсы, рахмет! Сізге не көмек керек? 🤝",
+            "how are you": "I'm doing well, thanks! What can I do for you? ⭐",
+            "что ты умеешь": "Я ищу информацию в интернете (Википедия, веб), генерирую изображения и видео! 💡",
+            "не істей аласың": "Мен ғаламтордан (Википедия, веб) мәлімет іздей аламын, суреттер мен бейнелер жасай аламын! 🎨"
+        };
+        let memory = Object.assign({}, defaultMemory);
+        let db = null;
+        if (firebaseConfig.apiKey) {
             firebase.initializeApp(firebaseConfig);
-            this.db = firebase.database();
-            this.db.ref('serik_memory').on('value', (snapshot) => {
+            db = firebase.database();
+            db.ref('serik_memory').on('value', (snapshot) => {
                 const data = snapshot.val();
-                if (data) Object.assign(this.memory, data);
+                if (data) memory = Object.assign({}, defaultMemory, data);
             });
-        } catch (e) {
-            console.warn('Firebase не загружен');
         }
-    }
 
-    initEventListeners() {
-        this.sendBtn.addEventListener('click', () => this.send());
-        this.input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.send();
+        // ========== UI ЛОГИКАСЫ ==========
+        const chatBox = document.getElementById('chatBox');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const chatInputArea = document.getElementById('chatInputArea');
+        let voiceEnabled = false;
+        let loadingElement = null;
+        let isFirstMessage = true;
+        let currentRatio = '1:1';
+        let currentQuality = 'hd';
+        let abortController = null;
+        let lastUserMessage = '';
+        let isGenerating = false;
+        let activeEditId = null;
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            if (tabName === 'chat') {
+                document.getElementById('chatTab').classList.add('active');
+                chatInputArea.style.display = 'flex';
+            } else {
+                document.getElementById('imageTab').classList.add('active');
+                chatInputArea.style.display = 'none';
+            }
+        }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('active'); }
+
+        document.getElementById('ratioOptions').addEventListener('click', e => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('#ratioOptions button').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentRatio = e.target.dataset.ratio;
             }
         });
-        this.clearBtn.addEventListener('click', () => this.clearChat());
-        this.voiceBtn.addEventListener('click', () => this.toggleVoice());
-        this.themeSelect.addEventListener('change', () => this.changeTheme());
-        this.adminPass.addEventListener('input', () => this.checkAdmin());
-        this.bulkLearnBtn.addEventListener('click', () => this.bulkLearn());
-        
-        document.querySelectorAll('.generators button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.input.value = btn.dataset.prompt;
-                this.send();
-            });
+        document.getElementById('qualityOptions').addEventListener('click', e => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('#qualityOptions button').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentQuality = e.target.dataset.quality;
+            }
         });
         
-        document.getElementById('menuToggle').addEventListener('click', () => {
-            const menu = document.getElementById('settingsMenu');
-            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
-        });
-    }
+        function autoResize(el) { el.style.height = '44px'; el.style.height = (el.scrollHeight) + 'px'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+        function newChat() {
+            chatBox.innerHTML = '';
+            chatBox.style.display = 'none';
+            welcomeScreen.style.display = 'flex';
+            isFirstMessage = true;
+            abortController?.abort();
+            isGenerating = false;
+            activeEditId = null;
+        }
 
-    detectLanguage(text) {
-        if (/[әіңғүұқөһА-Яа-я]/i.test(text) && (text.includes('қ') || text.includes('ғ') || text.includes('і') || text.includes('ң') || text.includes('ө') || text.includes('ұ') || text.includes('ү') || text.includes('һ') || text.includes('ә'))) {
-            return 'kk'; 
-        } else if (/[А-Яа-яЁё]/.test(text)) {
-            return 'ru';
-        } else {
+        function addMessage(text, sender, isImage = false, messageId = null) {
+            if (isFirstMessage && sender === 'user') {
+                welcomeScreen.style.display = 'none';
+                chatBox.style.display = 'block';
+                isFirstMessage = false;
+            }
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${sender}`;
+            if (messageId) wrapper.dataset.messageId = messageId;
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${sender}`;
+
+            if (sender === 'ai') {
+                const avatar = document.createElement('div');
+                avatar.className = 'ai-avatar';
+                avatar.innerHTML = `<img src="Screenshot_20260804_225910_Gallery.jpg" onerror="this.src='https://via.placeholder.com/38/1a1a24/00b86b?text=SA'" alt="SA">`;
+                wrapper.appendChild(avatar);
+                if (isImage) msgDiv.innerHTML = text;
+                else msgDiv.innerText = text;
+                wrapper.appendChild(msgDiv);
+                if (!isImage) {
+                    const actions = document.createElement('div');
+                    actions.className = 'action-buttons';
+                    actions.innerHTML = `
+                        <button onclick="copyMessage('${messageId}')"><span class="material-symbols-outlined">content_copy</span> ${getLangText('copy')}</button>
+                        <button onclick="retryMessage('${messageId}')"><span class="material-symbols-outlined">replay</span> ${getLangText('retry')}</button>
+                    `;
+                    wrapper.appendChild(actions);
+                }
+            } else {
+                msgDiv.innerText = text;
+                wrapper.appendChild(msgDiv);
+                const actions = document.createElement('div');
+                actions.className = 'action-buttons';
+                actions.style.justifyContent = 'flex-end';
+                actions.innerHTML = `
+                    <button onclick="startEditUserMessage('${messageId}')"><span class="material-symbols-outlined">edit</span> ${getLangText('edit')}</button>
+                `;
+                wrapper.appendChild(actions);
+            }
+
+            chatBox.appendChild(wrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            if (sender === 'ai' && voiceEnabled && !isImage) speakText(text);
+            return wrapper;
+        }
+
+        function getMessageText(msgId) {
+            const el = document.querySelector(`[data-message-id="${msgId}"] .message`);
+            return el ? el.innerText : '';
+        }
+        function copyMessage(msgId) { navigator.clipboard.writeText(getMessageText(msgId)); }
+        function retryMessage(msgId) {
+            if (isGenerating) return;
+            const aiWrapper = document.querySelector(`[data-message-id="${msgId}"]`);
+            if (!aiWrapper) return;
+            aiWrapper.remove();
+            document.getElementById('userInput').value = lastUserMessage || '';
+            send(true);
+        }
+
+        function startEditUserMessage(msgId) {
+            if (activeEditId) cancelEdit();
+            const wrapper = document.querySelector(`[data-message-id="${msgId}"]`);
+            if (!wrapper) return;
+            const msgDiv = wrapper.querySelector('.message');
+            msgDiv.style.display = 'none';
+            const actions = wrapper.querySelector('.action-buttons');
+            if (actions) actions.style.display = 'none';
+
+            const editArea = document.createElement('div');
+            editArea.className = 'edit-area';
+            const textarea = document.createElement('textarea');
+            textarea.value = msgDiv.innerText;
+            const editActions = document.createElement('div');
+            editActions.className = 'edit-actions';
+            
+            const sendBtn = document.createElement('button');
+            sendBtn.innerHTML = `<span class="material-symbols-outlined">send</span> ${getLangText('send_edit')}`;
+            const cancelBtn = document.createElement('button');
+            cancelBtn.innerHTML = `<span class="material-symbols-outlined">close</span> ${getLangText('cancel_edit')}`;
+
+            sendBtn.onclick = async () => {
+                const newText = textarea.value.trim();
+                if (newText) {
+                    msgDiv.innerText = newText;
+                    let next = wrapper.nextElementSibling;
+                    while (next && next.classList.contains('ai')) {
+                        const toRemove = next; next = next.nextElementSibling; toRemove.remove();
+                    }
+                    lastUserMessage = newText;
+                    document.getElementById('userInput').value = '';
+                    cancelEdit();
+                    await send(true);
+                } else cancelEdit();
+            };
+            cancelBtn.onclick = cancelEdit;
+
+            editActions.appendChild(sendBtn); editActions.appendChild(cancelBtn);
+            editArea.appendChild(textarea); editArea.appendChild(editActions);
+            wrapper.insertBefore(editArea, msgDiv.nextSibling);
+            activeEditId = msgId; textarea.focus();
+        }
+
+        function cancelEdit() {
+            if (!activeEditId) return;
+            const wrapper = document.querySelector(`[data-message-id="${activeEditId}"]`);
+            if (wrapper) {
+                const msgDiv = wrapper.querySelector('.message');
+                if (msgDiv) msgDiv.style.display = '';
+                const actions = wrapper.querySelector('.action-buttons');
+                if (actions) actions.style.display = '';
+                const editArea = wrapper.querySelector('.edit-area');
+                if (editArea) editArea.remove();
+            }
+            activeEditId = null;
+        }
+
+        function stopGeneration() {
+            if (abortController) {
+                abortController.abort(); abortController = null;
+                isGenerating = false; hideLoading();
+            }
+        }
+
+        function showLoading() {
+            if (loadingElement) return;
+            if (isFirstMessage) { welcomeScreen.style.display = 'none'; chatBox.style.display = 'block'; }
+            const wrapper = document.createElement('div');
+            wrapper.className = 'message-wrapper ai'; wrapper.id = 'loading-msg';
+            const avatar = document.createElement('div');
+            avatar.className = 'ai-avatar loading-logo';
+            avatar.innerHTML = `<img src="Screenshot_20260804_225910_Gallery.jpg" onerror="this.src='https://via.placeholder.com/38/1a1a24/00b86b?text=SA'" alt="SA">`;
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message ai'; msgDiv.textContent = getLangText('ai_thinking');
+            wrapper.appendChild(avatar); wrapper.appendChild(msgDiv);
+            const actions = document.createElement('div');
+            actions.className = 'action-buttons';
+            actions.innerHTML = `<button onclick="stopGeneration()"><span class="material-symbols-outlined">stop</span> ${getLangText('stop')}</button>`;
+            wrapper.appendChild(actions);
+            chatBox.appendChild(wrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            loadingElement = wrapper;
+        }
+
+        function hideLoading() {
+            if (loadingElement && loadingElement.parentNode) {
+                loadingElement.parentNode.removeChild(loadingElement); loadingElement = null;
+            }
+        }
+
+        function toggleVoice() {
+            voiceEnabled = !voiceEnabled;
+            const btn = document.getElementById("voiceBtn");
+            const micBtn = document.getElementById("micBtn");
+            if (voiceEnabled) {
+                btn.classList.add("active");
+                btn.querySelector('span:last-child').textContent = translations[currentLang].voice_on;
+                micBtn.style.color = "var(--accent)";
+            } else {
+                btn.classList.remove("active");
+                btn.querySelector('span:last-child').textContent = translations[currentLang].voice_off;
+                micBtn.style.color = "var(--text-secondary)";
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        function speakText(text) {
+            if (!voiceEnabled) return;
+            window.speechSynthesis.cancel();
+            let clean = text.replace(/[📋✅⚛️📜🔥💻🎬✨💡⭐🚀📌🎯]/g, '');
+            const utterance = new SpeechSynthesisUtterance(clean);
+            utterance.lang = /[әғқңөұүһіІ]/g.test(clean) ? 'kk-KZ' : 'ru-RU';
+            utterance.rate = 1.1;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // ========== AI "МИЫ" (ІЗДЕУ, ЖАДЫ, ТАЗАРТУ) ==========
+        function detectLanguage(text) {
+            if (/[әіңғүұқөһА-Яа-я]/i.test(text) && (text.includes('қ') || text.includes('ғ') || text.includes('і') || text.includes('ң') || text.includes('ө') || text.includes('ұ') || text.includes('ү') || text.includes('һ') || text.includes('ә'))) return 'kk'; 
+            if (/[А-Яа-яЁё]/.test(text)) return 'ru';
             return 'en';
         }
-    }
 
-    async send() {
-        const text = this.input.value.trim();
-        if (!text) return;
-        this.input.value = '';
-        this.addMessage(text, 'user');
-        
-        if (this.abortController) {
-            this.abortController.abort();
+        function similarity(a, b) {
+            const bigrams = (s) => {
+                const b = new Set();
+                for (let i = 0; i < s.length - 1; i++) b.add(s.substring(i, i+2));
+                return b;
+            };
+            const sa = bigrams(a), sb = bigrams(b);
+            let intersection = 0;
+            for (let bg of sa) if (sb.has(bg)) intersection++;
+            return (2 * intersection) / (Math.max(1, sa.size + sb.size));
         }
-        this.abortController = new AbortController();
-        const signal = this.abortController.signal;
-        
-        if (/^[\d\s+\-*/().]+$/.test(text)) {
-            try { return this.addMessage(`🧮 ${eval(text)} ✨`, 'ai'); } catch {}
-        }
-        
-        const cached = this.messageCache.get(text.toLowerCase());
-        if (cached) return this.addMessage(cached, 'ai');
-        
-        const localAnswer = this.searchMemory(text);
-        if (localAnswer) {
-            this.messageCache.set(text.toLowerCase(), localAnswer);
-            return this.addMessage(localAnswer, 'ai');
-        }
-        
-        if (/(нарисуй|сурет сал|сгенерируй|draw|generate image)/i.test(text)) {
-            return this.generateImage(text);
-        }
-        if (/(видео|video|сделай видео|жаса|create video)/i.test(text)) {
-            return this.generateVideo(text);
-        }
-        
-        const typingIndicator = this.addMessage('<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>', 'ai', true);
-        
-        try {
-            const lang = this.detectLanguage(text);
-            let response = await this.fetchLocalOrWebResponse(text, lang, signal);
-            typingIndicator.remove();
-            if (response) {
-                // Жауап соңына әдемі смайлик қосу
-                const emojis = ['✨', '💡', '🔥', '⭐', '🚀', '📌', '🎯'];
-                const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-                response = response + ' ' + randomEmoji;
 
-                this.messageCache.set(text.toLowerCase(), response);
-                this.addMessage(response, 'ai');
+        function brainSearch(text) {
+            const q = text.toLowerCase().trim();
+            if (memory[q]) return memory[q];
+            for (let key in memory) {
+                if (similarity(q, key) > 0.45) return memory[key];
             }
-        } catch (err) {
-            typingIndicator.remove();
-            if (err.name !== 'AbortError') {
-                this.addMessage('⚠️ Желіде ақаулық шықты. / Network error. / Ошибка сети. 🔄', 'ai');
-            }
+            return null;
         }
-    }
 
-    searchMemory(text) {
-        const q = text.toLowerCase().trim();
-        if (this.memory[q]) return this.memory[q];
-        for (let key in this.memory) {
-            if (this.similarity(q, key) > 0.45) {
-                return this.memory[key];
-            }
-        }
-        return null;
-    }
-
-    similarity(a, b) {
-        const bigrams = (s) => {
-            const b = new Set();
-            for (let i = 0; i < s.length - 1; i++) b.add(s.substring(i, i+2));
-            return b;
-        };
-        const sa = bigrams(a), sb = bigrams(b);
-        let intersection = 0;
-        for (let bg of sa) if (sb.has(bg)) intersection++;
-        return (2 * intersection) / (Math.max(1, sa.size + sb.size));
-    }
-
-    // Мәтінді мүлдем таза, қатесіз, пробели мен тыныс белгілері әдемі болатындай етіп өңдеу
-    cleanUpText(text) {
-        let cleaned = text
-            .replace(/\([^)]*['ː][^)]*\)/g, '') // Транскрипцияларды өшіру (мысалы: ('mærəlɪn...))
-            .replace(/\[\d+\]/g, '') // Википедия сілтемелерін өшіру [1], [2]
-            .replace(/\.{3,}/g, '.') // Үш нүктені дұрыстау
-            .replace(/http[^\s]+/gi, '') // Сілтемелерді өшіру
-            .replace(/&[a-z]+;/gi, '') // HTML символдарды өшіру
-            .replace(/[\[\]\{\}\<\>\^\|\~]/g, '') // Артық символдарды алып тастау
-            .replace(/\s{2,}/g, ' ') // Артық пробелдерді қысқарту
-            .trim();
-
-        // Егер мәтін соңы нүктемен, леп белгісімен не сұрақ белгісімен аяқталмаса, үзіліп қалған әріпті өшіріп, соңына нүкте қою
-        if (cleaned.length > 0) {
-            const lastChar = cleaned.slice(-1);
-            if (!['.', '!', '?', '”', '"', ')'].includes(lastChar)) {
-                const lastSpace = cleaned.lastIndexOf(' ');
-                if (lastSpace > 0) {
-                    cleaned = cleaned.substring(0, lastSpace) + '.';
-                } else {
-                    cleaned += '.';
+        function cleanUpText(text) {
+            let cleaned = text
+                .replace(/\([^)]*['ː][^)]*\)/g, '') 
+                .replace(/\[\d+\]/g, '') 
+                .replace(/\.{3,}/g, '.') 
+                .replace(/http[^\s]+/gi, '') 
+                .replace(/&[a-z]+;/gi, '') 
+                .replace(/[\[\]\{\}\<\>\^\|\~]/g, '') 
+                .replace(/\s{2,}/g, ' ') 
+                .trim();
+            if (cleaned.length > 0) {
+                const lastChar = cleaned.slice(-1);
+                if (!['.', '!', '?', '”', '"', ')'].includes(lastChar)) {
+                    const lastSpace = cleaned.lastIndexOf(' ');
+                    if (lastSpace > 0) cleaned = cleaned.substring(0, lastSpace) + '.';
+                    else cleaned += '.';
                 }
             }
+            return cleaned;
         }
-        return cleaned;
-    }
 
-    async getWebContext(query, lang) {
-        try {
-            const searchUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
-            const res = await fetch(searchUrl);
-            const data = await res.json();
-            if (data.query?.search.length > 0) {
-                const title = data.query.search[0].title;
-                const contentUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-                const cRes = await fetch(contentUrl);
-                const cData = await cRes.json();
-                const pages = cData.query.pages;
-                let extract = pages[Object.keys(pages)[0]].extract;
-                if(extract) return extract.substring(0, 1000).replace(/\n/g, ' ');
-            }
-        } catch {}
-        return null;
-    }
+        async function getWebContext(query, lang, signal) {
+            try {
+                const searchUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+                const res = await fetch(searchUrl, { signal });
+                const data = await res.json();
+                if (data.query?.search.length > 0) {
+                    const title = data.query.search[0].title;
+                    const contentUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
+                    const cRes = await fetch(contentUrl, { signal });
+                    const cData = await cRes.json();
+                    const pages = cData.query.pages;
+                    let extract = pages[Object.keys(pages)[0]].extract;
+                    if(extract) return extract.substring(0, 1000).replace(/\n/g, ' ');
+                }
+            } catch {}
+            return null;
+        }
 
-    async realWebSearch(query) {
-        try {
-            const targetUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data.contents, 'text/html');
-            const results = doc.querySelectorAll('.result__snippet');
+        async function realWebSearch(query, signal) {
+            try {
+                const targetUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+                const response = await fetch(proxyUrl, { signal });
+                const data = await response.json();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.contents, 'text/html');
+                const results = doc.querySelectorAll('.result__snippet');
 
-            if (results.length > 0) {
-                let textBlocks = [];
-                results.forEach((res, index) => {
-                    if (index < 5) {
-                        let snippet = this.cleanUpText(res.textContent);
-                        if(snippet.length > 20 && !textBlocks.includes(snippet)) {
-                            textBlocks.push(snippet);
+                if (results.length > 0) {
+                    let textBlocks = [];
+                    results.forEach((res, index) => {
+                        if (index < 5) {
+                            let snippet = cleanUpText(res.textContent);
+                            if(snippet.length > 20 && !textBlocks.includes(snippet)) textBlocks.push(snippet);
                         }
-                    }
-                });
-                return textBlocks.join(' ');
+                    });
+                    return textBlocks.join(' ');
+                }
+                return null;
+            } catch (e) { return null; }
+        }
+
+        async function fetchLocalOrWebResponse(prompt, lang, signal) {
+            if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+            let webContext = await getWebContext(prompt, lang, signal);
+            if (!webContext) webContext = await realWebSearch(prompt, signal);
+            if (webContext) return cleanUpText(webContext);
+
+            if (lang === 'kk') return "Кешір, бұл сұрақ бойынша нақты ақпарат таба алмадым. Сұрағыңды басқаша қойып көрші.";
+            else if (lang === 'en') return "Sorry, I couldn't find specific information on this. Please try phrasing your question differently.";
+            else return "Извини, я не смог найти точную информацию по этому вопросу. Попробуй перефразировать.";
+        }
+
+        // ========== ХАБАРЛАМА ЖІБЕРУ ЖӘНЕ ГЕНЕРАЦИЯ ==========
+        async function send(isRetry = false) {
+            if (isGenerating && !isRetry) return;
+            const inputEl = document.getElementById("userInput");
+            const text = isRetry ? lastUserMessage : inputEl.value.trim();
+            if (!text) return;
+
+            if (!isRetry) {
+                lastUserMessage = text;
+                const msgId = Date.now().toString();
+                addMessage(text, 'user', false, msgId);
+                inputEl.value = '';
+                inputEl.style.height = '44px';
             }
-            return null;
-        } catch (e) {
-            return null;
+
+            // Математикалық тексеру
+            if (/^[\d\s+\-*/().]+$/.test(text)) {
+                showLoading();
+                try {
+                    const result = eval(text);
+                    setTimeout(() => { hideLoading(); addMessage(`🧮 ${result} ✨`, 'ai', false, Date.now().toString()); }, 600);
+                } catch(e) { hideLoading(); }
+                return;
+            }
+
+            // Жадыдан ұқсастық іздеу
+            const brainRes = brainSearch(text);
+            if (brainRes) {
+                showLoading();
+                setTimeout(() => { hideLoading(); addMessage(brainRes, 'ai', false, Date.now().toString()); }, 500);
+                return;
+            }
+
+            const lowerText = text.toLowerCase();
+            // Сурет салу пәрмені
+            if (/(нарисуй|сурет сал|сгенерируй|draw|generate image)/i.test(lowerText)) {
+                showLoading();
+                const prompt = text.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image)/gi, '').trim();
+                const enhanced = prompt + ", masterpiece, ultra realistic, cinematic, 8k, no text, no watermark";
+                const seed = Math.floor(Math.random()*1000000);
+                const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
+                const imgHTML = `<img src="${imgUrl}" style="max-width:100%; border-radius:12px; margin-top:8px;"><br><a href="${imgUrl}" target="_blank" class="download-btn" style="margin-top:8px;"><span class="material-symbols-outlined">download</span> Скачать</a>`;
+                setTimeout(() => { hideLoading(); addMessage(imgHTML, 'ai', true, Date.now().toString()); }, 1500);
+                return;
+            }
+            
+            // Видео жасау пәрмені
+            if (/(видео|video|сделай видео|жаса|create video)/i.test(lowerText)) {
+                showLoading();
+                const prompt = text.replace(/(видео|video|сделай видео|жаса|create video)/gi, '').trim();
+                const seed = Math.floor(Math.random()*1000000);
+                const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=512&nologo=true&seed=${seed}`;
+                const imgHTML = `🎬<br><img src="${imgUrl}" style="max-width:100%; border-radius:12px; margin-top:8px;">`;
+                setTimeout(() => { hideLoading(); addMessage(imgHTML, 'ai', true, Date.now().toString()); }, 1500);
+                return;
+            }
+
+            // Википедия және Веб (DuckDuckGo) іздеу
+            abortController = new AbortController();
+            isGenerating = true;
+            showLoading();
+
+            try {
+                const lang = detectLanguage(text);
+                let response = await fetchLocalOrWebResponse(text, lang, abortController.signal);
+                hideLoading();
+                if (response) {
+                    const emojis = ['✨', '💡', '🔥', '⭐', '🚀', '📌', '🎯'];
+                    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+                    response = response + ' ' + randomEmoji;
+                    addMessage(response, 'ai', false, Date.now().toString());
+                }
+            } catch (err) {
+                hideLoading();
+                if (err.name === 'AbortError') {
+                    addMessage('Генерация тоқтатылды. ⏹️', 'ai', false, Date.now().toString());
+                } else {
+                    addMessage(getLangText('error_connection'), 'ai', false, Date.now().toString());
+                }
+            } finally {
+                isGenerating = false;
+                abortController = null;
+            }
         }
-    }
 
-    async fetchLocalOrWebResponse(prompt, lang, signal) {
-        if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
-
-        let webContext = await this.getWebContext(prompt, lang);
-        if (!webContext) {
-            webContext = await this.realWebSearch(prompt);
-        }
-
-        if (webContext) {
-            return this.cleanUpText(webContext);
-        }
-
-        if (lang === 'kk') {
-             return "Кешір, бұл сұрақ бойынша нақты ақпарат таба алмадым. Сұрағыңды басқаша қойып көрші.";
-        } else if (lang === 'en') {
-             return "Sorry, I couldn't find specific information on this. Please try phrasing your question differently.";
-        } else {
-             return "Извини, я не смог найти точную информацию по этому вопросу. Попробуй перефразировать.";
-        }
-    }
-
-    async generateImage(promptText) {
-        const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image)/gi, '').trim();
-        if (!userPrompt) return this.addMessage('❌ Промпт пуст.', 'ai');
-        
-        const enhanced = `${userPrompt}, ultra realistic photo, cinematic, 8k, no text, no watermark`;
-        const seed = Math.floor(Math.random() * 100000000);
-        const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
-
-        const msgDiv = this.addMessage('🎨 ...', 'ai');
-        const img = document.createElement('img');
-        img.src = imgUrl;
-        img.style.width = '100%';
-        img.style.borderRadius = '10px';
-        img.style.marginTop = '10px';
-        
-        img.onload = () => {
-            msgDiv.innerHTML = '';
-            msgDiv.appendChild(img);
-        };
-        img.onerror = () => {
-            msgDiv.textContent = '❌ Error / Ошибка. ⚠️';
-        };
-    }
-
-    async generateVideo(promptText) {
-        const cleanPrompt = promptText.replace(/(видео|video|сделай видео|жаса|create video)/gi, '').trim();
-        if (!cleanPrompt) return this.addMessage('❓', 'ai');
-
-        const msg = this.addMessage(`🎬 ...`, 'ai');
-        const seed = Math.floor(Math.random() * 100000);
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=512&height=512&nologo=true&seed=${seed}`;
-        
-        const img = new Image();
-        img.src = url;
-        img.onload = () => {
-            msg.innerHTML = '';
-            img.style.width = '100%';
-            img.style.borderRadius = '10px';
-            msg.appendChild(img);
-        };
-    }
-
-    addMessage(text, sender, isHTML = false) {
-        const div = document.createElement('div');
-        div.className = `msg ${sender}`;
-        if (isHTML) div.innerHTML = text;
-        else div.textContent = text;
-        
-        if (sender === 'ai' && !isHTML) {
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'copy-btn';
-            copyBtn.textContent = '📋';
-            copyBtn.onclick = () => {
-                navigator.clipboard.writeText(text);
-                copyBtn.textContent = '✅';
-                setTimeout(() => copyBtn.textContent = '📋', 1500);
+        async function generateImageFromPanel() {
+            const prompt = document.getElementById('imagePrompt').value.trim();
+            if (!prompt) return alert('Сипаттаманы енгізіңіз');
+            const resultDiv = document.getElementById('imageResult');
+            resultDiv.innerHTML = '<p>Генерациялануда...</p>';
+            let baseHeight = currentQuality === 'hd' ? 720 : currentQuality === '1080p' ? 1080 : 2040;
+            let w, h;
+            if (currentRatio === '1:1') { w = baseHeight; h = baseHeight; }
+            else if (currentRatio === '16:9') { w = Math.round(baseHeight * 16/9); h = baseHeight; }
+            else { w = baseHeight; h = Math.round(baseHeight * 16/9); }
+            const enhanced = prompt + ", masterpiece, no text, no watermark";
+            const seed = Math.floor(Math.random()*1000000000);
+            const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&nologo=true&seed=${seed}`;
+            const img = new Image();
+            img.onload = () => {
+                resultDiv.innerHTML = '';
+                img.style.maxWidth='100%'; img.style.borderRadius='12px'; img.style.marginBottom='10px';
+                resultDiv.appendChild(img);
+                const a = document.createElement('a');
+                a.href = imgUrl; a.download = 'Serik AI.png'; a.className = 'download-btn';
+                a.innerHTML = '<span class="material-symbols-outlined">download</span> ' + getLangText('download_btn');
+                a.target = '_blank';
+                resultDiv.appendChild(a);
             };
-            div.appendChild(copyBtn);
+            img.onerror = () => resultDiv.innerHTML = '<p style="color:red">Жүктеу қатесі</p>';
+            img.src = imgUrl;
         }
 
-        this.chat.appendChild(div);
-        this.chat.scrollTop = this.chat.scrollHeight;
-        return div;
-    }
-
-    clearChat() {
-        this.chat.innerHTML = '';
-        this.messageCache.clear();
-        this.addMessage('Очищено / Тазартылды / Cleared. 🧹', 'ai');
-    }
-
-    toggleVoice() {
-        this.voiceEnabled = !this.voiceEnabled;
-        this.voiceBtn.textContent = this.voiceEnabled ? '🔊 ВКЛ' : '🔇 ВЫКЛ';
-    }
-
-    changeTheme() { document.body.className = `theme-${this.themeSelect.value}`; }
-    checkAdmin() { this.adminPanel.style.display = this.adminPass.value === 'nurik777' ? 'block' : 'none'; }
-    
-    bulkLearn() {
-        const lines = this.bulkTextarea.value.split('\n');
-        for (let line of lines) {
-            const parts = line.split(' это ');
-            if (parts.length >= 2) this.memory[parts[0].trim().toLowerCase()] = parts.slice(1).join(' это ').trim();
+        function checkAdmin() {
+            document.getElementById('adminTools').style.display = document.getElementById('adminPass').value === 'nurik777' ? 'block' : 'none';
         }
-        if (this.db) this.db.ref('serik_memory').set(this.memory);
-        this.bulkTextarea.value = '';
-        alert('Сохранено / Сақталды / Saved! ✅');
-    }
-}
-document.addEventListener('DOMContentLoaded', () => { window.app = new SerikAI(); });
-</script>
+        function bulkLearn() {
+            const lines = document.getElementById('bulkData').value.split('\n');
+            let count = 0;
+            const newMemory = Object.assign({}, memory);
+            for (let line of lines) {
+                const parts = line.split(' это ');
+                if (parts.length >= 2) {
+                    newMemory[parts[0].trim().toLowerCase()] = parts.slice(1).join(' это ').trim();
+                    count++;
+                }
+            }
+            if (count > 0 && db) {
+                memory = newMemory;
+                db.ref('serik_memory').set(memory);
+                alert('✅ Сақталды');
+                document.getElementById('bulkData').value = '';
+            }
+        }
+
+        function updateVoiceButton() {
+            const btn = document.getElementById("voiceBtn");
+            btn.querySelector('span:last-child').textContent = translations[currentLang][voiceEnabled ? 'voice_on' : 'voice_off'];
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('serik_lang');
+            if (savedLang && translations[savedLang]) currentLang = savedLang;
+            changeLanguage(currentLang);
+        });
+    </script>
 </body>
 </html>
-
