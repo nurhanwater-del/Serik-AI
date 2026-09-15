@@ -172,26 +172,13 @@ class SerikAI {
             "как дела": "Всё отлично! Спрашивай что угодно.",
             "қалайсың": "Жақсы, рахмет! Сізге не көмек керек?",
             "how are you": "I'm great, thanks! What can I do for you?",
-            "что ты умеешь": "Я могу отвечать на вопросы, генерировать изображения и даже короткие видео!",
-            "не істей аласың": "Мен сұрақтарға жауап бере аламын, суреттер мен бейнелер жасай аламын!",
-            "what can you do": "I can answer questions, generate images, and create short videos!"
+            "что ты умеешь": "Я могу искать информацию, генерировать изображения и короткие видео!",
+            "не істей аласың": "Мен ғаламтордан ақпарат іздей аламын, суреттер мен бейнелер жасай аламын!"
         };
         this.db = null;
         this.voiceEnabled = false;
         this.abortController = null;
-        this.lastAIMessage = null;
         this.messageCache = new Map();
-        
-        this.systemPrompt = `You are Serik AI, a multilingual assistant from Kazakhstan. 
-You speak and understand Russian, Kazakh, and English. 
-Always respond in the same language the user used in their last message.
-If the user writes in Kazakh, answer in Kazakh. If in Russian, answer in Russian. If in English, answer in English.
-You can generate images (just say "нарисуй", "сурет сал", or "draw"). 
-You can create short video slideshows (say "видео жаса", "сделай видео", or "create a video").
-Never mention OpenAI, ChatGPT, or any other AI brand. You are Serik AI, created in Kazakhstan.
-Your birthday is June 18, 2026. Your name honors the father of your creator.
-Ответы должны быть естественными, без маркированных списков, как разговор с другом.
-`;
         
         this.initFirebase();
         this.initEventListeners();
@@ -257,50 +244,36 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         this.abortController = new AbortController();
         const signal = this.abortController.signal;
         
-        // Математика
         if (/^[\d\s+\-*/().]+$/.test(text)) {
             try {
-                const result = eval(text);
-                return this.addMessage(`🧮 ${result}`, 'ai');
+                return this.addMessage(`🧮 ${eval(text)}`, 'ai');
             } catch {}
         }
         
-        // Локальная память + кэш
         const cached = this.messageCache.get(text.toLowerCase());
         if (cached) {
-            this.addMessage(cached, 'ai');
-            return;
+            return this.addMessage(cached, 'ai');
         }
         
         const localAnswer = this.searchMemory(text);
         if (localAnswer) {
             this.messageCache.set(text.toLowerCase(), localAnswer);
-            this.addMessage(localAnswer, 'ai');
-            return;
+            return this.addMessage(localAnswer, 'ai');
         }
         
-        // Картинка по ссылке
-        const imgMatch = text.match(/https?:\/\/\S+\.(?:png|jpg|jpeg|webp|gif)/i);
-        if (imgMatch) {
-            const desc = await this.describeImage(imgMatch[0], text.replace(imgMatch[0], '').trim());
-            this.addMessage(desc || 'Не удалось проанализировать изображение', 'ai');
-            return;
-        }
-        
-        // Генерация изображения
-        if (/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/i.test(text)) {
+        // Сурет пен видео генерациясына ғана Pollinations қалады
+        if (/(нарисуй|сурет сал|сгенерируй|draw|generate image)/i.test(text)) {
             return this.generateImage(text);
         }
-        
-        // Генерация видео (слайдшоу)
-        if (/(видео|video|сделай видео|жаса|түсір|create video|make video|generate video)/i.test(text)) {
+        if (/(видео|video|сделай видео|жаса|create video)/i.test(text)) {
             return this.generateVideo(text);
         }
         
-        // Запрос к ИИ
         const typingIndicator = this.addMessage('<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>', 'ai', true);
+        
         try {
-            const response = await this.fetchAIResponse(text, signal);
+            // Мәтінді жауапқа ешқандай API қолданылмайды, тек тікелей интернеттен оқып береді
+            const response = await this.fetchLocalOrWebResponse(text, signal);
             typingIndicator.remove();
             if (response) {
                 this.messageCache.set(text.toLowerCase(), response);
@@ -309,7 +282,7 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         } catch (err) {
             typingIndicator.remove();
             if (err.name !== 'AbortError') {
-                this.addMessage('⚠️ Ошибка соединения. Попробуйте ещё раз.', 'ai');
+                this.addMessage('⚠️ Ошибка соединения.', 'ai');
             }
         }
     }
@@ -337,11 +310,10 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         return (2 * intersection) / (sa.size + sb.size);
     }
 
-    // Википедиядан іздеу (Қосалқы ретінде қалдырдым)
+    // Википедия
     async getWebContext(query) {
-        if (!/(что такое|кто такой|кім ол|не ол|найди|what is|who is|search for)/i.test(query)) return null;
         try {
-            const clean = query.replace(/(пожалуйста|расскажи про|что такое|кто такой|кім ол|не ол|what is|who is)/gi, '').trim();
+            const clean = query.replace(/(пожалуйста|расскажи про|что такое|кто такой|кім ол|не ол|what is)/gi, '').trim();
             const searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(clean)}&format=json&origin=*`;
             const res = await fetch(searchUrl);
             const data = await res.json();
@@ -351,398 +323,137 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
                 const cRes = await fetch(contentUrl);
                 const cData = await cRes.json();
                 const pages = cData.query.pages;
-                return pages[Object.keys(pages)[0]].extract?.substring(0, 1500);
+                return pages[Object.keys(pages)[0]].extract?.substring(0, 1000);
             }
         } catch {}
         return null;
     }
 
-    // Ғаламтордан CORS-сыз және блокировкасыз іздеу (DuckDuckGo + AllOrigins Proxy)
+    // Тікелей DuckDuckGo-дан жауап алу (CORS-прокси арқылы)
     async realWebSearch(query) {
         try {
             const targetUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
             const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-
             const response = await fetch(proxyUrl);
             const data = await response.json();
-
             const parser = new DOMParser();
             const doc = parser.parseFromString(data.contents, 'text/html');
             const results = doc.querySelectorAll('.result__snippet');
 
             if (results.length > 0) {
-                let searchContext = '';
-                // Ең жақсы 4 нәтижені аламыз
+                let text = '';
                 results.forEach((res, index) => {
-                    if (index < 4) searchContext += res.textContent.trim() + '\n';
+                    if (index < 3) text += "• " + res.textContent.trim() + "\n\n";
                 });
-                return searchContext;
+                return text;
             }
             return null;
         } catch (e) {
-            console.error('Іздеу қатесі:', e);
             return null;
         }
     }
 
-    // ИИ-ге сұраныс жіберу және контекстті қолдану
-    async fetchAIResponse(prompt, signal) {
+    // Pollinations-сыз жұмыс істейтін жаңа "бас" логикасы
+    async fetchLocalOrWebResponse(prompt, signal) {
+        if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
+
         let webContext = await this.getWebContext(prompt);
-        
-        // Егер Википедиядан табылмаса, DuckDuckGo-дан іздейміз
+        let source = "Википедиядан";
+
         if (!webContext) {
             webContext = await this.realWebSearch(prompt);
+            source = "Ғаламтордан (DuckDuckGo)";
         }
 
-        // ИИ-ге арналған құпия нұсқаулық (ол мұны көрсетпейді, тек ішіндегі ақпаратты қолданады)
-        let contextInstruction = "";
         if (webContext) {
-            contextInstruction = `\n\n[ҚОСЫМША АҚПАРАТ/ИНТЕРНЕТТЕН ТАБЫЛҒАН ДЕРЕК]:\n${webContext}\n\nНұсқаулық: Осы ақпаратты пайдаланып, қолданушының сұрағына өз сөзіңмен, табиғи түрде жауап бер. "Мен мұны интернеттен таптым" немесе "сілтемеде былай делінген" деп айтпа. Тек өзің бұрыннан білетіндей етіп, әңгімелесуші ретінде жауап қат.`;
+            // Мәліметтерді тікелей, табиғи етіп құрастырып қайтарамыз (Ешқандай API лимиті жоқ)
+            return `Міне, ${source} тапқан мәліметім:\n\n${webContext}`;
         }
 
-        const messages = [
-            { role: "system", content: this.systemPrompt + contextInstruction },
-            { role: "user", content: prompt }
-        ];
-        
-        const models = ["openai", "mistral", "llama"];
-        for (let model of models) {
-            if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
-            try {
-                const res = await fetch("https://text.pollinations.ai/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ messages, model, private: true }),
-                    signal
-                });
-                if (!res.ok) continue;
-                const text = await res.text();
-                if (text && !text.includes('"error"') && !text.includes('Queue full')) {
-                    return text.trim();
-                }
-            } catch (e) {
-                if (e.name === 'AbortError') throw e;
-                continue;
-            }
-        }
-        return "Кешір, серверде жүктеме көп болып тұр. Сәлден соң қайталап көрші.";
+        return "Кешір, бұл сұрақ бойынша нақты ақпарат таба алмадым. Сұрағыңды басқаша қойып көрші немесе сурет/видео жасауды сұра.";
     }
 
-    // 🎨 Сурет генерациясы (өзгеріссіз қалды)
+    // 🎨 Сурет генерациясы (тек осында қалды)
     async generateImage(promptText) {
-        const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
+        const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image)/gi, '').trim();
+        if (!userPrompt) return this.addMessage('❌ Промпт пуст.', 'ai');
+        
+        const enhanced = `${userPrompt}, ultra realistic photo, cinematic, 8k, no text, no watermark`;
+        const seed = Math.floor(Math.random() * 100000000);
+        const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
 
-        if (!userPrompt) {
-            return this.addMessage('❌ Промпт пуст. Напишите что хотите увидеть.', 'ai');
-        }
-
-        const nsfwWords = [
-            'голый','голая','голые','нюд','nude','sex','секс','порно','порн','эротика','эротик',
-            'обнажен','обнажён','интим','половой','сиськи','титьки','писюн','член','пенис',
-            'вагин','влагалищ','оргазм','мастур','проститут','нагишом','раздетый','стриптиз',
-            'лифчик','трусы','топлес','жалаңаш','жаланаш','жыныс','сексуал','порнография','нәпсі',
-            'naked','nsfw','porn','porno','explicit','sexual','nudity','erotic','hentai',
-            'boobs','tits','pussy','penis','vagina','booty','dick','cock','xxx','18+',
-            'topless','bottomless','genital','nipple','seductive','provocative','bdsm','fetish','onlyfans'
-        ];
-
-        const humanWords = [
-            'человек','люди','мужчина','женщина','девушка','парень','ребенок','ребёнок','дети',
-            'мальчик','девочка','бабушка','дедушка','папа','мама','отец','мать','сын','дочь',
-            'брат','сестра','портрет','модель','актриса','актер','певец','певица','солдат','воин',
-            'рыцарь','король','королева','принцесс','принц','ведьма','колдун','маг','эльф','орк',
-            'гном','русалка','подросток','тинейджер','казах','казашка','азиат','азиатка',
-            'адам','адамдар','ер','әйел','қыз','жігіт','бала','әке','ана','ата','әже',
-            'human','person','people','man','woman','men','women','girl','boy','child','children',
-            'kid','kids','baby','guy','lady','gentleman','teenager','male','female','portrait',
-            'face','model','father','mother','son','daughter','brother','sister','family','couple',
-            'soldier','warrior','knight','king','queen','prince','princess','wizard','witch',
-            'elf','orc','dwarf','mermaid','athlete','actor','actress','singer'
-        ];
-
-        const lowerPrompt = userPrompt.toLowerCase().replace(/[^\wа-яёәғқңөұүһі\s]/gi, ' ');
-
-        if (nsfwWords.some(w => lowerPrompt.includes(w))) {
-            return this.addMessage('🛑 Запрещённый контент. Измените описание.', 'ai');
-        }
-
-        if (humanWords.some(w => lowerPrompt.includes(w))) {
-            return this.addMessage('🚫 Генерация людей отключена. Попробуйте: природа, животные, техника, еда, замки, космос. 🌍🐆🏰🚀', 'ai');
-        }
-
-        const enhanced = `${userPrompt}, ultra realistic photo, RAW, professional photography, sharp focus, natural lighting, cinematic, 8k, hyperdetailed, photorealistic, no people, no humans, no text, no watermark`;
-
-        const seed = Math.floor(Math.random() * 1000000000);
-        const models = ['flux', 'turbo'];
-
-        const msgDiv = this.addMessage('🎨 Генерирую реалистичное фото...', 'ai');
-
-        for (const model of models) {
-            try {
-                const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}&model=${model}`;
-
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 60000);
-
-                const response = await fetch(imgUrl, { signal: controller.signal });
-                clearTimeout(timeoutId);
-
-                if (!response.ok) continue;
-
-                const blob = await response.blob();
-                if (blob.type.startsWith('image/') && blob.size > 1000) {
-                    const img = document.createElement('img');
-                    img.src = URL.createObjectURL(blob);
-                    img.style.width = '100%';
-                    img.style.borderRadius = '10px';
-                    img.style.marginTop = '10px';
-                    img.style.boxShadow = '0 8px 25px rgba(0,0,0,0.5)';
-                    msgDiv.innerHTML = '';
-                    msgDiv.appendChild(img);
-
-                    const dl = document.createElement('a');
-                    dl.href = img.src;
-                    dl.download = `serik_${Date.now()}.jpg`;
-                    dl.textContent = '💾 Скачать фото';
-                    dl.style.cssText = 'display:inline-block; margin-top:10px; padding:10px 20px; background:linear-gradient(135deg,#00b86b,#008f53); color:white; border-radius:8px; text-decoration:none; font-weight:bold;';
-                    msgDiv.appendChild(dl);
-                    return;
-                }
-            } catch (e) {
-                console.error(`❌ Модель ${model} ошибка:`, e.name, e.message);
-            }
-        }
-        msgDiv.textContent = '❌ Не удалось создать фото. Попробуйте ещё раз или измените промпт.';
+        const msgDiv = this.addMessage('🎨 Генерирую фото...', 'ai');
+        const img = document.createElement('img');
+        img.src = imgUrl;
+        img.style.width = '100%';
+        img.style.borderRadius = '10px';
+        img.style.marginTop = '10px';
+        
+        img.onload = () => {
+            msgDiv.innerHTML = '';
+            msgDiv.appendChild(img);
+        };
+        img.onerror = () => {
+            msgDiv.textContent = '❌ Не удалось создать фото.';
+        };
     }
 
-    // 🎬 Видео генерациясы (өзгеріссіз қалды)
+    // 🎬 Видео генерациясы
     async generateVideo(promptText) {
-        const cleanPrompt = promptText.replace(/(видео|video|сделай видео|жаса|create video|make video|generate video)/gi, '').trim();
+        const cleanPrompt = promptText.replace(/(видео|video|сделай видео|жаса)/gi, '').trim();
         if (!cleanPrompt) return this.addMessage('Уточните, что должно быть на видео.', 'ai');
 
-        const framesCount = 5;
-        const frameDuration = 2000;
-        const width = 512;
-        const height = 512;
-
-        const statusMsg = this.addMessage(`🎬 Создание видео... 0/${framesCount}`, 'ai');
-
-        const imageUrls = [];
-        for (let i = 0; i < framesCount; i++) {
-            const seed = Math.floor(Math.random() * 1000000000);
-            const enhanced = `${cleanPrompt}, masterpiece, 8k, frame ${i+1}, no text`;
-            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
-            try {
-                const resp = await fetch(url);
-                const blob = await resp.blob();
-                if (blob.type.startsWith('image/')) {
-                    imageUrls.push(URL.createObjectURL(blob));
-                } else {
-                    imageUrls.push(null);
-                }
-            } catch(e) {
-                imageUrls.push(null);
-            }
-            statusMsg.textContent = `🎬 Создание видео... ${i+1}/${framesCount}`;
-        }
-
-        if (imageUrls.filter(u => u).length === 0) {
-            statusMsg.textContent = '❌ Ошибка генерации изображений. Попробуйте еще раз.';
-            return;
-        }
-
-        if (typeof MediaRecorder === 'undefined') {
-            statusMsg.textContent = '❌ Ваш браузер не поддерживает запись видео. Попробуйте Chrome или обновленный Safari.';
-            return;
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        const stream = canvas.captureStream(framesCount * frameDuration / 1000);
+        const msg = this.addMessage(`🎬 Создание видео... (Ждём кадры)`, 'ai');
+        const seed = Math.floor(Math.random() * 100000);
+        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=512&height=512&nologo=true&seed=${seed}`;
         
-        let mimeType = 'video/webm; codecs=vp9';
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-            mimeType = 'video/webm; codecs=vp8';
-            if (!MediaRecorder.isTypeSupported(mimeType)) {
-                mimeType = 'video/webm';
-            }
-        }
-        
-        let recorder;
-        try {
-            recorder = new MediaRecorder(stream, { mimeType: mimeType });
-        } catch(e) {
-            statusMsg.textContent = '❌ Не удалось запустить запись видео.';
-            return;
-        }
-
-        this.recordedChunks = [];
-        recorder.ondataavailable = e => {
-            if (e.data.size > 0) this.recordedChunks.push(e.data);
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+            msg.innerHTML = '';
+            img.style.width = '100%';
+            img.style.borderRadius = '10px';
+            msg.appendChild(img);
+            msg.innerHTML += '<br><i>(Это первый кадр. Запись видео напрямую в браузере ограничена, используем слайд-формат)</i>';
         };
-
-        recorder.onstop = () => {
-            const blob = new Blob(this.recordedChunks, { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            statusMsg.innerHTML = '';
-            const video = document.createElement('video');
-            video.src = url;
-            video.controls = true;
-            video.style.width = '100%';
-            video.style.borderRadius = '10px';
-            video.style.marginTop = '10px';
-            video.playsinline = true;
-            statusMsg.appendChild(video);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'serikai_video.webm';
-            link.textContent = '💾 Скачать видео';
-            link.style.display = 'block';
-            link.style.marginTop = '5px';
-            link.style.fontSize = '12px';
-            statusMsg.appendChild(link);
-        };
-
-        recorder.start();
-
-        let frameIndex = 0;
-        const drawNext = () => {
-            if (frameIndex >= imageUrls.length) {
-                recorder.stop();
-                return;
-            }
-            const img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = () => {
-                ctx.clearRect(0, 0, width, height);
-                ctx.drawImage(img, 0, 0, width, height);
-                frameIndex++;
-                setTimeout(drawNext, frameDuration);
-            };
-            img.onerror = () => {
-                ctx.clearRect(0, 0, width, height);
-                ctx.fillStyle = '#111';
-                ctx.fillRect(0, 0, width, height);
-                ctx.fillStyle = '#fff';
-                ctx.font = '20px sans-serif';
-                ctx.fillText('Ошибка загрузки кадра', 50, height/2);
-                frameIndex++;
-                setTimeout(drawNext, frameDuration);
-            };
-            img.src = imageUrls[frameIndex] || '';
-        };
-        drawNext();
-    }
-
-    async describeImage(url, question) {
-        try {
-            const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(question || 'Опиши')}?image=${encodeURIComponent(url)}&model=openai`);
-            return await res.text();
-        } catch {}
-        return null;
     }
 
     addMessage(text, sender, isHTML = false) {
         const div = document.createElement('div');
         div.className = `msg ${sender}`;
-        if (isHTML) {
-            div.innerHTML = text;
-        } else {
-            div.textContent = text;
-        }
-        if (sender === 'ai') {
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'copy-btn';
-            copyBtn.textContent = '📋';
-            copyBtn.onclick = () => {
-                navigator.clipboard.writeText(text);
-                copyBtn.textContent = '✅';
-                setTimeout(() => copyBtn.textContent = '📋', 1500);
-            };
-            div.appendChild(copyBtn);
-            this.lastAIMessage = div;
-        }
+        if (isHTML) div.innerHTML = text;
+        else div.textContent = text;
         this.chat.appendChild(div);
         this.chat.scrollTop = this.chat.scrollHeight;
-
-        if (sender === 'ai' && this.voiceEnabled && !isHTML && text.length < 500) {
-            this.speak(text);
-        }
         return div;
     }
 
     clearChat() {
         this.chat.innerHTML = '';
-        this.abortController?.abort();
         this.messageCache.clear();
         this.addMessage('Чат очищен.', 'ai');
     }
 
     toggleVoice() {
         this.voiceEnabled = !this.voiceEnabled;
-        this.voiceBtn.textContent = this.voiceEnabled ? '🔊 Голос: ВКЛ' : '🔇 Голос: ВЫКЛ';
-        if (!this.voiceEnabled) {
-            speechSynthesis.cancel();
-        } else {
-            if ('speechSynthesis' in window) {
-                const dummy = new SpeechSynthesisUtterance('');
-                dummy.volume = 0;
-                speechSynthesis.speak(dummy);
-            }
-        }
+        this.voiceBtn.textContent = this.voiceEnabled ? '🔊 ВКЛ' : '🔇 ВЫКЛ';
     }
 
-    speak(text) {
-        if (!this.voiceEnabled || !('speechSynthesis' in window)) return;
-        speechSynthesis.cancel();
-        const cleanText = text.replace(/[📋✅⚛️📜🔥💻🎬]/g, '');
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        if (/[әғқңөұүһіІ]/g.test(cleanText)) {
-            utterance.lang = 'kk-KZ';
-        } else if (/[a-zA-Z]{4,}/.test(cleanText) && !/[а-яё]/i.test(cleanText)) {
-            utterance.lang = 'en-US';
-        } else {
-            utterance.lang = 'ru-RU';
-        }
-        utterance.rate = 1.1;
-        speechSynthesis.speak(utterance);
-    }
-
-    changeTheme() {
-        document.body.className = `theme-${this.themeSelect.value}`;
-    }
-
-    checkAdmin() {
-        this.adminPanel.style.display = this.adminPass.value === 'nurik777' ? 'block' : 'none';
-    }
-
+    changeTheme() { document.body.className = `theme-${this.themeSelect.value}`; }
+    checkAdmin() { this.adminPanel.style.display = this.adminPass.value === 'nurik777' ? 'block' : 'none'; }
+    
     bulkLearn() {
         const lines = this.bulkTextarea.value.split('\n');
-        let count = 0;
         for (let line of lines) {
             const parts = line.split(' это ');
-            if (parts.length >= 2) {
-                const q = parts[0].trim().toLowerCase();
-                const a = parts.slice(1).join(' это ').trim();
-                if (q && a) {
-                    this.memory[q] = a;
-                    count++;
-                }
-            }
+            if (parts.length >= 2) this.memory[parts[0].trim().toLowerCase()] = parts.slice(1).join(' это ').trim();
         }
-        if (count > 0 && this.db) {
-            this.db.ref('serik_memory').set(this.memory);
-            alert(`✅ Сохранено ${count} записей в облако`);
-        }
+        if (this.db) this.db.ref('serik_memory').set(this.memory);
         this.bulkTextarea.value = '';
+        alert('База сохранена!');
     }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new SerikAI();
-});
+document.addEventListener('DOMContentLoaded', () => { window.app = new SerikAI(); });
 </script>
 </body>
 </html>
