@@ -51,7 +51,8 @@
         button, select, input, textarea {
             background: #2b2b3a; border: 1px solid var(--border);
             color: white; padding: 10px; border-radius: 8px;
-            font-size: 14px; transition: var(--transition); outline: none;
+            font-size: 13px;
+            transition: var(--transition); outline: none;
         }
         button { cursor: pointer; font-weight: bold; }
         button:hover { background: #3a3a4d; border-color: var(--accent); }
@@ -65,8 +66,9 @@
             display: flex; flex-direction: column; scroll-behavior: smooth;
         }
         .msg {
-            padding: 12px 18px; margin: 6px 0; border-radius: var(--radius);
-            max-width: 85%; word-wrap: break-word; line-height: 1.5;
+            padding: 10px 15px; margin: 6px 0; border-radius: var(--radius);
+            max-width: 85%; word-wrap: break-word; line-height: 1.4;
+            font-size: 14px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             position: relative; transition: transform 0.2s;
         }
@@ -77,11 +79,11 @@
         .input-group { display: flex; gap: 8px; }
         #input { flex: 1; }
         .generators { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; background: var(--sidebar-bg); transition: background 0.3s; }
-        .generators button { white-space: nowrap; padding: 6px 12px; font-size: 12px; border-radius: 20px; }
+        .generators button { white-space: nowrap; padding: 6px 12px; font-size: 11px; border-radius: 20px; }
         .disclaimer { text-align: center; font-size: 11px; color: #777; margin-top: 6px; }
         .copy-btn {
             position: absolute; top: 6px; right: 6px;
-            background: rgba(0,0,0,0.3); border: none; font-size: 14px;
+            background: rgba(0,0,0,0.3); border: none; font-size: 12px;
             padding: 4px 8px; border-radius: 6px; opacity: 0;
         }
         .msg.ai:hover .copy-btn { opacity: 1; }
@@ -95,19 +97,19 @@
                 width: 100%; max-height: 100px; padding: 8px 10px;
                 gap: 4px; overflow-y: visible;
             }
-            .sidebar h3 { font-size: 18px; margin: 0; }
+            .sidebar h3 { font-size: 16px; margin: 0; }
             .main { height: calc(100vh - 100px); display: flex; flex-direction: column; }
-            .chat { padding: 10px; flex: 1; }
-            .msg { max-width: 92%; font-size: 15px; }
+            .chat { padding: 8px; flex: 1; }
+            .msg { max-width: 95%; font-size: 13px; padding: 8px 12px;}
             .generators { padding: 6px 8px; }
-            .generators button { padding: 5px 10px; font-size: 11px; }
+            .generators button { padding: 5px 10px; font-size: 10px; }
             .row {
                 position: sticky; bottom: 0; left: 0; width: 100%;
                 background: #111; padding: 8px;
                 padding-bottom: calc(8px + var(--safe-bottom));
                 border-top: 1px solid #222;
             }
-            input, textarea { font-size: 16px !important; }
+            input, textarea { font-size: 14px !important; }
         }
     </style>
 </head>
@@ -171,9 +173,10 @@ class SerikAI {
             "hello": "Hello! How can I help you?",
             "как дела": "Всё отлично! Спрашивай что угодно.",
             "қалайсың": "Жақсы, рахмет! Сізге не көмек керек?",
-            "how are you": "I'm great, thanks! What can I do for you?",
+            "how are you": "I'm doing well, thanks! What can I do for you?",
             "что ты умеешь": "Я могу искать информацию, генерировать изображения и короткие видео!",
-            "не істей аласың": "Мен ғаламтордан ақпарат іздей аламын, суреттер мен бейнелер жасай аламын!"
+            "не істей аласың": "Мен мәлімет іздей аламын, суреттер мен бейнелер жасай аламын!",
+            "what can you do": "I can search for information, generate images, and create short videos!"
         };
         this.db = null;
         this.voiceEnabled = false;
@@ -182,7 +185,7 @@ class SerikAI {
         
         this.initFirebase();
         this.initEventListeners();
-        this.addMessage("Привет! Я Serik AI. Понимаю русский, қазақша, English. Готов помочь! ✨", 'ai');
+        this.addMessage("Привет! Я Serik AI. Готов помочь на любом языке! ✨", 'ai');
     }
 
     initFirebase() {
@@ -201,7 +204,7 @@ class SerikAI {
                 if (data) Object.assign(this.memory, data);
             });
         } catch (e) {
-            console.warn('Firebase не загружен, работаем локально');
+            console.warn('Firebase не загружен');
         }
     }
 
@@ -232,6 +235,16 @@ class SerikAI {
         });
     }
 
+    detectLanguage(text) {
+        if (/[әіңғүұқөһА-Яа-я]/i.test(text) && (text.includes('қ') || text.includes('ғ') || text.includes('і') || text.includes('ң') || text.includes('ө') || text.includes('ұ') || text.includes('ү') || text.includes('һ') || text.includes('ә'))) {
+            return 'kk'; 
+        } else if (/[А-Яа-яЁё]/.test(text)) {
+            return 'ru';
+        } else {
+            return 'en';
+        }
+    }
+
     async send() {
         const text = this.input.value.trim();
         if (!text) return;
@@ -245,15 +258,11 @@ class SerikAI {
         const signal = this.abortController.signal;
         
         if (/^[\d\s+\-*/().]+$/.test(text)) {
-            try {
-                return this.addMessage(`🧮 ${eval(text)}`, 'ai');
-            } catch {}
+            try { return this.addMessage(`🧮 ${eval(text)}`, 'ai'); } catch {}
         }
         
         const cached = this.messageCache.get(text.toLowerCase());
-        if (cached) {
-            return this.addMessage(cached, 'ai');
-        }
+        if (cached) return this.addMessage(cached, 'ai');
         
         const localAnswer = this.searchMemory(text);
         if (localAnswer) {
@@ -261,7 +270,6 @@ class SerikAI {
             return this.addMessage(localAnswer, 'ai');
         }
         
-        // Сурет пен видео генерациясына ғана Pollinations қалады
         if (/(нарисуй|сурет сал|сгенерируй|draw|generate image)/i.test(text)) {
             return this.generateImage(text);
         }
@@ -272,8 +280,8 @@ class SerikAI {
         const typingIndicator = this.addMessage('<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>', 'ai', true);
         
         try {
-            // Мәтінді жауапқа ешқандай API қолданылмайды, тек тікелей интернеттен оқып береді
-            const response = await this.fetchLocalOrWebResponse(text, signal);
+            const lang = this.detectLanguage(text);
+            const response = await this.fetchLocalOrWebResponse(text, lang, signal);
             typingIndicator.remove();
             if (response) {
                 this.messageCache.set(text.toLowerCase(), response);
@@ -282,7 +290,7 @@ class SerikAI {
         } catch (err) {
             typingIndicator.remove();
             if (err.name !== 'AbortError') {
-                this.addMessage('⚠️ Ошибка соединения.', 'ai');
+                this.addMessage('⚠️ Желіде ақаулық шықты / Network error / Ошибка сети.', 'ai');
             }
         }
     }
@@ -291,7 +299,7 @@ class SerikAI {
         const q = text.toLowerCase().trim();
         if (this.memory[q]) return this.memory[q];
         for (let key in this.memory) {
-            if (key.startsWith(q.substring(0, 3)) && this.similarity(q, key) > 0.8) {
+            if (this.similarity(q, key) > 0.45) {
                 return this.memory[key];
             }
         }
@@ -307,29 +315,37 @@ class SerikAI {
         const sa = bigrams(a), sb = bigrams(b);
         let intersection = 0;
         for (let bg of sa) if (sb.has(bg)) intersection++;
-        return (2 * intersection) / (sa.size + sb.size);
+        return (2 * intersection) / (Math.max(1, sa.size + sb.size));
     }
 
-    // Википедия
-    async getWebContext(query) {
+    cleanUpText(text) {
+        return text
+            .replace(/\.\.\./g, '') 
+            .replace(/http[^\s]+/gi, '') 
+            .replace(/&[a-z]+;/gi, '') 
+            .replace(/[\[\]\{\}\<\>\^\|\~]/g, '') 
+            .replace(/\s{2,}/g, ' ') 
+            .trim();
+    }
+
+    async getWebContext(query, lang) {
         try {
-            const clean = query.replace(/(пожалуйста|расскажи про|что такое|кто такой|кім ол|не ол|what is)/gi, '').trim();
-            const searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(clean)}&format=json&origin=*`;
+            const searchUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
             const res = await fetch(searchUrl);
             const data = await res.json();
             if (data.query?.search.length > 0) {
                 const title = data.query.search[0].title;
-                const contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
+                const contentUrl = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
                 const cRes = await fetch(contentUrl);
                 const cData = await cRes.json();
                 const pages = cData.query.pages;
-                return pages[Object.keys(pages)[0]].extract?.substring(0, 1000);
+                let extract = pages[Object.keys(pages)[0]].extract;
+                if(extract) return extract.substring(0, 1000).replace(/\n/g, ' ');
             }
         } catch {}
         return null;
     }
 
-    // Тікелей DuckDuckGo-дан жауап алу (CORS-прокси арқылы)
     async realWebSearch(query) {
         try {
             const targetUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
@@ -341,11 +357,16 @@ class SerikAI {
             const results = doc.querySelectorAll('.result__snippet');
 
             if (results.length > 0) {
-                let text = '';
+                let textBlocks = [];
                 results.forEach((res, index) => {
-                    if (index < 3) text += "• " + res.textContent.trim() + "\n\n";
+                    if (index < 5) {
+                        let snippet = this.cleanUpText(res.textContent);
+                        if(snippet.length > 20 && !textBlocks.includes(snippet)) {
+                            textBlocks.push(snippet);
+                        }
+                    }
                 });
-                return text;
+                return textBlocks.join(' ');
             }
             return null;
         } catch (e) {
@@ -353,27 +374,27 @@ class SerikAI {
         }
     }
 
-    // Pollinations-сыз жұмыс істейтін жаңа "бас" логикасы
-    async fetchLocalOrWebResponse(prompt, signal) {
+    async fetchLocalOrWebResponse(prompt, lang, signal) {
         if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
 
-        let webContext = await this.getWebContext(prompt);
-        let source = "Википедиядан";
-
+        let webContext = await this.getWebContext(prompt, lang);
         if (!webContext) {
             webContext = await this.realWebSearch(prompt);
-            source = "Ғаламтордан (DuckDuckGo)";
         }
 
         if (webContext) {
-            // Мәліметтерді тікелей, табиғи етіп құрастырып қайтарамыз (Ешқандай API лимиті жоқ)
-            return `Міне, ${source} тапқан мәліметім:\n\n${webContext}`;
+            return this.cleanUpText(webContext);
         }
 
-        return "Кешір, бұл сұрақ бойынша нақты ақпарат таба алмадым. Сұрағыңды басқаша қойып көрші немесе сурет/видео жасауды сұра.";
+        if (lang === 'kk') {
+             return "Кешір, бұл сұрақ бойынша нақты ақпарат таба алмадым. Сұрағыңды басқаша қойып көрші.";
+        } else if (lang === 'en') {
+             return "Sorry, I couldn't find specific information on this. Please try phrasing your question differently.";
+        } else {
+             return "Извини, я не смог найти точную информацию по этому вопросу. Попробуй перефразировать.";
+        }
     }
 
-    // 🎨 Сурет генерациясы (тек осында қалды)
     async generateImage(promptText) {
         const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image)/gi, '').trim();
         if (!userPrompt) return this.addMessage('❌ Промпт пуст.', 'ai');
@@ -382,7 +403,7 @@ class SerikAI {
         const seed = Math.floor(Math.random() * 100000000);
         const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}`;
 
-        const msgDiv = this.addMessage('🎨 Генерирую фото...', 'ai');
+        const msgDiv = this.addMessage('🎨 ...', 'ai');
         const img = document.createElement('img');
         img.src = imgUrl;
         img.style.width = '100%';
@@ -394,16 +415,15 @@ class SerikAI {
             msgDiv.appendChild(img);
         };
         img.onerror = () => {
-            msgDiv.textContent = '❌ Не удалось создать фото.';
+            msgDiv.textContent = '❌ Error / Ошибка.';
         };
     }
 
-    // 🎬 Видео генерациясы
     async generateVideo(promptText) {
-        const cleanPrompt = promptText.replace(/(видео|video|сделай видео|жаса)/gi, '').trim();
-        if (!cleanPrompt) return this.addMessage('Уточните, что должно быть на видео.', 'ai');
+        const cleanPrompt = promptText.replace(/(видео|video|сделай видео|жаса|create video)/gi, '').trim();
+        if (!cleanPrompt) return this.addMessage('?', 'ai');
 
-        const msg = this.addMessage(`🎬 Создание видео... (Ждём кадры)`, 'ai');
+        const msg = this.addMessage(`🎬 ...`, 'ai');
         const seed = Math.floor(Math.random() * 100000);
         const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=512&height=512&nologo=true&seed=${seed}`;
         
@@ -414,7 +434,6 @@ class SerikAI {
             img.style.width = '100%';
             img.style.borderRadius = '10px';
             msg.appendChild(img);
-            msg.innerHTML += '<br><i>(Это первый кадр. Запись видео напрямую в браузере ограничена, используем слайд-формат)</i>';
         };
     }
 
@@ -423,6 +442,19 @@ class SerikAI {
         div.className = `msg ${sender}`;
         if (isHTML) div.innerHTML = text;
         else div.textContent = text;
+        
+        if (sender === 'ai' && !isHTML) {
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-btn';
+            copyBtn.textContent = '📋';
+            copyBtn.onclick = () => {
+                navigator.clipboard.writeText(text);
+                copyBtn.textContent = '✅';
+                setTimeout(() => copyBtn.textContent = '📋', 1500);
+            };
+            div.appendChild(copyBtn);
+        }
+
         this.chat.appendChild(div);
         this.chat.scrollTop = this.chat.scrollHeight;
         return div;
@@ -431,7 +463,7 @@ class SerikAI {
     clearChat() {
         this.chat.innerHTML = '';
         this.messageCache.clear();
-        this.addMessage('Чат очищен.', 'ai');
+        this.addMessage('Очищено / Тазартылды / Cleared.', 'ai');
     }
 
     toggleVoice() {
@@ -450,7 +482,7 @@ class SerikAI {
         }
         if (this.db) this.db.ref('serik_memory').set(this.memory);
         this.bulkTextarea.value = '';
-        alert('База сохранена!');
+        alert('Сохранено / Сақталды / Saved!');
     }
 }
 document.addEventListener('DOMContentLoaded', () => { window.app = new SerikAI(); });
