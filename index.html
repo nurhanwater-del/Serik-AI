@@ -337,10 +337,71 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
         return (2 * intersection) / (sa.size + sb.size);
     }
 
+    // Википедиядан іздеу (Қосалқы ретінде қалдырдым)
+    async getWebContext(query) {
+        if (!/(что такое|кто такой|кім ол|не ол|найди|what is|who is|search for)/i.test(query)) return null;
+        try {
+            const clean = query.replace(/(пожалуйста|расскажи про|что такое|кто такой|кім ол|не ол|what is|who is)/gi, '').trim();
+            const searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(clean)}&format=json&origin=*`;
+            const res = await fetch(searchUrl);
+            const data = await res.json();
+            if (data.query?.search.length > 0) {
+                const title = data.query.search[0].title;
+                const contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
+                const cRes = await fetch(contentUrl);
+                const cData = await cRes.json();
+                const pages = cData.query.pages;
+                return pages[Object.keys(pages)[0]].extract?.substring(0, 1500);
+            }
+        } catch {}
+        return null;
+    }
+
+    // Ғаламтордан CORS-сыз және блокировкасыз іздеу (DuckDuckGo + AllOrigins Proxy)
+    async realWebSearch(query) {
+        try {
+            const targetUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+
+            const response = await fetch(proxyUrl);
+            const data = await response.json();
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.contents, 'text/html');
+            const results = doc.querySelectorAll('.result__snippet');
+
+            if (results.length > 0) {
+                let searchContext = '';
+                // Ең жақсы 4 нәтижені аламыз
+                results.forEach((res, index) => {
+                    if (index < 4) searchContext += res.textContent.trim() + '\n';
+                });
+                return searchContext;
+            }
+            return null;
+        } catch (e) {
+            console.error('Іздеу қатесі:', e);
+            return null;
+        }
+    }
+
+    // ИИ-ге сұраныс жіберу және контекстті қолдану
     async fetchAIResponse(prompt, signal) {
-        const webContext = await this.getWebContext(prompt);
+        let webContext = await this.getWebContext(prompt);
+        
+        // Егер Википедиядан табылмаса, DuckDuckGo-дан іздейміз
+        if (!webContext) {
+            webContext = await this.realWebSearch(prompt);
+        }
+
+        // ИИ-ге арналған құпия нұсқаулық (ол мұны көрсетпейді, тек ішіндегі ақпаратты қолданады)
+        let contextInstruction = "";
+        if (webContext) {
+            contextInstruction = `\n\n[ҚОСЫМША АҚПАРАТ/ИНТЕРНЕТТЕН ТАБЫЛҒАН ДЕРЕК]:\n${webContext}\n\nНұсқаулық: Осы ақпаратты пайдаланып, қолданушының сұрағына өз сөзіңмен, табиғи түрде жауап бер. "Мен мұны интернеттен таптым" немесе "сілтемеде былай делінген" деп айтпа. Тек өзің бұрыннан білетіндей етіп, әңгімелесуші ретінде жауап қат.`;
+        }
+
         const messages = [
-            { role: "system", content: this.systemPrompt + (webContext ? `\nContext from Wikipedia:\n${webContext}` : '') },
+            { role: "system", content: this.systemPrompt + contextInstruction },
             { role: "user", content: prompt }
         ];
         
@@ -364,38 +425,17 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
                 continue;
             }
         }
-        return "Извини, сервер перегружен. Повтори запрос позже.";
+        return "Кешір, серверде жүктеме көп болып тұр. Сәлден соң қайталап көрші.";
     }
 
-    async getWebContext(query) {
-        if (!/(что такое|кто такой|кім ол|не ол|найди|what is|who is|search for)/i.test(query)) return null;
-        try {
-            const clean = query.replace(/(пожалуйста|расскажи про|что такое|кто такой|кім ол|не ол|what is|who is)/gi, '').trim();
-            const searchUrl = `https://ru.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(clean)}&format=json&origin=*`;
-            const res = await fetch(searchUrl);
-            const data = await res.json();
-            if (data.query?.search.length > 0) {
-                const title = data.query.search[0].title;
-                const contentUrl = `https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-                const cRes = await fetch(contentUrl);
-                const cData = await cRes.json();
-                const pages = cData.query.pages;
-                return pages[Object.keys(pages)[0]].extract?.substring(0, 1500);
-            }
-        } catch {}
-        return null;
-    }
-
-    // 🎨 ЖАҢА РЕАЛИСТІК ГЕНЕРАЦИЯ — NSFW + адам фильтрімен
+    // 🎨 Сурет генерациясы (өзгеріссіз қалды)
     async generateImage(promptText) {
-        // Артық сөздерді тазалау
         const userPrompt = promptText.replace(/(нарисуй|сурет сал|сгенерируй|draw|generate image|create image|generate a picture)/gi, '').trim();
 
         if (!userPrompt) {
             return this.addMessage('❌ Промпт пуст. Напишите что хотите увидеть.', 'ai');
         }
 
-        // 🛡️ NSFW фильтр
         const nsfwWords = [
             'голый','голая','голые','нюд','nude','sex','секс','порно','порн','эротика','эротик',
             'обнажен','обнажён','интим','половой','сиськи','титьки','писюн','член','пенис',
@@ -406,7 +446,6 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             'topless','bottomless','genital','nipple','seductive','provocative','bdsm','fetish','onlyfans'
         ];
 
-        // 🚫 Адам фильтрі
         const humanWords = [
             'человек','люди','мужчина','женщина','девушка','парень','ребенок','ребёнок','дети',
             'мальчик','девочка','бабушка','дедушка','папа','мама','отец','мать','сын','дочь',
@@ -431,7 +470,6 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             return this.addMessage('🚫 Генерация людей отключена. Попробуйте: природа, животные, техника, еда, замки, космос. 🌍🐆🏰🚀', 'ai');
         }
 
-        // 🎨 Ultra Realistic промпт
         const enhanced = `${userPrompt}, ultra realistic photo, RAW, professional photography, sharp focus, natural lighting, cinematic, 8k, hyperdetailed, photorealistic, no people, no humans, no text, no watermark`;
 
         const seed = Math.floor(Math.random() * 1000000000);
@@ -443,22 +481,15 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
             try {
                 const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&nologo=true&seed=${seed}&model=${model}`;
 
-                console.log(`📸 Попытка ${model}, URL: ${imgUrl.length} символов`);
-
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 60000);
 
                 const response = await fetch(imgUrl, { signal: controller.signal });
                 clearTimeout(timeoutId);
 
-                if (!response.ok) {
-                    console.warn(`Модель ${model} вернула ${response.status}`);
-                    continue;
-                }
+                if (!response.ok) continue;
 
                 const blob = await response.blob();
-                console.log(`📸 Blob ${model}: ${blob.type}, ${blob.size} байт`);
-
                 if (blob.type.startsWith('image/') && blob.size > 1000) {
                     const img = document.createElement('img');
                     img.src = URL.createObjectURL(blob);
@@ -475,18 +506,16 @@ Your birthday is June 18, 2026. Your name honors the father of your creator.
                     dl.textContent = '💾 Скачать фото';
                     dl.style.cssText = 'display:inline-block; margin-top:10px; padding:10px 20px; background:linear-gradient(135deg,#00b86b,#008f53); color:white; border-radius:8px; text-decoration:none; font-weight:bold;';
                     msgDiv.appendChild(dl);
-
-                    console.log('✅ Фото создано!');
                     return;
                 }
             } catch (e) {
                 console.error(`❌ Модель ${model} ошибка:`, e.name, e.message);
             }
         }
-
         msgDiv.textContent = '❌ Не удалось создать фото. Попробуйте ещё раз или измените промпт.';
     }
 
+    // 🎬 Видео генерациясы (өзгеріссіз қалды)
     async generateVideo(promptText) {
         const cleanPrompt = promptText.replace(/(видео|video|сделай видео|жаса|create video|make video|generate video)/gi, '').trim();
         if (!cleanPrompt) return this.addMessage('Уточните, что должно быть на видео.', 'ai');
@@ -716,4 +745,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-    </html>
+</html>
